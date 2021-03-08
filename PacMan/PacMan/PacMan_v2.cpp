@@ -136,6 +136,7 @@ Coord NewMove(Level& level, Ghost& ghost, Coord move, Direction direction);
 bool IsTeleport(Level& level, Coord move);
 Direction RandomGhostMove(Level& level, Ghost& ghost);
 char GetSquareContentNow(Level& level, Ghost ghosts[], Coord square);
+Coord GhostTeleport(Level& level, Ghost& ghost, Coord move, Direction direction);
 
 // Player/Ghost Events and Status
 void PlayerMonsterCollision(Game& game, Level& level, Player& player, Ghost ghosts[]);
@@ -337,7 +338,7 @@ void SpawnMonster(Ghost ghosts[], Ghost ghost, bool playerDied)
         ghosts[0].prev_pos = { ghosts[0].prev_pos.row = ghosts[0].curr_pos.row, ghosts[0].prev_pos.col = ghosts[0].curr_pos.col };
         ghosts[0].curr_direction = Direction::UP;
         ghosts[0].prev_direction = Direction::UP;
-        ghosts[0].mode = Mode::CHASE;
+        ghosts[0].mode = Mode::SPAWN;
         ghosts[0].run_first_move = true;
         ghosts[0].is_edible = false;
         ghosts[0].color_on = false;
@@ -353,7 +354,7 @@ void SpawnMonster(Ghost ghosts[], Ghost ghost, bool playerDied)
         ghosts[1].prev_pos = { ghosts[1].prev_pos.row = ghosts[1].curr_pos.row, ghosts[1].prev_pos.col = ghosts[1].curr_pos.col };
         ghosts[1].curr_direction = Direction::UP;
         ghosts[1].prev_direction = Direction::UP;
-        ghosts[1].mode = Mode::CHASE;
+        ghosts[1].mode = Mode::SPAWN;
         ghosts[1].run_first_move = true;
         ghosts[1].is_edible = false;
         ghosts[1].color_on = false;
@@ -369,7 +370,7 @@ void SpawnMonster(Ghost ghosts[], Ghost ghost, bool playerDied)
         ghosts[2].prev_pos = { ghosts[2].prev_pos.row = ghosts[2].curr_pos.row, ghosts[2].prev_pos.col = ghosts[2].curr_pos.col };
         ghosts[2].curr_direction = Direction::UP;
         ghosts[2].prev_direction = Direction::UP;
-        ghosts[2].mode = Mode::CHASE;
+        ghosts[2].mode = Mode::SPAWN;
         ghosts[2].run_first_move = true;
         ghosts[2].is_edible = false;
         ghosts[2].color_on = false;
@@ -385,7 +386,7 @@ void SpawnMonster(Ghost ghosts[], Ghost ghost, bool playerDied)
         ghosts[3].prev_pos = { ghosts[3].prev_pos.row = ghosts[3].curr_pos.row, ghosts[3].prev_pos.col = ghosts[3].curr_pos.col };
         ghosts[3].curr_direction = Direction::UP;
         ghosts[3].prev_direction = Direction::UP;
-        ghosts[3].mode = Mode::CHASE;
+        ghosts[3].mode = Mode::SPAWN;
         ghosts[3].run_first_move = true;
         ghosts[3].is_edible = false;
         ghosts[3].color_on = false;
@@ -898,19 +899,19 @@ Coord NewMove(Level& level, Ghost& ghost, Coord move, Direction direction)
     switch (direction)
     {
     case Direction::UP:
-        (level.tp_row && move.row == level.tp_1.row && move.col == level.tp_1.col) ? newCoord.row = level.tp_2.row : newCoord.row = move.row - 1;
+        (level.tp_row && IsTeleport(level, move)) ? newCoord.row = move.row - 1 : newCoord.row = move.row - 1;
         newCoord.col = move.col;
         break;
     case  Direction::DOWN:
-        (level.tp_row && move.row == level.tp_2.row && move.col == level.tp_2.col) ? newCoord.row = level.tp_1.row : newCoord.row = move.row + 1;
+        (level.tp_row && IsTeleport(level, move)) ? newCoord.row = move.row + 1 : newCoord.row = move.row + 1;
         newCoord.col = move.col;
         break;
     case Direction::LEFT:
-        (!level.tp_row && move.row == level.tp_1.row && move.col == level.tp_1.col) ? newCoord.col = level.tp_2.col : newCoord.col = move.col - 1;
+        (level.tp_row && IsTeleport(level, move)) ? newCoord.col = GhostTeleport(level, ghost, move, direction).col : newCoord.col = move.col - 1;
         newCoord.row = move.row;
         break;
     case  Direction::RIGHT:
-        (!level.tp_row && move.row == level.tp_2.row && move.col == level.tp_2.col) ? newCoord.col = level.tp_1.col : newCoord.col = move.col + 1;
+        (level.tp_row && IsTeleport(level, move)) ? newCoord.col = GhostTeleport(level, ghost, move, direction).col : newCoord.col = move.col + 1;
         newCoord.row = move.row;
         break;
     }
@@ -1006,8 +1007,35 @@ bool IsTeleport(Level& level, Coord move)
         return true;
     return false;
 }
+Coord GhostTeleport(Level& level, Ghost& ghost, Coord move, Direction direction)
+{
+    if (level.tp_1.row == move.row && level.tp_1.col == move.col && ghost.prev_pos.col != level.tp_1.col)
+        if(direction == Direction::LEFT)
+            return { level.tp_2.row, level.tp_2.col };
+        else
+            return { move.row, move.col + 1 };
+
+    if (level.tp_2.row == move.row && level.tp_2.col == move.col && ghost.prev_pos.col != level.tp_2.col)
+        if (direction == Direction::RIGHT)
+            return { level.tp_1.row, level.tp_1.col };
+        else
+            return { move.row, move.col - 1 };
+    return move;
+}
 Direction RandomGhostMove(Level& level, Ghost& ghost)
 {
+    if (ghost.curr_pos.row == level.tp_1.row && ghost.curr_pos.col == level.tp_1.col)
+    {
+        // stop
+        int test = 1;
+    }
+
+    if (ghost.curr_pos.row == level.tp_2.row && ghost.curr_pos.col == level.tp_2.col)
+    {
+        // stop
+        int test = 1;
+    }
+
     Direction newDirection = Direction::NONE;
     Coord move = { move.row = ghost.curr_pos.row, move.col = ghost.curr_pos.col };
     int unsigned seed = (int)(std::chrono::system_clock::now().time_since_epoch().count());
@@ -1035,7 +1063,24 @@ Direction RandomGhostMove(Level& level, Ghost& ghost)
     do
     {
         int randomNumber = rand() % 4; //generate random number to select from the 4 possible options
-        !ghost.run_first_move ? newDirection = static_cast<Direction>(randomNumber) : newDirection;
+        if (!ghost.run_first_move)
+        {
+            if (IsTeleport(level, move))
+            {
+                if (ghost.curr_direction == Direction::LEFT)
+                {
+                    newDirection = Direction::RIGHT;
+                }
+                else
+                {
+                    newDirection = Direction::LEFT;
+                }
+            }
+            else
+            {
+                newDirection = static_cast<Direction>(randomNumber);
+            }
+        }
         if (CanMove(level, ghost, move, newDirection, ghost.curr_direction))
             return newDirection;
     } while (true);
@@ -1117,8 +1162,6 @@ void DoMonsterMove(Level& level, Player& player, Ghost ghosts[], Ghost& ghost, D
 {
     ghost.prev_pos.row = ghost.curr_pos.row;
     ghost.prev_pos.col = ghost.curr_pos.col;
-
-    // if there is a another 
     ghost.square_content_prior = ghost.square_content_now;
 
     switch (bestMove)
@@ -1130,6 +1173,7 @@ void DoMonsterMove(Level& level, Player& player, Ghost ghosts[], Ghost& ghost, D
         break;
     case Direction::RIGHT: // right
         ghost.square_content_now = GetSquareContentNow(level, ghosts, { ghost.curr_pos.row, ghost.curr_pos.col + 1 });
+        //IsTeleport(level, { ghost.curr_pos.row, ghost.curr_pos.col+1 }) ? GhostTeleport(level, ghost, { ghost.curr_pos.row, ghost.curr_pos.col + 1 }, bestMove).col : ghost.curr_pos.col++;
         ghost.curr_pos.col++;
         ghost.curr_direction = Direction::RIGHT;
         break;
@@ -1140,6 +1184,7 @@ void DoMonsterMove(Level& level, Player& player, Ghost ghosts[], Ghost& ghost, D
         break;
     case Direction::LEFT: // left
         ghost.square_content_now = GetSquareContentNow(level, ghosts, { ghost.curr_pos.row, ghost.curr_pos.col - 1 });
+        //IsTeleport(level, { ghost.curr_pos.row, ghost.curr_pos.col + 1 }) ? GhostTeleport(level, ghost, { ghost.curr_pos.row, ghost.curr_pos.col + 1 }, bestMove).col : ghost.curr_pos.col--;
         ghost.curr_pos.col--;
         ghost.curr_direction = Direction::LEFT;
         break;
@@ -1151,21 +1196,27 @@ void DoMonsterMove(Level& level, Player& player, Ghost ghosts[], Ghost& ghost, D
 
     // if the mosnter is over the player save a blank space to buffer
     CheckCollision(player, ghost) ? ghost.square_content_now = ' ' : ghost.square_content_now;
+
 }
 char GetSquareContentNow(Level& level, Ghost ghosts[], Coord square)
 {
-    for (int g = 0; g < 4; g++) // loop ghosts
+    switch (level.map[square.row][square.col])
     {
-        if (ghosts[g].curr_pos.row == square.row && ghosts[g].curr_pos.col == square.col)
-        {
-            return(ghosts[g].square_content_now);
-        }
-        else
-        {
+        case '.':
+        case 'o':
+        case ' ':
             return(level.map[square.row][square.col]);
-        }
+        case 'R':
+            return ghosts[0].square_content_now;
+        case 'Y':
+            return ghosts[1].square_content_now;
+        case 'O':
+            return ghosts[2].square_content_now;
+        case 'P':
+            return ghosts[3].square_content_now;
+        default:
+            return(level.map[square.row][square.col]);
     }
-    return ' ';
 }
 
 // Player/Ghost Events and Status
