@@ -90,10 +90,15 @@ struct Level {
     int roam_count = 5;
     int roam_for = 15; // seconds
     int chase_for = 15; // seconds
-    high_resolution_clock::time_point time_start = chrono::high_resolution_clock::now();
+    int run_for = 25; // seconds
+    high_resolution_clock::time_point roam_time_start = chrono::high_resolution_clock::now();
+    high_resolution_clock::time_point chase_time_start = chrono::high_resolution_clock::now();
+    high_resolution_clock::time_point run_time_start = chrono::high_resolution_clock::now();
     high_resolution_clock::time_point time_now = chrono::high_resolution_clock::now();
-    duration<double> roam_duration = duration_cast<duration<double>>(time_start - time_now);
-    duration<double> chase_duration = duration_cast<duration<double>>(time_start - time_now);
+    duration<double> roam_duration = duration_cast<duration<double>>(roam_time_start - time_now);
+    duration<double> chase_duration = duration_cast<duration<double>>(chase_time_start - time_now);
+    duration<double> run_duration = duration_cast<duration<double>>(run_time_start - time_now);
+    Mode level_mode = Mode::CHASE;
 };
 struct Game {
     bool game_over = false;
@@ -142,7 +147,6 @@ Coord GhostTeleport(Level& level, Ghost& ghost, Coord move, Direction direction)
 void PlayerMonsterCollision(Game& game, Level& level, Player& player, Ghost ghosts[]);
 bool CheckCollision(Player& player, Ghost& ghost);
 void SetPlayerState(Game& game, Level& level, Player& player, Ghost ghosts[]);
-void SetSuperPlayer(Game& game, Level& level, Player& player, Ghost ghosts[]);
 void SetGhostMode(Level& level, Player& player, Ghost ghosts[]);
 
 // Game management
@@ -189,9 +193,6 @@ int main()
         // process any player / ghost collision
         PlayerMonsterCollision(game, level, player, ghosts);
 
-        // set the player to normal or super player if he powers up
-        SetSuperPlayer(game, level, player, ghosts);
-
         // set ghost chase modes as approprite
         SetGhostMode(level, player, ghosts);
 
@@ -229,12 +230,12 @@ void SetUp(Game& game, Level& level, Player& player, Ghost ghosts[])
 {
     // spawn ghost
     SpawnMonster(ghosts);
-
-    // start time for ghost roam mode - every 15 seconds after chase mode
-    level.time_start = chrono::high_resolution_clock::now();
-
+    
     // initialize array and set default player values
     CreateLevelScene(level, player, ghosts);
+
+    // start time for ghost chase mode
+    level.chase_time_start = chrono::high_resolution_clock::now();
 }
 void SpawnMonster(Ghost ghosts[])
 {
@@ -343,7 +344,7 @@ void SpawnMonster(Ghost ghosts[], Ghost ghost, bool playerDied)
         ghosts[0].is_edible = false;
         ghosts[0].color_on = false;
         ghosts[0].color = 71;
-        ghosts[0].wait = (playerDied ? 15 : 25);
+        ghosts[0].wait = (playerDied ? 15 : 6);
         ghosts[0].skip_turn = false; // use this to slow down moster if edible
         break;
     case 'Y':
@@ -359,7 +360,7 @@ void SpawnMonster(Ghost ghosts[], Ghost ghost, bool playerDied)
         ghosts[1].is_edible = false;
         ghosts[1].color_on = false;
         ghosts[1].color = 367;
-        ghosts[1].wait = (playerDied ? 30 : 25);
+        ghosts[1].wait = (playerDied ? 30 : 6);
         ghosts[1].skip_turn = false; // use this to slow down moster if edible
         break;
     case 'O':
@@ -375,7 +376,7 @@ void SpawnMonster(Ghost ghosts[], Ghost ghost, bool playerDied)
         ghosts[2].is_edible = false;
         ghosts[2].color_on = false;
         ghosts[2].color = 435;
-        ghosts[2].wait = (playerDied ? 45 : 25);
+        ghosts[2].wait = (playerDied ? 45 : 6);
         ghosts[2].skip_turn = false; // use this to slow down moster if edible
         break;
     case 'P':
@@ -391,7 +392,7 @@ void SpawnMonster(Ghost ghosts[], Ghost ghost, bool playerDied)
         ghosts[3].is_edible = false;
         ghosts[3].color_on = false;
         ghosts[3].color = 479;
-        ghosts[3].wait = (playerDied ? 60 : 25);
+        ghosts[3].wait = (playerDied ? 60 : 6);
         ghosts[3].skip_turn = false; // use this to slow down moster if edible
         break;
     }
@@ -1220,28 +1221,6 @@ char GetSquareContentNow(Level& level, Ghost ghosts[], Coord square)
 }
 
 // Player/Ghost Events and Status
-void SetSuperPlayer(Game& game, Level& level, Player& player, Ghost ghosts[])
-{
-    game.g_t_now = chrono::high_resolution_clock::now(); // check the time now
-    game.time_span = duration_cast<duration<double>>(game.g_t_now - game.g_t_start); // calc time difference
-    
-    for (int g = 0; g < 4; g++) // loop ghosts
-    {
-        if (ghosts[g].is_edible)
-        {
-            ghosts[g].skip_turn = !ghosts[g].skip_turn; // when ghost is edible slow him down
-            if (game.time_span.count() >= level.edible_ghost_duration) { // if is edible has expired reset
-                ghosts[g].is_edible = false;
-                ghosts[g].run_first_move = true;
-                ghosts[g].mode = Mode::CHASE;
-            }
-        }
-        else
-        {
-            ghosts[g].skip_turn = false;
-        }
-    }
-}
 void SetPlayerState(Game& game, Level& level, Player& player, Ghost ghosts[])
 {
     char levelObj = level.map[player.curr_pos.row][player.curr_pos.col];
@@ -1251,42 +1230,107 @@ void SetPlayerState(Game& game, Level& level, Player& player, Ghost ghosts[])
         level.eaten_pellets++;
         break;
     case 'o': // eat power up
+        level.level_mode = Mode::RUN;
+        level.run_time_start = chrono::high_resolution_clock::now();
+        level.eaten_pellets++;
         for (int g = 0; g < 4; g++) // loop ghosts
         {
-            ghosts[g].curr_pos.col != ghosts[g].spawn_pos.col ? ghosts[g].is_edible = true : ghosts[g].is_edible = false; // ghost only edible on power up if out of spwan area
+            ghosts[g].mode != Mode::SPAWN ? ghosts[g].is_edible = true : ghosts[g].is_edible = false; // ghost only edible on power up if out of spwan area
             ghosts[g].is_edible ? ghosts[g].mode = Mode::RUN : ghosts[g].mode = ghosts[g].mode;
+            ghosts[g].run_first_move = true;
         }
-        game.g_t_start = chrono::high_resolution_clock::now();
-        level.eaten_pellets++;
         break;
     }
 }
 void SetGhostMode(Level& level, Player& player, Ghost ghosts[])
 {
-    // refactor - there could be some funny things happening with time here although not sure it wil be noticed in game.
-    for (int g = 0; g < 4; g++) // loop ghosts
+    switch (level.level_mode)
     {
-        if (ghosts[g].mode == Mode::CHASE || ghosts[g].mode == Mode::SPAWN) {
-            level.chase_duration = duration_cast<duration<double>>(level.time_start - chrono::high_resolution_clock::now());
-            if (abs(level.chase_duration.count()) > level.chase_for && level.roam_count > 0) // will roam four times only
-            {
-                level.roam_count--;
-                ghosts[g].mode = Mode::ROAM;
-                level.time_start = chrono::high_resolution_clock::now();
-            }
-        }
+   
+    // set chase mode stuff
+    case Mode::CHASE:
+        level.chase_duration = duration_cast<duration<double>>(level.chase_time_start - chrono::high_resolution_clock::now());
+        if (abs(level.chase_duration.count()) > level.chase_for && level.roam_count > 0)
+        {
+            level.roam_count--;
+            level.level_mode = Mode::ROAM;
+            level.roam_time_start = chrono::high_resolution_clock::now();
 
-        if (ghosts[g].mode == Mode::ROAM) {
-            level.roam_duration = duration_cast<duration<double>>(level.time_start - chrono::high_resolution_clock::now());
-            if (abs(level.roam_duration.count()) > level.roam_for)
-            {
-                ghosts[g].mode = Mode::CHASE;
-                level.time_start = chrono::high_resolution_clock::now();
+            for (int g = 0; g < 4; g++) {
+                switch (ghosts[g].mode)
+                {
+                case Mode::ROAM:
+                case Mode::CHASE:
+                    ghosts[g].mode = Mode::ROAM;
+                    break;
+                case Mode::RUN:
+                case Mode::SPAWN:
+                    ghosts[g].mode = ghosts[g].mode;
+                    break;
+                }
             }
         }
-        if (ghosts[g].mode == Mode::RUN) {
-            level.time_start = chrono::high_resolution_clock::now();
+        break;
+    
+    // set roam mode stuff
+    case Mode::ROAM:
+        level.roam_duration = duration_cast<duration<double>>(level.roam_time_start - chrono::high_resolution_clock::now());
+
+        if (abs(level.roam_duration.count()) > level.roam_for)
+        {
+            level.level_mode = Mode::CHASE;
+            level.chase_time_start = chrono::high_resolution_clock::now();
+
+            for (int g = 0; g < 4; g++) {
+                switch (ghosts[g].mode)
+                {
+                case Mode::ROAM:
+                    ghosts[g].mode = Mode::CHASE;
+                    break;
+                case Mode::CHASE:
+                case Mode::RUN:
+                case Mode::SPAWN:
+                    ghosts[g].mode = ghosts[g].mode;
+                }
+            }
         }
+        break;
+
+    // set run mode stuff
+    case Mode::RUN:
+        level.run_duration = duration_cast<duration<double>>(level.run_time_start - chrono::high_resolution_clock::now());
+        if (abs(level.run_duration.count()) > level.run_for) // end the run mode
+        {
+            level.level_mode = Mode::CHASE;
+            level.chase_time_start = chrono::high_resolution_clock::now();
+
+            for (int g = 0; g < 4; g++) {
+                switch (ghosts[g].mode)
+                {
+                case Mode::RUN:
+                case Mode::ROAM:
+                    ghosts[g].mode = Mode::CHASE;
+                    break;
+                case Mode::CHASE:
+                case Mode::SPAWN:
+                    ghosts[g].mode = ghosts[g].mode;
+                }
+                ghosts[g].skip_turn = !ghosts[g].skip_turn; // when ghost is edible slow him down
+                ghosts[g].is_edible = false;
+                ghosts[g].run_first_move = true;
+            }
+        }
+        else // set the ghosts states while in run mode - some ghots can be in run mode and others in chase mode
+        {
+            for (int g = 0; g < 4; g++) {
+                if (ghosts[g].is_edible)
+                    ghosts[g].skip_turn = !ghosts[g].skip_turn; // when ghost is edible slow him down
+                else
+                    ghosts[g].skip_turn = false;
+            }
+
+        }
+        break;
     }
 
 }
@@ -1312,16 +1356,19 @@ void PlayerMonsterCollision(Game& game, Level& level, Player& player, Ghost ghos
             {
                 // player dies
                 player_died = true;
-
-                // if in ghosts in roam mode and player dies add one count to roam mode so it haappens again
-                ghosts[g].mode == Mode::ROAM ? level.roam_count++ : level.roam_count;
-                
             }
         }
     }
 
     if (player_died) {
         
+        // rest the roam count by adding one back to the count
+        level.level_mode == Mode::ROAM ? level.roam_count++ : level.roam_count;
+
+        // set the level mode to chase
+        level.level_mode = Mode::CHASE;
+        level.chase_time_start = chrono::high_resolution_clock::now();
+
         // end game or respawn player if no lives left
         player.lives--;
         if (player.lives > 0)
