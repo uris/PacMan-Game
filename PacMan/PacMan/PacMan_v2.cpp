@@ -87,8 +87,8 @@ struct Level {
     string author = "Uris D";
     static constexpr char chr_powerup = 'o';
     static constexpr char chr_pellet = '.';
-    int roam_count = 4;
-    int roam_for = 10; // seconds
+    int roam_count = 5;
+    int roam_for = 15; // seconds
     int chase_for = 15; // seconds
     high_resolution_clock::time_point time_start = chrono::high_resolution_clock::now();
     high_resolution_clock::time_point time_now = chrono::high_resolution_clock::now();
@@ -268,7 +268,7 @@ void SpawnMonster(Monster ghosts[])
     ghosts[1].prev_pos = { ghosts[1].prev_pos.row = 0, ghosts[1].prev_pos.col = 0 };
     ghosts[1].spawn_target = { ghosts[1].spawn_target.row = 10, ghosts[1].spawn_target.col = 22 }; // just above spawn area
     ghosts[1].roam_target = { ghosts[1].roam_target.row = 24, ghosts[1].roam_target.col = 2 }; // roams to top right hand side
-    ghosts[1].chase_mod = { ghosts[1].chase_mod.row = 0, ghosts[1].chase_mod.col = 3 };
+    ghosts[1].chase_mod = { ghosts[1].chase_mod.row = 0, ghosts[1].chase_mod.col = 4 };
     ghosts[1].curr_direction = Direction::UP;
     ghosts[1].prev_direction = Direction::UP;
     ghosts[1].mode = Mode::CHASE;
@@ -290,7 +290,7 @@ void SpawnMonster(Monster ghosts[])
     ghosts[2].prev_pos = { ghosts[2].prev_pos.row = 0, ghosts[2].prev_pos.col = 0 };
     ghosts[2].spawn_target = { ghosts[2].spawn_target.row = 10, ghosts[2].spawn_target.col = 22 }; // just above spawn area
     ghosts[2].roam_target = { ghosts[2].roam_target.row = -2, ghosts[2].roam_target.col = 2 }; // roams to top right hand side
-    ghosts[2].chase_mod = { ghosts[2].chase_mod.row = 0, ghosts[2].chase_mod.col = -3 };
+    ghosts[2].chase_mod = { ghosts[2].chase_mod.row = 0, ghosts[2].chase_mod.col = -4 };
     ghosts[2].curr_direction = Direction::UP;
     ghosts[2].prev_direction = Direction::UP;
     ghosts[2].mode = Mode::CHASE;
@@ -312,7 +312,7 @@ void SpawnMonster(Monster ghosts[])
     ghosts[3].prev_pos = { ghosts[3].prev_pos.row = 0, ghosts[3].prev_pos.col = 0 };
     ghosts[3].spawn_target = { ghosts[3].spawn_target.row = 10, ghosts[3].spawn_target.col = 22 }; // just above spawn area
     ghosts[3].roam_target = { ghosts[3].roam_target.row = 24, ghosts[3].roam_target.col = 45 }; // roams to top right hand side
-    ghosts[3].chase_mod = { ghosts[3].chase_mod.row = -3, ghosts[3].chase_mod.col = 0 };
+    ghosts[3].chase_mod = { ghosts[3].chase_mod.row = -4, ghosts[3].chase_mod.col = 0 };
     ghosts[3].curr_direction = Direction::UP;
     ghosts[3].prev_direction = Direction::UP;
     ghosts[3].mode = Mode::CHASE;
