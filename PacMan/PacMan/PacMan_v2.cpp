@@ -44,8 +44,8 @@ struct Player {
     int lives = 3;
     int score = 0;
 };
-struct Monster {
-    char monster = 'R';
+struct Ghost {
+    char ghost = 'R';
     char square_content_now = ' ';
     char square_content_prior = square_content_now;
     Coord curr_pos = { curr_pos.row = 0, curr_pos.col = 0 };
@@ -112,37 +112,37 @@ struct Game {
 // Functions -->
 
 // level setup, display and management
-void SetUp(Game& game, Level& level, Player& player, Monster ghosts[]);
-void CreateLevelScene(Level& level, Player& player, Monster ghosts[]);
-void DrawLevel(Game& game, Level& level, Player& player, Monster ghosts[]);
-void StatusBar(Game& game, Level& level, Player& player, Monster ghosts[]);
-void SpawnMonster(Monster ghosts[]);
-void SpawnMonster(Monster ghosts[], Monster ghost, bool playerDied);
+void SetUp(Game& game, Level& level, Player& player, Ghost ghosts[]);
+void CreateLevelScene(Level& level, Player& player, Ghost ghosts[]);
+void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[]);
+void StatusBar(Game& game, Level& level, Player& player, Ghost ghosts[]);
+void SpawnMonster(Ghost ghosts[]);
+void SpawnMonster(Ghost ghosts[], Ghost ghost, bool playerDied);
 void SpawnPlayer(Player& player);
 
 // Player movement
 void GetPlayerDirection(Game& game, Level& level, Player& player);
-void MovePlayer(Game& game, Level& level, Player& player, Monster ghosts[]);
-void KeepMovePlayer(Game& game, Level& level, Player& player, Monster ghosts[]);
+void MovePlayer(Game& game, Level& level, Player& player, Ghost ghosts[]);
+void KeepMovePlayer(Game& game, Level& level, Player& player, Ghost ghosts[]);
 bool PlayerCanMove(Level& level, int newPRow, int newPCol);
 
 // Ghost movement
-int MoveMonster(Game& game, Level& level, Player& player, Monster& monster, Monster ghosts[]);
-void DoMonsterMove(Level& level, Player& player, Monster ghosts[], Monster& ghost, Direction bestMove);
-int GetBestMove(Level& level, Player& player, Monster& monster, Coord move, Direction curr_direction, int depth, bool isGhost);
+int MoveMonster(Game& game, Level& level, Player& player, Ghost& ghost, Ghost ghosts[]);
+void DoMonsterMove(Level& level, Player& player, Ghost ghosts[], Ghost& ghost, Direction bestMove);
+int GetBestMove(Level& level, Player& player, Ghost& ghost, Coord move, Direction curr_direction, int depth, bool isGhost);
 bool NotWall(Level& level, Coord move, Direction direction);
-bool CanMove(Level& level, Monster& monster, Coord move, Direction direction, Direction curr_direction);
-Coord NewMove(Level& level, Monster& monster, Coord move, Direction direction);
+bool CanMove(Level& level, Ghost& ghost, Coord move, Direction direction, Direction curr_direction);
+Coord NewMove(Level& level, Ghost& ghost, Coord move, Direction direction);
 bool IsTeleport(Level& level, Coord move);
-Direction RandomGhostMove(Level& level, Monster& monster);
-char GetSquareContentNow(Level& level, Monster ghosts[], Coord square);
+Direction RandomGhostMove(Level& level, Ghost& ghost);
+char GetSquareContentNow(Level& level, Ghost ghosts[], Coord square);
 
-// Player/Monster Events and Status
-void PlayerMonsterCollision(Game& game, Level& level, Player& player, Monster ghosts[]);
-bool CheckCollision(Player& player, Monster& ghost);
-void SetPlayerState(Game& game, Level& level, Player& player, Monster ghosts[]);
-void SetSuperPlayer(Game& game, Level& level, Player& player, Monster ghosts[]);
-void SetGhostMode(Level& level, Player& player, Monster ghosts[]);
+// Player/Ghost Events and Status
+void PlayerMonsterCollision(Game& game, Level& level, Player& player, Ghost ghosts[]);
+bool CheckCollision(Player& player, Ghost& ghost);
+void SetPlayerState(Game& game, Level& level, Player& player, Ghost ghosts[]);
+void SetSuperPlayer(Game& game, Level& level, Player& player, Ghost ghosts[]);
+void SetGhostMode(Level& level, Player& player, Ghost ghosts[]);
 
 // Game management
 void CheckLevelComplete(Level& level);
@@ -154,7 +154,7 @@ string TransformString(string text, int operation);
 void SetColor(int color);
 void ShowColors(int colors);
 void TopLeft(int rows);
-string GhostMode(Monster& monster);
+string GhostMode(Ghost& ghost);
 
 // ************
 // MAIN PROGRAM
@@ -165,8 +165,8 @@ int main()
     Game game;
     Level level;
     Player player;
-    Monster redGhost, yellowGhost, orangeGhost, pinkGhost;
-    Monster ghosts[4] = { redGhost, yellowGhost, orangeGhost, pinkGhost };
+    Ghost redGhost, yellowGhost, orangeGhost, pinkGhost;
+    Ghost ghosts[4] = { redGhost, yellowGhost, orangeGhost, pinkGhost };
     bool skip_turn = false;
 
     //ShowColors(500); // find colors to use
@@ -185,7 +185,7 @@ int main()
         // move the player
         MovePlayer(game, level, player, ghosts);
 
-        // process any player / monster collision
+        // process any player / ghost collision
         PlayerMonsterCollision(game, level, player, ghosts);
 
         // set the player to normal or super player if he powers up
@@ -194,10 +194,10 @@ int main()
         // set ghost chase modes as approprite
         SetGhostMode(level, player, ghosts);
 
-        //// move the monster
+        //// move the ghost
         MoveMonster(game, level, player, redGhost, ghosts);
 
-        // process any player / monster collision again
+        // process any player / ghost collision again
         PlayerMonsterCollision(game, level, player, ghosts);
 
         // delay render if there's a collision
@@ -224,9 +224,9 @@ int main()
 }
 
 // level setup, display and management
-void SetUp(Game& game, Level& level, Player& player, Monster ghosts[])
+void SetUp(Game& game, Level& level, Player& player, Ghost ghosts[])
 {
-    // spawn monster
+    // spawn ghost
     SpawnMonster(ghosts);
 
     // start time for ghost roam mode - every 15 seconds after chase mode
@@ -235,10 +235,10 @@ void SetUp(Game& game, Level& level, Player& player, Monster ghosts[])
     // initialize array and set default player values
     CreateLevelScene(level, player, ghosts);
 }
-void SpawnMonster(Monster ghosts[])
+void SpawnMonster(Ghost ghosts[])
 {
     // spawn red ghost
-    ghosts[0].monster = 'R';
+    ghosts[0].ghost = 'R';
     ghosts[0].square_content_now = ' ';
     ghosts[0].square_content_prior = ghosts[0].square_content_now;
     ghosts[0].curr_pos = { ghosts[0].curr_pos.row = 0, ghosts[0].curr_pos.col = 0 };
@@ -260,7 +260,7 @@ void SpawnMonster(Monster ghosts[])
     ghosts[0].look_ahead = 5; // how far ahead the IA looks for player
 
     // spawn yellow ghost
-    ghosts[1].monster = 'Y';
+    ghosts[1].ghost = 'Y';
     ghosts[1].square_content_now = ' ';
     ghosts[1].square_content_prior = ghosts[1].square_content_now;
     ghosts[1].curr_pos = { ghosts[1].curr_pos.row = 0, ghosts[1].curr_pos.col = 0 };
@@ -282,7 +282,7 @@ void SpawnMonster(Monster ghosts[])
     ghosts[1].look_ahead = 5; // how far ahead the IA looks for player
 
     // spawn blue ghost
-    ghosts[2].monster = 'O';
+    ghosts[2].ghost = 'O';
     ghosts[2].square_content_now = ' ';
     ghosts[2].square_content_prior = ghosts[2].square_content_now;
     ghosts[2].curr_pos = { ghosts[2].curr_pos.row = 0, ghosts[2].curr_pos.col = 0 };
@@ -304,7 +304,7 @@ void SpawnMonster(Monster ghosts[])
     ghosts[2].look_ahead = 5; // how far ahead the IA looks for player
 
     // spawn pink ghost
-    ghosts[3].monster = 'P';
+    ghosts[3].ghost = 'P';
     ghosts[3].square_content_now = ' ';
     ghosts[3].square_content_prior = ghosts[3].square_content_now;
     ghosts[3].curr_pos = { ghosts[3].curr_pos.row = 0, ghosts[3].curr_pos.col = 0 };
@@ -325,9 +325,9 @@ void SpawnMonster(Monster ghosts[])
     ghosts[3].skip_turn = false; // use this to slow down moster if edible
     ghosts[3].look_ahead = 5; // how far ahead the IA looks for player
 }
-void SpawnMonster(Monster ghosts[], Monster ghost, bool playerDied)
+void SpawnMonster(Ghost ghosts[], Ghost ghost, bool playerDied)
 {
-    switch (ghost.monster)
+    switch (ghost.ghost)
     {
     case 'R':
         // spawn red ghost
@@ -397,7 +397,7 @@ void SpawnMonster(Monster ghosts[], Monster ghost, bool playerDied)
 
     
 }
-void CreateLevelScene(Level& level, Player& player, Monster ghosts[])
+void CreateLevelScene(Level& level, Player& player, Ghost ghosts[])
 {
     // create string with the level - this makes it easier to convert a string diagram to a level array
     // must be of the level dimensions 17 rows by 23 cols
@@ -449,10 +449,10 @@ void CreateLevelScene(Level& level, Player& player, Monster ghosts[])
             level.total_pellets++;
         }
 
-        // Set Monster start position
+        // Set Ghost start position
         for (int g = 0; g < 4; g++) // loop through ghosts
         {
-            if (map[i] == ghosts[g].monster)
+            if (map[i] == ghosts[g].ghost)
             {
                 ghosts[g].spawn_pos.row = ghosts[g].curr_pos.row = ghosts[g].prev_pos.row = t_row;
                 ghosts[g].spawn_pos.col = ghosts[g].curr_pos.col = ghosts[g].prev_pos.col = t_col;
@@ -502,7 +502,7 @@ void SpawnPlayer(Player& player)
     player.is_super = false;
     player.color_on = false;
 }
-void DrawLevel(Game& game, Level& level, Player& player, Monster ghosts[])
+void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[])
 {
     
     for (int r = 0; r < level.rows; r++)
@@ -546,7 +546,7 @@ void DrawLevel(Game& game, Level& level, Player& player, Monster ghosts[])
         if (ghosts[g].prev_pos.row != ghosts[g].curr_pos.row || ghosts[g].prev_pos.col != ghosts[g].curr_pos.col)
             level.map[ghosts[g].prev_pos.row][ghosts[g].prev_pos.col] = ' ';
         
-        // monster in tunnel
+        // ghost in tunnel
         if (ghosts[g].curr_pos.row == 12 && ghosts[g].curr_pos.col == 0) {
             level.map[ghosts[g].curr_pos.row][ghosts[g].curr_pos.col] = 'T';
             ghosts[g].curr_pos.col = 46;
@@ -573,7 +573,7 @@ void DrawLevel(Game& game, Level& level, Player& player, Monster ghosts[])
             {
                 // position ghost
                 if (r == ghosts[g].curr_pos.row && c == ghosts[g].curr_pos.col)
-                    level.map[r][c] = ghosts[g].monster;
+                    level.map[r][c] = ghosts[g].ghost;
 
                 // if the ghost moved from the last position
                 if (ghosts[g].prev_pos.row != ghosts[g].curr_pos.row || ghosts[g].prev_pos.col != ghosts[g].curr_pos.col)
@@ -651,7 +651,7 @@ void DrawLevel(Game& game, Level& level, Player& player, Monster ghosts[])
         cout << endl;
     }
 }
-void StatusBar(Game& game, Level& level, Player& player, Monster ghosts[])
+void StatusBar(Game& game, Level& level, Player& player, Ghost ghosts[])
 {
     // get number of lives
     string lives;
@@ -684,7 +684,7 @@ void StatusBar(Game& game, Level& level, Player& player, Monster ghosts[])
 }
 
 // Player movement
-void MovePlayer(Game& game, Level& level, Player& player, Monster ghosts[])
+void MovePlayer(Game& game, Level& level, Player& player, Ghost ghosts[])
 {
     player.prev_pos.row = player.curr_pos.row;
     player.prev_pos.col = player.curr_pos.col;
@@ -767,7 +767,7 @@ void GetPlayerDirection(Game& game, Level& level, Player& player)
         }
     } while (!level.is_complete && !game.game_over);
 }
-void KeepMovePlayer(Game& game, Level& level, Player& player, Monster ghosts[])
+void KeepMovePlayer(Game& game, Level& level, Player& player, Ghost ghosts[])
 {
     player.prev_pos.row = player.curr_pos.row;
     player.prev_pos.col = player.curr_pos.col;
@@ -820,8 +820,8 @@ bool PlayerCanMove(Level& level, int newPRow, int newPCol)
     return false;
 }
 
-// Monster movement
-int GetBestMove(Level& level, Player& player, Monster& ghost, Coord move, Direction curr_direction, int depth, bool isGhost)
+// Ghost movement
+int GetBestMove(Level& level, Player& player, Ghost& ghost, Coord move, Direction curr_direction, int depth, bool isGhost)
 {
     // calculate based on the ghost mode
     // and on the target the ghost chases: red chases player pos, yellow player pos + 2 cols (to the right of player)
@@ -890,7 +890,7 @@ int GetBestMove(Level& level, Player& player, Monster& ghost, Coord move, Direct
     }
 
 }
-Coord NewMove(Level& level, Monster& monster, Coord move, Direction direction)
+Coord NewMove(Level& level, Ghost& ghost, Coord move, Direction direction)
 {
     // based on direction, calc new coord of the move and return it
     // if moving from a teleport to a teleport make the jump based on whether the teleport is horizontal or vertical
@@ -916,7 +916,7 @@ Coord NewMove(Level& level, Monster& monster, Coord move, Direction direction)
     }
     return newCoord;
 }
-bool CanMove(Level& level, Monster& monster, Coord move, Direction direction, Direction curr_direction)
+bool CanMove(Level& level, Ghost& ghost, Coord move, Direction direction, Direction curr_direction)
 {
     // can only do one reverse move if on the run otherwsie no reverse moves
     switch (direction)
@@ -924,8 +924,8 @@ bool CanMove(Level& level, Monster& monster, Coord move, Direction direction, Di
     case  Direction::UP:
         if (curr_direction == Direction::DOWN)
         {
-            if (monster.mode == Mode::RUN && monster.run_first_move)
-                monster.run_first_move = false;
+            if (ghost.mode == Mode::RUN && ghost.run_first_move)
+                ghost.run_first_move = false;
             else
                 return false;
         }
@@ -933,8 +933,8 @@ bool CanMove(Level& level, Monster& monster, Coord move, Direction direction, Di
     case  Direction::DOWN:
         if (curr_direction == Direction::UP)
         {
-            if (monster.mode == Mode::RUN && monster.run_first_move)
-                monster.run_first_move = false;
+            if (ghost.mode == Mode::RUN && ghost.run_first_move)
+                ghost.run_first_move = false;
             else
                 return false;
         }
@@ -942,8 +942,8 @@ bool CanMove(Level& level, Monster& monster, Coord move, Direction direction, Di
     case  Direction::LEFT:
         if (curr_direction == Direction::RIGHT)
         {
-            if (monster.mode == Mode::RUN && monster.run_first_move)
-                monster.run_first_move = false;
+            if (ghost.mode == Mode::RUN && ghost.run_first_move)
+                ghost.run_first_move = false;
             else
                 return false;
         }
@@ -951,8 +951,8 @@ bool CanMove(Level& level, Monster& monster, Coord move, Direction direction, Di
     case  Direction::RIGHT:
         if (curr_direction == Direction::LEFT)
         {
-            if (monster.mode == Mode::RUN && monster.run_first_move)
-                monster.run_first_move = false;
+            if (ghost.mode == Mode::RUN && ghost.run_first_move)
+                ghost.run_first_move = false;
             else
                 return false;
         }
@@ -963,16 +963,16 @@ bool CanMove(Level& level, Monster& monster, Coord move, Direction direction, Di
     switch (direction)
     {
     case  Direction::UP:
-        return (NotWall(level, NewMove(level, monster, move, Direction::UP), Direction::UP) ? true : false);
+        return (NotWall(level, NewMove(level, ghost, move, Direction::UP), Direction::UP) ? true : false);
         break;
     case  Direction::DOWN:
-        return (NotWall(level, NewMove(level, monster, move, Direction::DOWN), Direction::DOWN) ? true : false);
+        return (NotWall(level, NewMove(level, ghost, move, Direction::DOWN), Direction::DOWN) ? true : false);
         break;
     case  Direction::LEFT:
-        return (NotWall(level, NewMove(level, monster, move, Direction::LEFT), Direction::LEFT) ? true : false);
+        return (NotWall(level, NewMove(level, ghost, move, Direction::LEFT), Direction::LEFT) ? true : false);
         break;
     case  Direction::RIGHT:
-        return (NotWall(level, NewMove(level, monster, move, Direction::RIGHT), Direction::RIGHT) ? true : false);
+        return (NotWall(level, NewMove(level, ghost, move, Direction::RIGHT), Direction::RIGHT) ? true : false);
         break;
     }
 
@@ -1006,16 +1006,16 @@ bool IsTeleport(Level& level, Coord move)
         return true;
     return false;
 }
-Direction RandomGhostMove(Level& level, Monster& monster)
+Direction RandomGhostMove(Level& level, Ghost& ghost)
 {
     Direction newDirection = Direction::NONE;
-    Coord move = { move.row = monster.curr_pos.row, move.col = monster.curr_pos.col };
+    Coord move = { move.row = ghost.curr_pos.row, move.col = ghost.curr_pos.col };
     int unsigned seed = (int)(std::chrono::system_clock::now().time_since_epoch().count());
     srand(seed);
 
-    if (monster.run_first_move) {
+    if (ghost.run_first_move) {
         // first move when on the run is to reverse direction
-        switch (monster.curr_direction)
+        switch (ghost.curr_direction)
         {
         case Direction::UP:
             newDirection = Direction::DOWN;
@@ -1035,12 +1035,12 @@ Direction RandomGhostMove(Level& level, Monster& monster)
     do
     {
         int randomNumber = rand() % 4; //generate random number to select from the 4 possible options
-        !monster.run_first_move ? newDirection = static_cast<Direction>(randomNumber) : newDirection;
-        if (CanMove(level, monster, move, newDirection, monster.curr_direction))
+        !ghost.run_first_move ? newDirection = static_cast<Direction>(randomNumber) : newDirection;
+        if (CanMove(level, ghost, move, newDirection, ghost.curr_direction))
             return newDirection;
     } while (true);
 }
-int MoveMonster(Game& game, Level& level, Player& player, Monster& ghost, Monster ghosts[])
+int MoveMonster(Game& game, Level& level, Player& player, Ghost& ghost, Ghost ghosts[])
 {
     Direction bestMove = Direction::NONE; // will be the next move
 
@@ -1053,7 +1053,7 @@ int MoveMonster(Game& game, Level& level, Player& player, Monster& ghost, Monste
 
         if (ghosts[g].wait > 0)
         {
-            ghosts[g].wait--; // monster has respawned and we are counting dowm the tics to let it move
+            ghosts[g].wait--; // ghost has respawned and we are counting dowm the tics to let it move
             continue; // next ghost (no move)
         }
 
@@ -1113,7 +1113,7 @@ int MoveMonster(Game& game, Level& level, Player& player, Monster& ghost, Monste
 
     return 0; // clean exit
 }
-void DoMonsterMove(Level& level, Player& player, Monster ghosts[], Monster& ghost, Direction bestMove)
+void DoMonsterMove(Level& level, Player& player, Ghost ghosts[], Ghost& ghost, Direction bestMove)
 {
     ghost.prev_pos.row = ghost.curr_pos.row;
     ghost.prev_pos.col = ghost.curr_pos.col;
@@ -1146,13 +1146,13 @@ void DoMonsterMove(Level& level, Player& player, Monster ghosts[], Monster& ghos
     default:
         break;
     }
-    // if the sqaure the monster moved into is the player
+    // if the sqaure the ghost moved into is the player
     ghost.square_content_now == 'C' ? ghost.square_content_now = ' ' : ghost.square_content_now;
 
     // if the mosnter is over the player save a blank space to buffer
     CheckCollision(player, ghost) ? ghost.square_content_now = ' ' : ghost.square_content_now;
 }
-char GetSquareContentNow(Level& level, Monster ghosts[], Coord square)
+char GetSquareContentNow(Level& level, Ghost ghosts[], Coord square)
 {
     for (int g = 0; g < 4; g++) // loop ghosts
     {
@@ -1168,8 +1168,8 @@ char GetSquareContentNow(Level& level, Monster ghosts[], Coord square)
     return ' ';
 }
 
-// Player/Monster Events and Status
-void SetSuperPlayer(Game& game, Level& level, Player& player, Monster ghosts[])
+// Player/Ghost Events and Status
+void SetSuperPlayer(Game& game, Level& level, Player& player, Ghost ghosts[])
 {
     game.g_t_now = chrono::high_resolution_clock::now(); // check the time now
     game.time_span = duration_cast<duration<double>>(game.g_t_now - game.g_t_start); // calc time difference
@@ -1178,7 +1178,7 @@ void SetSuperPlayer(Game& game, Level& level, Player& player, Monster ghosts[])
     {
         if (ghosts[g].is_edible)
         {
-            ghosts[g].skip_turn = !ghosts[g].skip_turn; // when monster is edible slow him down
+            ghosts[g].skip_turn = !ghosts[g].skip_turn; // when ghost is edible slow him down
             if (game.time_span.count() >= level.edible_ghost_duration) { // if is edible has expired reset
                 ghosts[g].is_edible = false;
                 ghosts[g].run_first_move = true;
@@ -1191,7 +1191,7 @@ void SetSuperPlayer(Game& game, Level& level, Player& player, Monster ghosts[])
         }
     }
 }
-void SetPlayerState(Game& game, Level& level, Player& player, Monster ghosts[])
+void SetPlayerState(Game& game, Level& level, Player& player, Ghost ghosts[])
 {
     char levelObj = level.map[player.curr_pos.row][player.curr_pos.col];
     switch (levelObj)
@@ -1202,7 +1202,7 @@ void SetPlayerState(Game& game, Level& level, Player& player, Monster ghosts[])
     case 'o': // eat power up
         for (int g = 0; g < 4; g++) // loop ghosts
         {
-            ghosts[g].curr_pos.col != ghosts[g].spawn_pos.col ? ghosts[g].is_edible = true : ghosts[g].is_edible = false; // monster only edible on power up if out of spwan area
+            ghosts[g].curr_pos.col != ghosts[g].spawn_pos.col ? ghosts[g].is_edible = true : ghosts[g].is_edible = false; // ghost only edible on power up if out of spwan area
             ghosts[g].is_edible ? ghosts[g].mode = Mode::RUN : ghosts[g].mode = ghosts[g].mode;
         }
         game.g_t_start = chrono::high_resolution_clock::now();
@@ -1210,7 +1210,7 @@ void SetPlayerState(Game& game, Level& level, Player& player, Monster ghosts[])
         break;
     }
 }
-void SetGhostMode(Level& level, Player& player, Monster ghosts[])
+void SetGhostMode(Level& level, Player& player, Ghost ghosts[])
 {
     // refactor - there could be some funny things happening with time here although not sure it wil be noticed in game.
     for (int g = 0; g < 4; g++) // loop ghosts
@@ -1239,7 +1239,7 @@ void SetGhostMode(Level& level, Player& player, Monster ghosts[])
     }
 
 }
-void PlayerMonsterCollision(Game& game, Level& level, Player& player, Monster ghosts[])
+void PlayerMonsterCollision(Game& game, Level& level, Player& player, Ghost ghosts[])
 {
     bool player_died = false;
     
@@ -1250,7 +1250,7 @@ void PlayerMonsterCollision(Game& game, Level& level, Player& player, Monster gh
             DrawLevel(game, level, player, ghosts); // print the move immediately
             if (ghosts[g].is_edible) // ghost dies
             {
-                // if the monster was on a pellet/powerup sqaure need to count it up
+                // if the ghost was on a pellet/powerup sqaure need to count it up
                 if (ghosts[g].square_content_now == Level::chr_pellet || ghosts[g].square_content_now == Level::chr_powerup)
                     level.eaten_pellets++;
                 level.eaten_ghots++; // increment ghosts eaten
@@ -1291,7 +1291,7 @@ void PlayerMonsterCollision(Game& game, Level& level, Player& player, Monster gh
     }
 
 }
-bool CheckCollision(Player& player, Monster& ghost)
+bool CheckCollision(Player& player, Ghost& ghost)
 {
     return(player.curr_pos.col == ghost.curr_pos.col && player.curr_pos.row == ghost.curr_pos.row ? true : false);
 }
@@ -1358,9 +1358,9 @@ string TransformString(string text, int operation)
     }
     return "";
 }
-string GhostMode(Monster& monster)
+string GhostMode(Ghost& ghost)
 {
-    switch (monster.mode)
+    switch (ghost.mode)
     {
     case Mode::CHASE:
         return "CHASE";
