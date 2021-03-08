@@ -45,7 +45,7 @@ struct Player {
     int score = 0;
 };
 struct Monster {
-    static constexpr char monster = 'R';
+    char monster = 'R';
     char square_content_now = ' ';
     char square_content_prior = square_content_now;
     Coord curr_pos = { curr_pos.row = 0, curr_pos.col = 0 };
@@ -53,6 +53,7 @@ struct Monster {
     Coord prev_pos = { prev_pos.row = 0, prev_pos.col = 0 };
     Coord spawn_target = { spawn_target.row = 10, spawn_target.col = 22 }; // just above spawn area
     Coord roam_target = { roam_target.row = -2, roam_target.col = 45 }; // roams to top right hand side
+    Coord chase_mod = { chase_mod.row = 0, chase_mod.col = 0 }; // runs after player position
     Direction curr_direction = Direction::UP;
     Direction prev_direction = Direction::UP;
     Mode mode = Mode::CHASE;
@@ -75,7 +76,7 @@ struct Level {
     int total_pellets = 0; // totala level pellets
     int eaten_pellets = 0; // pellets consumed
     int eaten_ghots = 0; // pellets consumed
-    int edible_ghost_duration = 10; // seconds
+    int edible_ghost_duration = 35; // seconds
     char pelletChar = '.';
     char powerUpChar = 'o';
     bool is_complete = false;
@@ -100,7 +101,9 @@ struct Game {
     bool player_beat_pause = false;
     int gobble_delay = 500; // milliseconds
     int player_beat_delay = 1000; // milliseconds
-    int refresh_delay = 15; // milliseconds
+    int refresh_delay = 60; // milliseconds
+    int ghost_color_on = 275;
+    int ghost_color_off = 155;
     high_resolution_clock::time_point g_t_start = chrono::high_resolution_clock::now(); // start time of high precision timer
     high_resolution_clock::time_point g_t_now = chrono::high_resolution_clock::now(); // start time of high precision timer
     duration<double> time_span = duration_cast<duration<double>>(g_t_now - g_t_start); // will hold time difference
@@ -109,35 +112,37 @@ struct Game {
 // Functions -->
 
 // level setup, display and management
-void SetUp(Game& game, Level& level, Player& player, Monster& monster);
-void CreateLevelScene(Level& level, Player& player, Monster& monster);
-void DrawLevel(Level& level, Player& player, Monster& monster);
-void StatusBar(Game& game, Level& level, Player& player, Monster& monster);
-void SpawnMonster(Monster& monster);
+void SetUp(Game& game, Level& level, Player& player, Monster ghosts[]);
+void CreateLevelScene(Level& level, Player& player, Monster ghosts[]);
+void DrawLevel(Game& game, Level& level, Player& player, Monster ghosts[]);
+void StatusBar(Game& game, Level& level, Player& player, Monster ghosts[]);
+void SpawnMonster(Monster ghosts[]);
+void SpawnMonster(Monster ghosts[], Monster ghost, bool playerDied);
 void SpawnPlayer(Player& player);
 
 // Player movement
 void GetPlayerDirection(Game& game, Level& level, Player& player);
-void MovePlayer(Game& game, Level& level, Player& player, Monster& monster);
-void KeepMovePlayer(Game& game, Level& level, Player& player, Monster& monster);
+void MovePlayer(Game& game, Level& level, Player& player, Monster ghosts[]);
+void KeepMovePlayer(Game& game, Level& level, Player& player, Monster ghosts[]);
 bool PlayerCanMove(Level& level, int newPRow, int newPCol);
 
 // Ghost movement
-int MoveMonster(Game& game, Level& level, Player& player, Monster& monster);
-void DoMonsterMove(Level& level, Player& player, Monster& monster, Direction bestMove);
+int MoveMonster(Game& game, Level& level, Player& player, Monster& monster, Monster ghosts[]);
+void DoMonsterMove(Level& level, Player& player, Monster ghosts[], Monster& ghost, Direction bestMove);
 int GetBestMove(Level& level, Player& player, Monster& monster, Coord move, Direction curr_direction, int depth, bool isGhost);
 bool NotWall(Level& level, Coord move, Direction direction);
 bool CanMove(Level& level, Monster& monster, Coord move, Direction direction, Direction curr_direction);
 Coord NewMove(Level& level, Monster& monster, Coord move, Direction direction);
 bool IsTeleport(Level& level, Coord move);
 Direction RandomGhostMove(Level& level, Monster& monster);
+char GetSquareContentNow(Level& level, Monster ghosts[], Coord square);
 
 // Player/Monster Events and Status
-void PlayerMonsterCollision(Game& game, Level& level, Player& player, Monster& monster);
-bool CheckCollision(Player& player, Monster& monster);
-void SetPlayerState(Game& game, Level& level, Player& player, Monster& monster);
-void SetSuperPlayer(Game& game, Level& level, Player& player, Monster& monster);
-void SetGhostMode(Level& level, Player& player, Monster& monster);
+void PlayerMonsterCollision(Game& game, Level& level, Player& player, Monster ghosts[]);
+bool CheckCollision(Player& player, Monster& ghost);
+void SetPlayerState(Game& game, Level& level, Player& player, Monster ghosts[]);
+void SetSuperPlayer(Game& game, Level& level, Player& player, Monster ghosts[]);
+void SetGhostMode(Level& level, Player& player, Monster ghosts[]);
 
 // Game management
 void CheckLevelComplete(Level& level);
@@ -160,16 +165,17 @@ int main()
     Game game;
     Level level;
     Player player;
-    Monster monsterRed;
+    Monster redGhost, yellowGhost, orangeGhost, pinkGhost;
+    Monster ghosts[4] = { redGhost, yellowGhost, orangeGhost, pinkGhost };
     bool skip_turn = false;
 
     //ShowColors(500); // find colors to use
 
     // Set up variables and data
-    SetUp(game, level, player, monsterRed);
+    SetUp(game, level, player, ghosts);
 
     // draw initial level state
-    DrawLevel(level, player, monsterRed);
+    DrawLevel(game, level, player, ghosts);
 
     // start a thread to get input while the main program executes
     thread inputThread(GetPlayerDirection, ref(game), ref(level), ref(player)); // new the ref() wrapper to pass by ref into thread
@@ -177,31 +183,31 @@ int main()
     do
     {
         // move the player
-        MovePlayer(game, level, player, monsterRed);
+        MovePlayer(game, level, player, ghosts);
 
         // process any player / monster collision
-        PlayerMonsterCollision(game, level, player, monsterRed);
+        PlayerMonsterCollision(game, level, player, ghosts);
 
         // set the player to normal or super player if he powers up
-        SetSuperPlayer(game, level, player, monsterRed);
+        SetSuperPlayer(game, level, player, ghosts);
 
         // set ghost chase modes as approprite
-        SetGhostMode(level, player, monsterRed);
+        SetGhostMode(level, player, ghosts);
 
-        // move the monster
-        MoveMonster(game, level, player, monsterRed);
+        //// move the monster
+        MoveMonster(game, level, player, redGhost, ghosts);
 
         // process any player / monster collision again
-        PlayerMonsterCollision(game, level, player, monsterRed);
+        PlayerMonsterCollision(game, level, player, ghosts);
 
         // delay render if there's a collision
         PlayerMonsterCollisionDelay(game, level);
 
         // Draw the level current state
-        DrawLevel(level, player, monsterRed);
+        DrawLevel(game, level, player, ghosts);
 
         // display stats and number lives
-        StatusBar(game, level, player, monsterRed);
+        StatusBar(game, level, player, ghosts);
 
         // end condition for the gmae once user has eaten all pellets
         CheckLevelComplete(level);
@@ -218,18 +224,180 @@ int main()
 }
 
 // level setup, display and management
-void SetUp(Game& game, Level& level, Player& player, Monster& monster)
+void SetUp(Game& game, Level& level, Player& player, Monster ghosts[])
 {
     // spawn monster
-    SpawnMonster(monster);
+    SpawnMonster(ghosts);
 
     // start time for ghost roam mode - every 15 seconds after chase mode
     level.time_start = chrono::high_resolution_clock::now();
 
     // initialize array and set default player values
-    CreateLevelScene(level, player, monster);
+    CreateLevelScene(level, player, ghosts);
 }
-void CreateLevelScene(Level& level, Player& player, Monster& monster)
+void SpawnMonster(Monster ghosts[])
+{
+    // spawn red ghost
+    ghosts[0].monster = 'R';
+    ghosts[0].square_content_now = ' ';
+    ghosts[0].square_content_prior = ghosts[0].square_content_now;
+    ghosts[0].curr_pos = { ghosts[0].curr_pos.row = 0, ghosts[0].curr_pos.col = 0 };
+    ghosts[0].spawn_pos = { ghosts[0].spawn_pos.row = 0, ghosts[0].spawn_pos.col = 0 };
+    ghosts[0].prev_pos = { ghosts[0].prev_pos.row = 0, ghosts[0].prev_pos.col = 0 };
+    ghosts[0].spawn_target = { ghosts[0].spawn_target.row = 10, ghosts[0].spawn_target.col = 24 }; // just above spawn area
+    ghosts[0].roam_target = { ghosts[0].roam_target.row = 24, ghosts[0].roam_target.col = 45 }; // roams to top right hand side
+    ghosts[0].chase_mod = { ghosts[0].chase_mod.row = 0, ghosts[0].chase_mod.col = 0 };
+    ghosts[0].curr_direction = Direction::UP;
+    ghosts[0].prev_direction = Direction::UP;
+    ghosts[0].mode = Mode::CHASE;
+    ghosts[0].run_first_move = true;
+    ghosts[0].is_edible = false;
+    ghosts[0].color_on = false;
+    ghosts[0].color = 71;
+    ghosts[0].rand = 5; // percent of time it will make random move choice
+    ghosts[0].wait = 15;
+    ghosts[0].skip_turn = false; // use this to slow down moster if edible
+    ghosts[0].look_ahead = 5; // how far ahead the IA looks for player
+
+    // spawn yellow ghost
+    ghosts[1].monster = 'Y';
+    ghosts[1].square_content_now = ' ';
+    ghosts[1].square_content_prior = ghosts[1].square_content_now;
+    ghosts[1].curr_pos = { ghosts[1].curr_pos.row = 0, ghosts[1].curr_pos.col = 0 };
+    ghosts[1].spawn_pos = { ghosts[1].spawn_pos.row = 0, ghosts[1].spawn_pos.col = 0 };
+    ghosts[1].prev_pos = { ghosts[1].prev_pos.row = 0, ghosts[1].prev_pos.col = 0 };
+    ghosts[1].spawn_target = { ghosts[1].spawn_target.row = 10, ghosts[1].spawn_target.col = 22 }; // just above spawn area
+    ghosts[1].roam_target = { ghosts[1].roam_target.row = 24, ghosts[1].roam_target.col = 2 }; // roams to top right hand side
+    ghosts[1].chase_mod = { ghosts[1].chase_mod.row = 0, ghosts[1].chase_mod.col = 3 };
+    ghosts[1].curr_direction = Direction::UP;
+    ghosts[1].prev_direction = Direction::UP;
+    ghosts[1].mode = Mode::CHASE;
+    ghosts[1].run_first_move = true;
+    ghosts[1].is_edible = false;
+    ghosts[1].color_on = false;
+    ghosts[1].color = 367;
+    ghosts[1].rand = 5; // percent of time it will make random move choice
+    ghosts[1].wait = 30;
+    ghosts[1].skip_turn = false; // use this to slow down moster if edible
+    ghosts[1].look_ahead = 5; // how far ahead the IA looks for player
+
+    // spawn blue ghost
+    ghosts[2].monster = 'O';
+    ghosts[2].square_content_now = ' ';
+    ghosts[2].square_content_prior = ghosts[2].square_content_now;
+    ghosts[2].curr_pos = { ghosts[2].curr_pos.row = 0, ghosts[2].curr_pos.col = 0 };
+    ghosts[2].spawn_pos = { ghosts[2].spawn_pos.row = 0, ghosts[2].spawn_pos.col = 0 };
+    ghosts[2].prev_pos = { ghosts[2].prev_pos.row = 0, ghosts[2].prev_pos.col = 0 };
+    ghosts[2].spawn_target = { ghosts[2].spawn_target.row = 10, ghosts[2].spawn_target.col = 22 }; // just above spawn area
+    ghosts[2].roam_target = { ghosts[2].roam_target.row = -2, ghosts[2].roam_target.col = 2 }; // roams to top right hand side
+    ghosts[2].chase_mod = { ghosts[2].chase_mod.row = 0, ghosts[2].chase_mod.col = -3 };
+    ghosts[2].curr_direction = Direction::UP;
+    ghosts[2].prev_direction = Direction::UP;
+    ghosts[2].mode = Mode::CHASE;
+    ghosts[2].run_first_move = true;
+    ghosts[2].is_edible = false;
+    ghosts[2].color_on = false;
+    ghosts[2].color = 435;
+    ghosts[2].rand = 5; // percent of time it will make random move choice
+    ghosts[2].wait = 45;
+    ghosts[2].skip_turn = false; // use this to slow down moster if edible
+    ghosts[2].look_ahead = 5; // how far ahead the IA looks for player
+
+    // spawn pink ghost
+    ghosts[3].monster = 'P';
+    ghosts[3].square_content_now = ' ';
+    ghosts[3].square_content_prior = ghosts[3].square_content_now;
+    ghosts[3].curr_pos = { ghosts[3].curr_pos.row = 0, ghosts[3].curr_pos.col = 0 };
+    ghosts[3].spawn_pos = { ghosts[3].spawn_pos.row = 0, ghosts[3].spawn_pos.col = 0 };
+    ghosts[3].prev_pos = { ghosts[3].prev_pos.row = 0, ghosts[3].prev_pos.col = 0 };
+    ghosts[3].spawn_target = { ghosts[3].spawn_target.row = 10, ghosts[3].spawn_target.col = 22 }; // just above spawn area
+    ghosts[3].roam_target = { ghosts[3].roam_target.row = 24, ghosts[3].roam_target.col = 45 }; // roams to top right hand side
+    ghosts[3].chase_mod = { ghosts[3].chase_mod.row = -3, ghosts[3].chase_mod.col = 0 };
+    ghosts[3].curr_direction = Direction::UP;
+    ghosts[3].prev_direction = Direction::UP;
+    ghosts[3].mode = Mode::CHASE;
+    ghosts[3].run_first_move = true;
+    ghosts[3].is_edible = false;
+    ghosts[3].color_on = false;
+    ghosts[3].color = 479;
+    ghosts[3].rand = 5; // percent of time it will make random move choice
+    ghosts[3].wait = 60;
+    ghosts[3].skip_turn = false; // use this to slow down moster if edible
+    ghosts[3].look_ahead = 5; // how far ahead the IA looks for player
+}
+void SpawnMonster(Monster ghosts[], Monster ghost, bool playerDied)
+{
+    switch (ghost.monster)
+    {
+    case 'R':
+        // spawn red ghost
+        ghosts[0].square_content_now = ' ';
+        ghosts[0].square_content_prior = ghosts[0].square_content_now;
+        ghosts[0].curr_pos = { ghosts[0].curr_pos.row = ghosts[0].spawn_pos.row,  ghosts[0].curr_pos.col = ghosts[0].spawn_pos.col };
+        ghosts[0].prev_pos = { ghosts[0].prev_pos.row = ghosts[0].curr_pos.row, ghosts[0].prev_pos.col = ghosts[0].curr_pos.col };
+        ghosts[0].curr_direction = Direction::UP;
+        ghosts[0].prev_direction = Direction::UP;
+        ghosts[0].mode = Mode::CHASE;
+        ghosts[0].run_first_move = true;
+        ghosts[0].is_edible = false;
+        ghosts[0].color_on = false;
+        ghosts[0].color = 71;
+        ghosts[0].wait = (playerDied ? 15 : 25);
+        ghosts[0].skip_turn = false; // use this to slow down moster if edible
+        break;
+    case 'Y':
+        // spawn yellow ghost
+        ghosts[1].square_content_now = ' ';
+        ghosts[1].square_content_prior = ghosts[1].square_content_now;
+        ghosts[1].curr_pos = { ghosts[1].curr_pos.row = ghosts[1].spawn_pos.row, ghosts[1].curr_pos.col = ghosts[1].spawn_pos.col };
+        ghosts[1].prev_pos = { ghosts[1].prev_pos.row = ghosts[1].curr_pos.row, ghosts[1].prev_pos.col = ghosts[1].curr_pos.col };
+        ghosts[1].curr_direction = Direction::UP;
+        ghosts[1].prev_direction = Direction::UP;
+        ghosts[1].mode = Mode::CHASE;
+        ghosts[1].run_first_move = true;
+        ghosts[1].is_edible = false;
+        ghosts[1].color_on = false;
+        ghosts[1].color = 367;
+        ghosts[1].wait = (playerDied ? 30 : 25);
+        ghosts[1].skip_turn = false; // use this to slow down moster if edible
+        break;
+    case 'O':
+        // spawn blue ghost
+        ghosts[2].square_content_now = ' ';
+        ghosts[2].square_content_prior = ghosts[2].square_content_now;
+        ghosts[2].curr_pos = { ghosts[2].curr_pos.row = ghosts[2].spawn_pos.row, ghosts[2].curr_pos.col = ghosts[2].spawn_pos.col };
+        ghosts[2].prev_pos = { ghosts[2].prev_pos.row = ghosts[2].curr_pos.row, ghosts[2].prev_pos.col = ghosts[2].curr_pos.col };
+        ghosts[2].curr_direction = Direction::UP;
+        ghosts[2].prev_direction = Direction::UP;
+        ghosts[2].mode = Mode::CHASE;
+        ghosts[2].run_first_move = true;
+        ghosts[2].is_edible = false;
+        ghosts[2].color_on = false;
+        ghosts[2].color = 435;
+        ghosts[2].wait = (playerDied ? 45 : 25);
+        ghosts[2].skip_turn = false; // use this to slow down moster if edible
+        break;
+    case 'P':
+        // spawn pink ghost
+        ghosts[3].square_content_now = ' ';
+        ghosts[3].square_content_prior = ghosts[3].square_content_now;
+        ghosts[3].curr_pos = { ghosts[3].curr_pos.row = ghosts[3].spawn_pos.row, ghosts[3].curr_pos.col = ghosts[3].spawn_pos.col };
+        ghosts[3].prev_pos = { ghosts[3].prev_pos.row = ghosts[3].curr_pos.row, ghosts[3].prev_pos.col = ghosts[3].curr_pos.col };
+        ghosts[3].curr_direction = Direction::UP;
+        ghosts[3].prev_direction = Direction::UP;
+        ghosts[3].mode = Mode::CHASE;
+        ghosts[3].run_first_move = true;
+        ghosts[3].is_edible = false;
+        ghosts[3].color_on = false;
+        ghosts[3].color = 479;
+        ghosts[3].wait = (playerDied ? 60 : 25);
+        ghosts[3].skip_turn = false; // use this to slow down moster if edible
+        break;
+    }
+
+    
+}
+void CreateLevelScene(Level& level, Player& player, Monster ghosts[])
 {
     // create string with the level - this makes it easier to convert a string diagram to a level array
     // must be of the level dimensions 17 rows by 23 cols
@@ -246,7 +414,7 @@ void CreateLevelScene(Level& level, Player& player, Monster& monster)
     map += "|%.%+-----+%.%+----+%.%+%.%+----+%.%+-----+%.%|";
     map += "|%.%#######%.%|%...............%|%.%#######%.%|";
     map += "|%.%+-----+%.%|%.%+--+$$$+--+%.%|%.%+-----+%.%|";
-    map += "T ...........%|%.%|%B%R%Y%G%|%.%|%........... T";
+    map += "T ...........%|%.%|%O%R%Y%P%|%.%|%........... T";
     map += "|%.%+-----+%.%|%.%+---------+%.%|%.%+-----+%.%|";
     map += "|%.%#######%.%|%...............%|%.%#######%.%|";
     map += "|%.%#######%.%|%.%+---------+%.%|%.%#######%.%|";
@@ -282,11 +450,17 @@ void CreateLevelScene(Level& level, Player& player, Monster& monster)
         }
 
         // Set Monster start position
-        if (map[i] == monster.monster)
+        for (int g = 0; g < 4; g++) // loop through ghosts
         {
-            monster.spawn_pos.row = monster.curr_pos.row = monster.prev_pos.row = t_row;
-            monster.spawn_pos.col = monster.curr_pos.col = monster.prev_pos.col = t_col;
+            if (map[i] == ghosts[g].monster)
+            {
+                ghosts[g].spawn_pos.row = ghosts[g].curr_pos.row = ghosts[g].prev_pos.row = t_row;
+                ghosts[g].spawn_pos.col = ghosts[g].curr_pos.col = ghosts[g].prev_pos.col = t_col;
+                ghosts[g].spawn_target.row = 8;
+                ghosts[g].spawn_target.col = 25;
+            }
         }
+        
 
         // Set teleport coords for T1 and T2
         if (map[i] == 'T') {
@@ -319,22 +493,6 @@ void CreateLevelScene(Level& level, Player& player, Monster& monster)
         }
     }
 }
-void SpawnMonster(Monster& monster)
-{
-    monster.square_content_now = ' ';
-    monster.square_content_prior = monster.square_content_now;
-    monster.curr_pos.row = monster.spawn_pos.row;
-    monster.curr_pos.col = monster.spawn_pos.col;
-    monster.curr_direction = Direction::UP;
-    monster.prev_direction = Direction::UP;
-    monster.mode = Mode::SPAWN;
-    monster.run_first_move = true;
-    monster.is_edible = false;
-    monster.color_on = false;
-    monster.color = 455;
-    monster.wait = 20; // wait before leaving spawn area
-    monster.rand = 5; // percent of time it will make random move choice
-}
 void SpawnPlayer(Player& player)
 {
     player.curr_pos.row = player.spawn_pos.row;
@@ -344,16 +502,33 @@ void SpawnPlayer(Player& player)
     player.is_super = false;
     player.color_on = false;
 }
-void DrawLevel(Level& level, Player& player, Monster& monster)
+void DrawLevel(Game& game, Level& level, Player& player, Monster ghosts[])
 {
+    
+    for (int r = 0; r < level.rows; r++)
+    {
+        for (int c = 0; c < level.cols; c++)
+        {
+            switch(level.map[r][c])
+            {
+            case 'R':
+                level.map[r][c] = ghosts[0].square_content_prior;
+            case 'Y':
+                level.map[r][c] = ghosts[1].square_content_prior;
+            case 'O':
+                level.map[r][c] = ghosts[2].square_content_prior;
+            case 'P':
+                level.map[r][c] = ghosts[3].square_content_prior;
+            }
+        }
+    }
+    
     // place cursor on top left of console
     TopLeft(level.rows + 5); // + 5 for title and status
 
-    // remove player and monster from map at last position if they are different
+    // remove player from map at last position if they are different
     if (player.prev_pos.row != player.curr_pos.row || player.prev_pos.col != player.curr_pos.col)
         level.map[player.prev_pos.row][player.prev_pos.col] = ' ';
-    if (monster.prev_pos.row != monster.curr_pos.row || monster.prev_pos.col != monster.curr_pos.col)
-        level.map[monster.prev_pos.row][monster.prev_pos.col] = ' ';
 
     // player in tunnel
     if (player.curr_pos.row == 12 && player.curr_pos.col == 0) {
@@ -364,17 +539,24 @@ void DrawLevel(Level& level, Player& player, Monster& monster)
         level.map[player.curr_pos.row][player.curr_pos.col] = 'T';
         player.curr_pos.col = 0;
     }
-
-    // monster in tunnel
-    if (monster.curr_pos.row == 12 && monster.curr_pos.col == 0) {
-        level.map[monster.curr_pos.row][monster.curr_pos.col] = 'T';
-        monster.curr_pos.col = 46;
+    
+    for (int g = 0; g < 4; g++) // loop through ghots
+    {
+        // remove ghosts from map at last position if they are different
+        if (ghosts[g].prev_pos.row != ghosts[g].curr_pos.row || ghosts[g].prev_pos.col != ghosts[g].curr_pos.col)
+            level.map[ghosts[g].prev_pos.row][ghosts[g].prev_pos.col] = ' ';
+        
+        // monster in tunnel
+        if (ghosts[g].curr_pos.row == 12 && ghosts[g].curr_pos.col == 0) {
+            level.map[ghosts[g].curr_pos.row][ghosts[g].curr_pos.col] = 'T';
+            ghosts[g].curr_pos.col = 46;
+        }
+        else if (ghosts[g].curr_pos.row == 12 && ghosts[g].curr_pos.col == 46) {
+            level.map[ghosts[g].curr_pos.row][ghosts[g].curr_pos.col] = 'T';
+            ghosts[g].curr_pos.col = 0;
+        }
     }
-    else if (monster.curr_pos.row == 12 && monster.curr_pos.col == 46) {
-        level.map[monster.curr_pos.row][monster.curr_pos.col] = 'T';
-        monster.curr_pos.col = 0;
-    }
-
+   
     // Level Title
     cout << endl << "   PACMAN: " << TransformString(level.title, 0) << " by " << TransformString(level.author, 0) << endl << endl;
 
@@ -387,16 +569,19 @@ void DrawLevel(Level& level, Player& player, Monster& monster)
             if (r == player.curr_pos.row && c == player.curr_pos.col)
                 level.map[r][c] = player.player;
 
-            // position moster
-            if (r == monster.curr_pos.row && c == monster.curr_pos.col)
-                level.map[r][c] = monster.monster;
-
-            // if the monster moved from the last position
-            if (monster.prev_pos.row != monster.curr_pos.row || monster.prev_pos.col != monster.curr_pos.col)
+            for (int g = 0; g < 4; g++) // loop through ghots
             {
-                // put back the content of the square the monster was last at 
-                if (r == monster.prev_pos.row && c == monster.prev_pos.col)
-                    level.map[r][c] = monster.square_content_prior;
+                // position ghost
+                if (r == ghosts[g].curr_pos.row && c == ghosts[g].curr_pos.col)
+                    level.map[r][c] = ghosts[g].monster;
+
+                // if the ghost moved from the last position
+                if (ghosts[g].prev_pos.row != ghosts[g].curr_pos.row || ghosts[g].prev_pos.col != ghosts[g].curr_pos.col)
+                {
+                    // put back the content of the square the ghost was last at 
+                    if (r == ghosts[g].prev_pos.row && c == ghosts[g].prev_pos.col)
+                        level.map[r][c] = ghosts[g].square_content_prior;
+                }
             }
 
             // set color of map content at this position
@@ -414,24 +599,38 @@ void DrawLevel(Level& level, Player& player, Monster& monster)
             case 'o': // power up
                 SetColor(7); // white for power ups
                 break;
-            case 'B': // blue ghost
-                SetColor(31);
+            case 'P': // blue ghost
+                if (ghosts[3].is_edible) { // flashing effect - signals edible sate of ghost
+                    ghosts[3].color_on ? SetColor(game.ghost_color_on) : SetColor(game.ghost_color_off);
+                    ghosts[3].color_on = !ghosts[3].color_on;
+                }
+                else { // solid color
+                    SetColor(ghosts[3].color);
+                }
                 break;
             case 'Y': // yellow ghost
-                SetColor(352);
+                if (ghosts[1].is_edible) { // flashing effect - signals edible sate of ghost
+                    ghosts[1].color_on ? SetColor(game.ghost_color_on) : SetColor(game.ghost_color_off);
+                    ghosts[1].color_on = !ghosts[1].color_on;
+                } else { // solid color
+                    SetColor(ghosts[1].color);
+                }
                 break;
-            case 'G': // green ghost
-                SetColor(432); // cyan for monsters
+            case 'O': // green ghost
+                if (ghosts[2].is_edible) { // flashing effect - signals edible sate of ghost
+                    ghosts[2].color_on ? SetColor(game.ghost_color_on) : SetColor(game.ghost_color_off);
+                    ghosts[2].color_on = !ghosts[2].color_on;
+                }
+                else { // solid color
+                    SetColor(ghosts[2].color);
+                }
                 break;
             case 'R': // red ghost
-                if (monster.is_edible) // flashing effect - signals edible sate of ghost
-                {
-                    monster.color_on ? SetColor(12) : SetColor(monster.color);
-                    monster.color_on = !monster.color_on;
-                }
-                else // solid color
-                {
-                    SetColor(monster.color);
+                if (ghosts[0].is_edible) { // flashing effect - signals edible sate of ghost
+                    ghosts[0].color_on ? SetColor(game.ghost_color_on) : SetColor(game.ghost_color_off);
+                    ghosts[0].color_on = !ghosts[0].color_on;
+                } else { // solid color
+                    SetColor(ghosts[0].color);
                 }
                 break;
             case Player::player: // player
@@ -452,7 +651,7 @@ void DrawLevel(Level& level, Player& player, Monster& monster)
         cout << endl;
     }
 }
-void StatusBar(Game& game, Level& level, Player& player, Monster& monster)
+void StatusBar(Game& game, Level& level, Player& player, Monster ghosts[])
 {
     // get number of lives
     string lives;
@@ -475,15 +674,75 @@ void StatusBar(Game& game, Level& level, Player& player, Monster& monster)
     SetColor(14);
     cout << (level.eaten_ghots >= 4 ? "*" : "") << "x" << level.eaten_ghots << (level.eaten_ghots >= 4 ? "*" : "");
     SetColor(7);
-    cout << " M:";
-    SetColor(14);
-    cout << GhostMode(monster) << " ";
-    cout << (monster.run_first_move ? "T" : "F");
     cout << "   ";
-    SetColor(7);
+    /*cout << " M:";
+    SetColor(14);
+    cout << GhostMode(ghosts[0]) << " ";
+    cout << (ghosts[0].run_first_move ? "T" : "F");
+    cout << "   ";
+    SetColor(7);*/
 }
 
 // Player movement
+void MovePlayer(Game& game, Level& level, Player& player, Monster ghosts[])
+{
+    player.prev_pos.row = player.curr_pos.row;
+    player.prev_pos.col = player.curr_pos.col;
+    switch (player.curr_direction)
+    {
+    case Direction::UP: //up
+        if (PlayerCanMove(level, player.curr_pos.row - 1, player.curr_pos.col)) {
+            player.curr_pos.row--;
+            SetPlayerState(game, level, player, ghosts);
+            player.prev_direction = Direction::UP;
+        }
+        else {
+            KeepMovePlayer(game, level, player, ghosts);
+        }
+        break;
+    case Direction::RIGHT: // right
+        if (PlayerCanMove(level, player.curr_pos.row, player.curr_pos.col + 1)) {
+            player.curr_pos.col++;
+            SetPlayerState(game, level, player, ghosts);
+            player.prev_direction = Direction::RIGHT;
+        }
+        else {
+            KeepMovePlayer(game, level, player, ghosts);
+        }
+        break;
+    case Direction::DOWN: // down
+        if (PlayerCanMove(level, player.curr_pos.row + 1, player.curr_pos.col)) {
+            player.curr_pos.row++;
+            SetPlayerState(game, level, player, ghosts);
+            player.prev_direction = Direction::DOWN;
+        }
+        else {
+            KeepMovePlayer(game, level, player, ghosts);
+        }
+        break;
+    case Direction::LEFT: // left
+        if (PlayerCanMove(level, player.curr_pos.row, player.curr_pos.col - 1)) {
+            player.curr_pos.col--;
+            SetPlayerState(game, level, player, ghosts);
+            player.prev_direction = Direction::LEFT;
+        }
+        else {
+            KeepMovePlayer(game, level, player, ghosts);
+        }
+        break;
+    default:
+        KeepMovePlayer(game, level, player, ghosts);
+        break;
+    }
+    for (int g = 0; g < 4; g++)
+    {
+        if (CheckCollision(player, ghosts[g])) {
+            ghosts[g].prev_pos.row = player.curr_pos.row;
+            ghosts[g].prev_pos.col = player.curr_pos.col;
+        }
+    }
+    
+}
 void GetPlayerDirection(Game& game, Level& level, Player& player)
 {
     do
@@ -508,62 +767,7 @@ void GetPlayerDirection(Game& game, Level& level, Player& player)
         }
     } while (!level.is_complete && !game.game_over);
 }
-void MovePlayer(Game& game, Level& level, Player& player, Monster& monster)
-{
-    player.prev_pos.row = player.curr_pos.row;
-    player.prev_pos.col = player.curr_pos.col;
-    switch (player.curr_direction)
-    {
-    case Direction::UP: //up
-        if (PlayerCanMove(level, player.curr_pos.row - 1, player.curr_pos.col)) {
-            player.curr_pos.row--;
-            SetPlayerState(game, level, player, monster);
-            player.prev_direction = Direction::UP;
-        }
-        else {
-            KeepMovePlayer(game, level, player, monster);
-        }
-        break;
-    case Direction::RIGHT: // right
-        if (PlayerCanMove(level, player.curr_pos.row, player.curr_pos.col + 1)) {
-            player.curr_pos.col++;
-            SetPlayerState(game, level, player, monster);
-            player.prev_direction = Direction::RIGHT;
-        }
-        else {
-            KeepMovePlayer(game, level, player, monster);
-        }
-        break;
-    case Direction::DOWN: // down
-        if (PlayerCanMove(level, player.curr_pos.row + 1, player.curr_pos.col)) {
-            player.curr_pos.row++;
-            SetPlayerState(game, level, player, monster);
-            player.prev_direction = Direction::DOWN;
-        }
-        else {
-            KeepMovePlayer(game, level, player, monster);
-        }
-        break;
-    case Direction::LEFT: // left
-        if (PlayerCanMove(level, player.curr_pos.row, player.curr_pos.col - 1)) {
-            player.curr_pos.col--;
-            SetPlayerState(game, level, player, monster);
-            player.prev_direction = Direction::LEFT;
-        }
-        else {
-            KeepMovePlayer(game, level, player, monster);
-        }
-        break;
-    default:
-        KeepMovePlayer(game, level, player, monster);
-        break;
-    }
-    if (CheckCollision(player, monster)) {
-        monster.prev_pos.row = player.curr_pos.row;
-        monster.prev_pos.col = player.curr_pos.col;
-    }
-}
-void KeepMovePlayer(Game& game, Level& level, Player& player, Monster& monster)
+void KeepMovePlayer(Game& game, Level& level, Player& player, Monster ghosts[])
 {
     player.prev_pos.row = player.curr_pos.row;
     player.prev_pos.col = player.curr_pos.col;
@@ -572,28 +776,28 @@ void KeepMovePlayer(Game& game, Level& level, Player& player, Monster& monster)
     case Direction::UP: //up
         if (PlayerCanMove(level, player.curr_pos.row - 1, player.curr_pos.col)) {
             player.curr_pos.row--;
-            SetPlayerState(game, level, player, monster);
+            SetPlayerState(game, level, player, ghosts);
         }
 
         break;
     case Direction::RIGHT: // right
         if (PlayerCanMove(level, player.curr_pos.row, player.curr_pos.col + 1)) {
             player.curr_pos.col++;
-            SetPlayerState(game, level, player, monster);
+            SetPlayerState(game, level, player, ghosts);
         }
 
         break;
     case Direction::DOWN: // down
         if (PlayerCanMove(level, player.curr_pos.row + 1, player.curr_pos.col)) {
             player.curr_pos.row++;
-            SetPlayerState(game, level, player, monster);
+            SetPlayerState(game, level, player, ghosts);
         }
 
         break;
     case Direction::LEFT: // left
         if (PlayerCanMove(level, player.curr_pos.row, player.curr_pos.col - 1)) {
             player.curr_pos.col--;
-            SetPlayerState(game, level, player, monster);
+            SetPlayerState(game, level, player, ghosts);
         }
         break;
     }
@@ -608,41 +812,42 @@ bool PlayerCanMove(Level& level, int newPRow, int newPCol)
     case '.':
     case 'o':
     case 'R':
-    case 'G':
-    case 'B':
     case 'Y':
+    case 'O':
+    case 'P':
         return true;
     }
     return false;
 }
 
 // Monster movement
-int GetBestMove(Level& level, Player& player, Monster& monster, Coord move, Direction curr_direction, int depth, bool isGhost)
+int GetBestMove(Level& level, Player& player, Monster& ghost, Coord move, Direction curr_direction, int depth, bool isGhost)
 {
     // calculate based on the ghost mode
+    // and on the target the ghost chases: red chases player pos, yellow player pos + 2 cols (to the right of player)
 
-    switch (monster.mode)
+    switch (ghost.mode)
     {
     case Mode::CHASE: // redude distance to player
-        if ((abs(monster.curr_pos.col - player.curr_pos.col) + abs(monster.curr_pos.row - player.curr_pos.row)) == 0) { // if player and ghost collide return 0 + depth as score
+        if ((abs(ghost.curr_pos.col - (player.curr_pos.col + ghost.chase_mod.col)) + abs(ghost.curr_pos.row - (player.curr_pos.row + ghost.chase_mod.row))) == 0) { // if player and ghost collide return 0 + depth as score
             return 0 + depth; // add depth to get fastest path
         }
-        if (depth == monster.look_ahead) { // if depth X return the distance score, increase this to make the ghost look forward more
-            return (abs(monster.curr_pos.col - player.curr_pos.col) + abs(monster.curr_pos.row - player.curr_pos.row) + depth); // add depth to get fastest path
+        if (depth == ghost.look_ahead) { // if depth X return the distance score, increase this to make the ghost look forward more
+            return (abs(ghost.curr_pos.col - (player.curr_pos.col + ghost.chase_mod.col)) + abs(ghost.curr_pos.row - (player.curr_pos.row + ghost.chase_mod.row)) + depth); // add depth to get fastest path
         }
         break;
     case Mode::RUN: // will be random in future - for now just get as far away from playet as possible
-        return abs(monster.curr_pos.col - player.curr_pos.col) + abs(monster.curr_pos.row - player.curr_pos.row);
+        return abs(ghost.curr_pos.col - player.curr_pos.col) + abs(ghost.curr_pos.row - player.curr_pos.row);
         break;
     case Mode::ROAM: // reduce distance to the ghost's roam target
-        if (depth == monster.look_ahead) {
-            return abs(monster.curr_pos.col - monster.roam_target.col) + abs(monster.curr_pos.row - monster.roam_target.row);
+        if (depth == ghost.look_ahead) {
+            return abs(ghost.curr_pos.col - ghost.roam_target.col) + abs(ghost.curr_pos.row - ghost.roam_target.row);
         }
         break;
     case Mode::SPAWN: // target is above the exit area
-        int temp = abs(monster.curr_pos.col - monster.spawn_target.col) + abs(monster.curr_pos.row - monster.spawn_target.row);
+        int temp = abs(ghost.curr_pos.col - ghost.spawn_target.col) + abs(ghost.curr_pos.row - ghost.spawn_target.row);
         if (temp == 0)
-            monster.mode = Mode::CHASE;
+            ghost.mode = Mode::CHASE;
         return temp;
         break;
     }
@@ -650,27 +855,27 @@ int GetBestMove(Level& level, Player& player, Monster& monster, Coord move, Dire
     if (isGhost) {
         // if its the ghost move we want the lowest possible distance to player
         // right now we won't play the player move unless this doesn't work well.
-        int score = 1000, bestScore = monster.mode == Mode::RUN ? -1000 : 1000;
+        int score = 1000, bestScore = ghost.mode == Mode::RUN ? -1000 : 1000;
         Coord nextMove;
         Direction new_direction = Direction::NONE;
 
         for (int i = 0; i <= 3; i++) // cycle through each next possible move up, down, left, right
         {
             new_direction = static_cast<Direction>(i); // cast index to direction up, down, left, right
-            if (CanMove(level, monster, move, new_direction, curr_direction)) // check if the direction is valid i.e not wall or reverse
+            if (CanMove(level, ghost, move, new_direction, curr_direction)) // check if the direction is valid i.e not wall or reverse
             {
                 // set new coords of ghost
-                nextMove = NewMove(level, monster, move, new_direction);
-                monster.curr_pos.row = nextMove.row; monster.curr_pos.col = nextMove.col;
+                nextMove = NewMove(level, ghost, move, new_direction);
+                ghost.curr_pos.row = nextMove.row; ghost.curr_pos.col = nextMove.col;
 
                 // calculate distance score based on new coords
-                int score = GetBestMove(level, player, monster, nextMove, new_direction, depth + 1, true); // get the minimax score for the move (recurssive)
+                int score = GetBestMove(level, player, ghost, nextMove, new_direction, depth + 1, true); // get the minimax score for the move (recurssive)
 
                 // revert ghost coords back
-                monster.curr_pos.row = move.row; monster.curr_pos.col = move.col;
+                ghost.curr_pos.row = move.row; ghost.curr_pos.col = move.col;
 
                 // if the score of is better than the current bestscore set the score to be the new best score (min to get closer, max when running away)
-                if (monster.mode == Mode::RUN)
+                if (ghost.mode == Mode::RUN)
                     bestScore = max(score, bestScore);
                 else
                     bestScore = min(score, bestScore);
@@ -697,7 +902,7 @@ Coord NewMove(Level& level, Monster& monster, Coord move, Direction direction)
         newCoord.col = move.col;
         break;
     case  Direction::DOWN:
-        (level.tp_row && move.row == level.tp_2.row && move.col == level.tp_2.col) ? newCoord.row = level.tp_1.row : newCoord.row = move.row += 1;
+        (level.tp_row && move.row == level.tp_2.row && move.col == level.tp_2.col) ? newCoord.row = level.tp_1.row : newCoord.row = move.row + 1;
         newCoord.col = move.col;
         break;
     case Direction::LEFT:
@@ -782,9 +987,9 @@ bool NotWall(Level& level, Coord move, Direction direction)
     case '.':
     case 'o':
     case 'R':
-    case 'G':
-    case 'B':
     case 'Y':
+    case 'O':
+    case 'P':
     case 'C':
         return true;
     case '$': // one way move to exit ghost spawn area
@@ -835,135 +1040,158 @@ Direction RandomGhostMove(Level& level, Monster& monster)
             return newDirection;
     } while (true);
 }
-int MoveMonster(Game& game, Level& level, Player& player, Monster& monster)
+int MoveMonster(Game& game, Level& level, Player& player, Monster& ghost, Monster ghosts[])
 {
     Direction bestMove = Direction::NONE; // will be the next move
 
-    if (monster.skip_turn || game.game_over || CheckCollision(player, monster))
+    for (int g = 0; g < 4; g++)
     {
-        return 0; // exit without making the move
-    }
-
-    if (monster.wait > 0)
-    {
-        monster.wait--; // monster has respawned and we are counting dowm the tics to let it move
-        return 0; // exit without making a move
-    }
-
-    if (monster.mode == Mode::RUN) // make random moves truning around on first move
-    {
-        bestMove = RandomGhostMove(level, monster);
-        DoMonsterMove(level, player, monster, bestMove);
-        return 0;
-    }
-
-    if (monster.mode != Mode::RUN)  // run recursive AI for chase, roam and spawn modes 
-    {
-        int score, bestScore = monster.mode == Mode::RUN ? -1000 : 1000;
-        Coord nextMove;
-        Coord move = { move.row = monster.curr_pos.row, move.col = monster.curr_pos.col };
-        Direction new_direction = Direction::NONE;
-
-        for (int i = 0; i <= 3; i++) // cycle through up,down,left,right to find the valid best next move
+        if (ghosts[g].skip_turn || game.game_over || CheckCollision(player, ghosts[g]))
         {
-            new_direction = static_cast<Direction>(i);
-            if (CanMove(level, monster, move, new_direction, monster.curr_direction)) // check for next available square
-            {
-                // set new coords of ghost
-                nextMove = NewMove(level, monster, move, new_direction);
-                monster.curr_pos.row = nextMove.row; monster.curr_pos.col = nextMove.col;
-
-                // calculate distance score based on new coords
-                int score = GetBestMove(level, player, monster, nextMove, new_direction, 1, true); // get the minimax score for the move (recurssive)
-
-                // revert ghost coords back
-                monster.curr_pos.row = move.row; monster.curr_pos.col = move.col;
-
-                // if the new move score gets the ghost closer to the player than the current bestscore, set this as the best move
-                if (monster.mode == Mode::RUN)
-                {
-                    if (score > bestScore)
-                    {
-                        bestScore = score; // set new best score
-                        bestMove = new_direction; // set new best move direction
-                    }
-                }
-                else
-                {
-                    if (score < bestScore)
-                    {
-                        bestScore = score; // set new best score
-                        bestMove = new_direction; // set new best move direction
-                    }
-                }
-
-            }
+            continue; // next ghost (no move)
         }
-        DoMonsterMove(level, player, monster, bestMove);
-        return 0;
+
+        if (ghosts[g].wait > 0)
+        {
+            ghosts[g].wait--; // monster has respawned and we are counting dowm the tics to let it move
+            continue; // next ghost (no move)
+        }
+
+        if (ghosts[g].mode == Mode::RUN) // make random moves truning around on first move
+        {
+            bestMove = RandomGhostMove(level, ghosts[g]);
+            DoMonsterMove(level, player, ghosts, ghosts[g], bestMove);
+            continue; // next ghost
+        }
+
+        if (ghosts[0].mode != Mode::RUN)  // run recursive AI for chase, roam and spawn modes 
+        {
+            int score = 0, bestScore = ghosts[g].mode == Mode::RUN ? -1000 : 1000;
+            Coord nextMove;
+            Coord move = { move.row = ghosts[g].curr_pos.row, move.col = ghosts[g].curr_pos.col };
+            Direction new_direction = Direction::NONE;
+
+            for (int i = 0; i <= 3; i++) // cycle through up,down,left,right to find the valid best next move
+            {
+                new_direction = static_cast<Direction>(i);
+                if (CanMove(level, ghosts[g], move, new_direction, ghosts[g].curr_direction)) // check for next available square
+                {
+                    // set new coords of ghost
+                    nextMove = NewMove(level, ghosts[g], move, new_direction);
+                    ghosts[g].curr_pos.row = nextMove.row; ghosts[g].curr_pos.col = nextMove.col;
+
+                    // calculate distance score based on new coords
+                    int score = GetBestMove(level, player, ghosts[g], nextMove, new_direction, 1, true); // get the minimax score for the move (recurssive)
+
+                    // revert ghost coords back
+                    ghosts[g].curr_pos.row = move.row; ghosts[g].curr_pos.col = move.col;
+
+                    // if the new move score gets the ghost closer to the player than the current bestscore, set this as the best move
+                    if (ghosts[g].mode == Mode::RUN)
+                    {
+                        if (score > bestScore)
+                        {
+                            bestScore = score; // set new best score
+                            bestMove = new_direction; // set new best move direction
+                        }
+                    }
+                    else
+                    {
+                        if (score < bestScore)
+                        {
+                            bestScore = score; // set new best score
+                            bestMove = new_direction; // set new best move direction
+                        }
+                    }
+
+                }
+            }
+            DoMonsterMove(level, player, ghosts, ghosts[g], bestMove);
+            continue; // next ghost
+        }
     }
 
     return 0; // clean exit
 }
-void DoMonsterMove(Level& level, Player& player, Monster& monster, Direction bestMove)
+void DoMonsterMove(Level& level, Player& player, Monster ghosts[], Monster& ghost, Direction bestMove)
 {
-    monster.prev_pos.row = monster.curr_pos.row;
-    monster.prev_pos.col = monster.curr_pos.col;
-    monster.square_content_prior = monster.square_content_now;
+    ghost.prev_pos.row = ghost.curr_pos.row;
+    ghost.prev_pos.col = ghost.curr_pos.col;
+
+    // if there is a another 
+    ghost.square_content_prior = ghost.square_content_now;
+
     switch (bestMove)
     {
     case Direction::UP: //up
-        monster.square_content_now = level.map[monster.curr_pos.row - 1][monster.curr_pos.col];
-        monster.curr_pos.row--;
-        monster.curr_direction = Direction::UP;
+        ghost.square_content_now = GetSquareContentNow(level, ghosts, { ghost.curr_pos.row -1, ghost.curr_pos.col});
+        ghost.curr_pos.row--;
+        ghost.curr_direction = Direction::UP;
         break;
     case Direction::RIGHT: // right
-        monster.square_content_now = level.map[monster.curr_pos.row][monster.curr_pos.col + 1];
-        monster.curr_pos.col++;
-        monster.curr_direction = Direction::RIGHT;
+        ghost.square_content_now = GetSquareContentNow(level, ghosts, { ghost.curr_pos.row, ghost.curr_pos.col + 1 });
+        ghost.curr_pos.col++;
+        ghost.curr_direction = Direction::RIGHT;
         break;
     case Direction::DOWN: // down
-        monster.square_content_now = level.map[monster.curr_pos.row + 1][monster.curr_pos.col];
-        monster.curr_pos.row++;
-        monster.curr_direction = Direction::DOWN;
+        ghost.square_content_now = GetSquareContentNow(level, ghosts, { ghost.curr_pos.row + 1, ghost.curr_pos.col});
+        ghost.curr_pos.row++;
+        ghost.curr_direction = Direction::DOWN;
         break;
     case Direction::LEFT: // left
-        monster.square_content_now = level.map[monster.curr_pos.row][monster.curr_pos.col - 1];
-        monster.curr_pos.col--;
-        monster.curr_direction = Direction::LEFT;
+        ghost.square_content_now = GetSquareContentNow(level, ghosts, { ghost.curr_pos.row, ghost.curr_pos.col - 1 });
+        ghost.curr_pos.col--;
+        ghost.curr_direction = Direction::LEFT;
         break;
     default:
         break;
     }
-    // if the sqaure the monster is looking at next is the player
-    monster.square_content_now == 'C' ? monster.square_content_now = ' ' : monster.square_content_now;
+    // if the sqaure the monster moved into is the player
+    ghost.square_content_now == 'C' ? ghost.square_content_now = ' ' : ghost.square_content_now;
 
     // if the mosnter is over the player save a blank space to buffer
-    CheckCollision(player, monster) ? monster.square_content_now = ' ' : monster.square_content_now;
+    CheckCollision(player, ghost) ? ghost.square_content_now = ' ' : ghost.square_content_now;
+}
+char GetSquareContentNow(Level& level, Monster ghosts[], Coord square)
+{
+    for (int g = 0; g < 4; g++) // loop ghosts
+    {
+        if (ghosts[g].curr_pos.row == square.row && ghosts[g].curr_pos.col == square.col)
+        {
+            return(ghosts[g].square_content_now);
+        }
+        else
+        {
+            return(level.map[square.row][square.col]);
+        }
+    }
+    return ' ';
 }
 
 // Player/Monster Events and Status
-void SetSuperPlayer(Game& game, Level& level, Player& player, Monster& monster)
+void SetSuperPlayer(Game& game, Level& level, Player& player, Monster ghosts[])
 {
-    if (monster.is_edible)
+    game.g_t_now = chrono::high_resolution_clock::now(); // check the time now
+    game.time_span = duration_cast<duration<double>>(game.g_t_now - game.g_t_start); // calc time difference
+    
+    for (int g = 0; g < 4; g++) // loop ghosts
     {
-        monster.skip_turn = !monster.skip_turn; // when monster is edible slow him down
-        game.g_t_now = chrono::high_resolution_clock::now(); // check the time now
-        game.time_span = duration_cast<duration<double>>(game.g_t_now - game.g_t_start); // calc time difference
-        if (game.time_span.count() >= level.edible_ghost_duration) { // if is edible has expired reset
-            monster.is_edible = false;
-            monster.run_first_move = true;
-            monster.mode = Mode::CHASE;
-            monster.rand = 5;
+        if (ghosts[g].is_edible)
+        {
+            ghosts[g].skip_turn = !ghosts[g].skip_turn; // when monster is edible slow him down
+            if (game.time_span.count() >= level.edible_ghost_duration) { // if is edible has expired reset
+                ghosts[g].is_edible = false;
+                ghosts[g].run_first_move = true;
+                ghosts[g].mode = Mode::CHASE;
+            }
         }
-
-    }
-    else
-    {
-        monster.skip_turn = false;
+        else
+        {
+            ghosts[g].skip_turn = false;
+        }
     }
 }
-void SetPlayerState(Game& game, Level& level, Player& player, Monster& monster)
+void SetPlayerState(Game& game, Level& level, Player& player, Monster ghosts[])
 {
     char levelObj = level.map[player.curr_pos.row][player.curr_pos.col];
     switch (levelObj)
@@ -972,78 +1200,100 @@ void SetPlayerState(Game& game, Level& level, Player& player, Monster& monster)
         level.eaten_pellets++;
         break;
     case 'o': // eat power up
-        monster.curr_pos.col != monster.spawn_pos.col ? monster.is_edible = true : monster.is_edible = false; // monster only edible on power up if out of spwan area
-        monster.mode = Mode::RUN;
-        monster.rand = 30; // increase random for better change to catch em
+        for (int g = 0; g < 4; g++) // loop ghosts
+        {
+            ghosts[g].curr_pos.col != ghosts[g].spawn_pos.col ? ghosts[g].is_edible = true : ghosts[g].is_edible = false; // monster only edible on power up if out of spwan area
+            ghosts[g].is_edible ? ghosts[g].mode = Mode::RUN : ghosts[g].mode = ghosts[g].mode;
+        }
         game.g_t_start = chrono::high_resolution_clock::now();
         level.eaten_pellets++;
         break;
     }
 }
-void SetGhostMode(Level& level, Player& player, Monster& monster)
+void SetGhostMode(Level& level, Player& player, Monster ghosts[])
 {
-    if (monster.mode == Mode::CHASE || monster.mode == Mode::SPAWN) {
-        level.chase_duration = duration_cast<duration<double>>(level.time_start - chrono::high_resolution_clock::now());
-        if (abs(level.chase_duration.count()) > level.chase_for && level.roam_count > 0) // will roam four times only
-        {
-            level.roam_count--;
-            monster.mode = Mode::ROAM;
-            level.time_start = chrono::high_resolution_clock::now();
-        }
-    }
-
-    if (monster.mode == Mode::ROAM) {
-        level.roam_duration = duration_cast<duration<double>>(level.time_start - chrono::high_resolution_clock::now());
-        if (abs(level.roam_duration.count()) > level.roam_for)
-        {
-            monster.mode = Mode::CHASE;
-            level.time_start = chrono::high_resolution_clock::now();
-        }
-    }
-    if (monster.mode == Mode::RUN) {
-        level.time_start = chrono::high_resolution_clock::now();
-    }
-}
-void PlayerMonsterCollision(Game& game, Level& level, Player& player, Monster& monster)
-{
-    if (CheckCollision(player, monster))
+    // refactor - there could be some funny things happening with time here although not sure it wil be noticed in game.
+    for (int g = 0; g < 4; g++) // loop ghosts
     {
-        DrawLevel(level, player, monster); // print the move immediately
-        if (monster.is_edible) // ghost dies
-        {
-            // if the monster was on a pellet/powerup sqaure need to count it up
-            if (monster.square_content_now == Level::chr_pellet || monster.square_content_now == Level::chr_powerup)
-                level.eaten_pellets++;
-            level.eaten_ghots++; // increment ghosts eaten
-            game.gobble_pause = true; // set small pause after eating ghost
-            SpawnMonster(monster); // reset ghost to spawn area whihc resets mode to spawn
-        }
-        else // player dies
-        {
-            // if in ghosts in roam mode and player dies add one count to roam mode so it haappens again
-            monster.mode == Mode::ROAM ? level.roam_count++ : level.roam_count;
-
-            // replace ghost with empty sqaure since the player was there an any pellet got eaten
-            level.map[monster.curr_pos.row][monster.curr_pos.col] = ' ';
-
-            // end game or respawn player if no lives left
-            player.lives--;
-            if (player.lives > 0)
+        if (ghosts[g].mode == Mode::CHASE || ghosts[g].mode == Mode::SPAWN) {
+            level.chase_duration = duration_cast<duration<double>>(level.time_start - chrono::high_resolution_clock::now());
+            if (abs(level.chase_duration.count()) > level.chase_for && level.roam_count > 0) // will roam four times only
             {
-                game.player_beat_pause = true; // give player time to get ready
-                SpawnPlayer(player);
-                SpawnMonster(monster);
+                level.roam_count--;
+                ghosts[g].mode = Mode::ROAM;
+                level.time_start = chrono::high_resolution_clock::now();
+            }
+        }
+
+        if (ghosts[g].mode == Mode::ROAM) {
+            level.roam_duration = duration_cast<duration<double>>(level.time_start - chrono::high_resolution_clock::now());
+            if (abs(level.roam_duration.count()) > level.roam_for)
+            {
+                ghosts[g].mode = Mode::CHASE;
+                level.time_start = chrono::high_resolution_clock::now();
+            }
+        }
+        if (ghosts[g].mode == Mode::RUN) {
+            level.time_start = chrono::high_resolution_clock::now();
+        }
+    }
+
+}
+void PlayerMonsterCollision(Game& game, Level& level, Player& player, Monster ghosts[])
+{
+    bool player_died = false;
+    
+    for (int g = 0; g < 4; g++) // loop ghosts
+    {
+        if (CheckCollision(player, ghosts[g]))
+        {
+            DrawLevel(game, level, player, ghosts); // print the move immediately
+            if (ghosts[g].is_edible) // ghost dies
+            {
+                // if the monster was on a pellet/powerup sqaure need to count it up
+                if (ghosts[g].square_content_now == Level::chr_pellet || ghosts[g].square_content_now == Level::chr_powerup)
+                    level.eaten_pellets++;
+                level.eaten_ghots++; // increment ghosts eaten
+                game.gobble_pause = true; // set small pause after eating ghost
+                SpawnMonster(ghosts, ghosts[g], false); // reset ghost to spawn area whihc resets mode to spawn
             }
             else
             {
-                game.game_over = true;
+                // player dies
+                player_died = true;
+
+                // if in ghosts in roam mode and player dies add one count to roam mode so it haappens again
+                ghosts[g].mode == Mode::ROAM ? level.roam_count++ : level.roam_count;
+                
             }
         }
     }
+
+    if (player_died) {
+        
+        // end game or respawn player if no lives left
+        player.lives--;
+        if (player.lives > 0)
+        {
+            game.player_beat_pause = true; // give player time to get ready
+            SpawnPlayer(player);
+            for (int g = 0; g < 4; g++) {
+                // replace ghost with empty sqaure since the player was there an any pellet got eaten
+                level.map[ghosts[g].curr_pos.row][ghosts[g].curr_pos.col] = ' ';
+                // respawn ghost
+                SpawnMonster(ghosts, ghosts[g], true);
+            }
+        }
+        else
+        {
+            game.game_over = true;
+        }
+    }
+
 }
-bool CheckCollision(Player& player, Monster& monster)
+bool CheckCollision(Player& player, Monster& ghost)
 {
-    return(player.curr_pos.col == monster.curr_pos.col && player.curr_pos.row == monster.curr_pos.row ? true : false);
+    return(player.curr_pos.col == ghost.curr_pos.col && player.curr_pos.row == ghost.curr_pos.row ? true : false);
 }
 
 // Game management
