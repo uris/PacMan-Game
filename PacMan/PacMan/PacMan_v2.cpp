@@ -52,7 +52,7 @@ struct Ghost {
     Coord spawn_pos = { spawn_pos.row = 0, spawn_pos.col = 0 };
     Coord prev_pos = { prev_pos.row = 0, prev_pos.col = 0 };
     Coord spawn_target = { spawn_target.row = 10, spawn_target.col = 22 }; // just above spawn area
-    Coord roam_target = { roam_target.row = -2, roam_target.col = 45 }; // roams to top right hand side
+    Coord roam_target = { roam_target.row = 0, roam_target.col = 0 }; // roams to top right hand side
     Coord chase_mod = { chase_mod.row = 0, chase_mod.col = 0 }; // runs after player position
     Direction curr_direction = Direction::UP;
     Direction prev_direction = Direction::UP;
@@ -67,51 +67,49 @@ struct Ghost {
     int look_ahead = 5; // how far ahead the IA looks for player
 };
 struct Level {
+    // level info and size
+    string title = "Scene 1";
+    string author = "Uris";
     char map[23][47]{};
     int rows = 23;
     int cols = 47;
+    // teleport coords and direction
     Coord tp_1 = { tp_1.row = 0, tp_1.col = 0 };
     Coord tp_2 = { tp_2.row = 0, tp_2.col = 0 };
     bool tp_row = true;
+    // level status and chars
+    static constexpr char chr_powerup = 'o';
+    static constexpr char chr_pellet = '.';
     int total_pellets = 0; // totala level pellets
     int eaten_pellets = 0; // pellets consumed
     int eaten_ghots = 0; // pellets consumed
-    int edible_ghost_duration = 35; // seconds
-    char pelletChar = '.';
-    char powerUpChar = 'o';
-    bool is_complete = false;
+    int edible_ghost_duration = 20; // seconds
     int points_pellet = 10;
     int points_ghost = 250;
     int all_ghost_bonus = 2600;
-    string title = "Scene 1";
-    string author = "Uris D";
-    static constexpr char chr_powerup = 'o';
-    static constexpr char chr_pellet = '.';
-    int roam_count = 5;
+    bool is_complete = false;
+    // Manange modes
+    int roam_count = 6;
     int roam_for = 15; // seconds
     int chase_for = 15; // seconds
-    int run_for = 25; // seconds
+    int run_for = 20; // seconds
     high_resolution_clock::time_point roam_time_start = chrono::high_resolution_clock::now();
     high_resolution_clock::time_point chase_time_start = chrono::high_resolution_clock::now();
     high_resolution_clock::time_point run_time_start = chrono::high_resolution_clock::now();
-    high_resolution_clock::time_point time_now = chrono::high_resolution_clock::now();
-    duration<double> roam_duration = duration_cast<duration<double>>(roam_time_start - time_now);
-    duration<double> chase_duration = duration_cast<duration<double>>(chase_time_start - time_now);
-    duration<double> run_duration = duration_cast<duration<double>>(run_time_start - time_now);
+    duration<double> roam_duration = duration_cast<duration<double>>(roam_time_start - chrono::high_resolution_clock::now());
+    duration<double> chase_duration = duration_cast<duration<double>>(chase_time_start - chrono::high_resolution_clock::now());
+    duration<double> run_duration = duration_cast<duration<double>>(run_time_start - chrono::high_resolution_clock::now());
     Mode level_mode = Mode::CHASE;
 };
 struct Game {
     bool game_over = false;
     bool gobble_pause = false;
     bool player_beat_pause = false;
-    int gobble_delay = 500; // milliseconds
-    int player_beat_delay = 1000; // milliseconds
+    int gobble_delay = 500; // wait in milliseconds
+    int player_beat_delay = 1000; // wait in milliseconds
     int refresh_delay = 60; // milliseconds
-    int ghost_color_on = 275;
-    int ghost_color_off = 155;
-    high_resolution_clock::time_point g_t_start = chrono::high_resolution_clock::now(); // start time of high precision timer
-    high_resolution_clock::time_point g_t_now = chrono::high_resolution_clock::now(); // start time of high precision timer
-    duration<double> time_span = duration_cast<duration<double>>(g_t_now - g_t_start); // will hold time difference
+    int ghost_color_on = 275; // for ghost flash
+    int ghost_color_off = 155; // for ghost flash
 };
 
 // Functions -->
@@ -269,7 +267,7 @@ void SpawnMonster(Ghost ghosts[])
     ghosts[1].spawn_pos = { ghosts[1].spawn_pos.row = 0, ghosts[1].spawn_pos.col = 0 };
     ghosts[1].prev_pos = { ghosts[1].prev_pos.row = 0, ghosts[1].prev_pos.col = 0 };
     ghosts[1].spawn_target = { ghosts[1].spawn_target.row = 10, ghosts[1].spawn_target.col = 22 }; // just above spawn area
-    ghosts[1].roam_target = { ghosts[1].roam_target.row = 24, ghosts[1].roam_target.col = 2 }; // roams to top right hand side
+    ghosts[1].roam_target = { ghosts[1].roam_target.row = 24, ghosts[1].roam_target.col = 3 }; // roams to top right hand side
     ghosts[1].chase_mod = { ghosts[1].chase_mod.row = 0, ghosts[1].chase_mod.col = 4 };
     ghosts[1].curr_direction = Direction::UP;
     ghosts[1].prev_direction = Direction::UP;
@@ -291,7 +289,7 @@ void SpawnMonster(Ghost ghosts[])
     ghosts[2].spawn_pos = { ghosts[2].spawn_pos.row = 0, ghosts[2].spawn_pos.col = 0 };
     ghosts[2].prev_pos = { ghosts[2].prev_pos.row = 0, ghosts[2].prev_pos.col = 0 };
     ghosts[2].spawn_target = { ghosts[2].spawn_target.row = 10, ghosts[2].spawn_target.col = 22 }; // just above spawn area
-    ghosts[2].roam_target = { ghosts[2].roam_target.row = -2, ghosts[2].roam_target.col = 2 }; // roams to top right hand side
+    ghosts[2].roam_target = { ghosts[2].roam_target.row = -3, ghosts[2].roam_target.col = 2 }; // roams to top right hand side
     ghosts[2].chase_mod = { ghosts[2].chase_mod.row = 0, ghosts[2].chase_mod.col = -4 };
     ghosts[2].curr_direction = Direction::UP;
     ghosts[2].prev_direction = Direction::UP;
@@ -314,7 +312,7 @@ void SpawnMonster(Ghost ghosts[])
     ghosts[3].prev_pos = { ghosts[3].prev_pos.row = 0, ghosts[3].prev_pos.col = 0 };
     ghosts[3].spawn_target = { ghosts[3].spawn_target.row = 10, ghosts[3].spawn_target.col = 22 }; // just above spawn area
     ghosts[3].roam_target = { ghosts[3].roam_target.row = 24, ghosts[3].roam_target.col = 45 }; // roams to top right hand side
-    ghosts[3].chase_mod = { ghosts[3].chase_mod.row = -4, ghosts[3].chase_mod.col = 0 };
+    ghosts[3].chase_mod = { ghosts[3].chase_mod.row = -3, ghosts[3].chase_mod.col = 0 };
     ghosts[3].curr_direction = Direction::UP;
     ghosts[3].prev_direction = Direction::UP;
     ghosts[3].mode = Mode::CHASE;
@@ -439,7 +437,7 @@ void CreateLevelScene(Level& level, Player& player, Ghost ghosts[])
         level.map[t_row][t_col] = map[i];
 
         // count pellets that determine end game condition
-        if (map[i] == level.pelletChar || map[i] == level.powerUpChar)
+        if (map[i] == Level::chr_pellet || map[i] == Level::chr_powerup)
             level.total_pellets++;
 
         // Set player start to position 'S'
@@ -447,7 +445,7 @@ void CreateLevelScene(Level& level, Player& player, Ghost ghosts[])
         {
             player.spawn_pos.row = player.curr_pos.row = player.prev_pos.row = t_row;
             player.spawn_pos.col = player.curr_pos.col = player.prev_pos.col = t_col;
-            level.map[t_row][t_col] = level.pelletChar;
+            level.map[t_row][t_col] = Level::chr_pellet;
             level.total_pellets++;
         }
 
@@ -549,14 +547,18 @@ void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[])
             level.map[ghosts[g].prev_pos.row][ghosts[g].prev_pos.col] = ' ';
         
         // ghost in tunnel
-        if (ghosts[g].curr_pos.row == 12 && ghosts[g].curr_pos.col == 0) {
-            level.map[ghosts[g].curr_pos.row][ghosts[g].curr_pos.col] = 'T';
-            ghosts[g].curr_pos.col = 46;
+        if (!ghosts[g].skip_turn)
+        {
+            if (ghosts[g].curr_pos.row == 12 && ghosts[g].curr_pos.col == 0) {
+                level.map[ghosts[g].curr_pos.row][ghosts[g].curr_pos.col] = 'T';
+                ghosts[g].curr_pos.col = 46;
+            }
+            else if (ghosts[g].curr_pos.row == 12 && ghosts[g].curr_pos.col == 46) {
+                level.map[ghosts[g].curr_pos.row][ghosts[g].curr_pos.col] = 'T';
+                ghosts[g].curr_pos.col = 0;
+            }
         }
-        else if (ghosts[g].curr_pos.row == 12 && ghosts[g].curr_pos.col == 46) {
-            level.map[ghosts[g].curr_pos.row][ghosts[g].curr_pos.col] = 'T';
-            ghosts[g].curr_pos.col = 0;
-        }
+        
     }
    
     // Level Title
@@ -825,9 +827,7 @@ bool PlayerCanMove(Level& level, int newPRow, int newPCol)
 // Ghost movement
 int GetBestMove(Level& level, Player& player, Ghost& ghost, Coord move, Direction curr_direction, int depth, bool isGhost)
 {
-    // calculate based on the ghost mode
     // and on the target the ghost chases: red chases player pos, yellow player pos + 2 cols (to the right of player)
-
     switch (ghost.mode)
     {
     case Mode::CHASE: // redude distance to player
@@ -838,9 +838,6 @@ int GetBestMove(Level& level, Player& player, Ghost& ghost, Coord move, Directio
             return (abs(ghost.curr_pos.col - (player.curr_pos.col + ghost.chase_mod.col)) + abs(ghost.curr_pos.row - (player.curr_pos.row + ghost.chase_mod.row)) + depth); // add depth to get fastest path
         }
         break;
-    case Mode::RUN: // will be random in future - for now just get as far away from playet as possible
-        return abs(ghost.curr_pos.col - player.curr_pos.col) + abs(ghost.curr_pos.row - player.curr_pos.row);
-        break;
     case Mode::ROAM: // reduce distance to the ghost's roam target
         if (depth == ghost.look_ahead) {
             return abs(ghost.curr_pos.col - ghost.roam_target.col) + abs(ghost.curr_pos.row - ghost.roam_target.row);
@@ -849,7 +846,7 @@ int GetBestMove(Level& level, Player& player, Ghost& ghost, Coord move, Directio
     case Mode::SPAWN: // target is above the exit area
         int temp = abs(ghost.curr_pos.col - ghost.spawn_target.col) + abs(ghost.curr_pos.row - ghost.spawn_target.row);
         if (temp == 0)
-            ghost.mode = Mode::CHASE;
+            ghost.mode = (level.level_mode == Mode::RUN ? Mode::CHASE : level.level_mode);
         return temp;
         break;
     }
@@ -1070,11 +1067,11 @@ Direction RandomGhostMove(Level& level, Ghost& ghost)
             {
                 if (ghost.curr_direction == Direction::LEFT)
                 {
-                    newDirection = Direction::RIGHT;
+                    newDirection = Direction::LEFT;
                 }
                 else
                 {
-                    newDirection = Direction::LEFT;
+                    newDirection = Direction::RIGHT;
                 }
             }
             else
@@ -1252,9 +1249,9 @@ void SetGhostMode(Level& level, Player& player, Ghost ghosts[])
         level.chase_duration = duration_cast<duration<double>>(level.chase_time_start - chrono::high_resolution_clock::now());
         if (abs(level.chase_duration.count()) > level.chase_for && level.roam_count > 0)
         {
-            level.roam_count--;
             level.level_mode = Mode::ROAM;
             level.roam_time_start = chrono::high_resolution_clock::now();
+            level.roam_count--;
 
             for (int g = 0; g < 4; g++) {
                 switch (ghosts[g].mode)
