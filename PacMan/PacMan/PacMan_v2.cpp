@@ -73,6 +73,7 @@ struct Level {
     char map[23][47]{};
     int rows = 23;
     int cols = 47;
+    bool level_paused = true;
     // teleport coords and direction
     Coord tp_1 = { tp_1.row = 0, tp_1.col = 0 };
     Coord tp_2 = { tp_2.row = 0, tp_2.col = 0 };
@@ -89,10 +90,10 @@ struct Level {
     int all_ghost_bonus = 2600;
     bool is_complete = false;
     // Manange modes
-    int roam_count = 6;
-    int roam_for = 15; // seconds
+    int roam_count = 8;
+    int roam_for = 8; // seconds
     int chase_for = 15; // seconds
-    int run_for = 20; // seconds
+    int run_for = 15; // seconds
     high_resolution_clock::time_point roam_time_start = chrono::high_resolution_clock::now();
     high_resolution_clock::time_point chase_time_start = chrono::high_resolution_clock::now();
     high_resolution_clock::time_point run_time_start = chrono::high_resolution_clock::now();
@@ -115,8 +116,8 @@ struct Game {
 // Functions -->
 
 // level setup, display and management
-void SetUp(Game& game, Level& level, Player& player, Ghost ghosts[]);
-void CreateLevelScene(Level& level, Player& player, Ghost ghosts[]);
+void SetUp(Game& game, Level& level, Player& player, Ghost ghosts[], int scene);
+void CreateLevelScene(Level& level, Player& player, Ghost ghosts[], int scene);
 void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[]);
 void StatusBar(Game& game, Level& level, Player& player, Ghost ghosts[]);
 void SpawnMonster(Ghost ghosts[]);
@@ -158,9 +159,8 @@ void SetColor(int color);
 void ShowColors(int colors);
 void TopLeft(int rows);
 string GhostMode(Ghost& ghost);
+void Credits();
 
-// ************
-// MAIN PROGRAM
 // ************
 
 int main()
@@ -171,66 +171,83 @@ int main()
     Ghost redGhost, yellowGhost, orangeGhost, pinkGhost;
     Ghost ghosts[4] = { redGhost, yellowGhost, orangeGhost, pinkGhost };
     bool skip_turn = false;
+    int scene = 1;
 
     //ShowColors(500); // find colors to use
 
-    // Set up variables and data
-    SetUp(game, level, player, ghosts);
-
-    // draw initial level state
-    DrawLevel(game, level, player, ghosts);
-
-    // start a thread to get input while the main program executes
-    thread inputThread(GetPlayerDirection, ref(game), ref(level), ref(player)); // new the ref() wrapper to pass by ref into thread
+    Credits(); // show credits
 
     do
     {
-        // move the player
-        MovePlayer(game, level, player, ghosts);
+        // Set up variables and data
+        SetUp(game, level, player, ghosts, scene);
 
-        // process any player / ghost collision
-        PlayerMonsterCollision(game, level, player, ghosts);
-
-        // set ghost chase modes as approprite
-        SetGhostMode(level, player, ghosts);
-
-        //// move the ghost
-        MoveMonster(game, level, player, redGhost, ghosts);
-
-        // process any player / ghost collision again
-        PlayerMonsterCollision(game, level, player, ghosts);
-
-        // delay render if there's a collision
-        PlayerMonsterCollisionDelay(game, level);
-
-        // Draw the level current state
+        // draw initial level state
         DrawLevel(game, level, player, ghosts);
 
-        // display stats and number lives
-        StatusBar(game, level, player, ghosts);
+        // start a thread to get input while the main program executes
+        thread inputThread(GetPlayerDirection, ref(game), ref(level), ref(player)); // new the ref() wrapper to pass by ref into thread
 
-        // end condition for the gmae once user has eaten all pellets
-        CheckLevelComplete(level);
+        do
+        {
+            // move the player
+            MovePlayer(game, level, player, ghosts);
 
-        // introduce a wait for fast PC
-        RefreshDelay(game, level);
+            // process any player / ghost collision
+            PlayerMonsterCollision(game, level, player, ghosts);
 
-    } while (!level.is_complete && !game.game_over);
+            // set ghost chase modes as approprite
+            SetGhostMode(level, player, ghosts);
 
-    // when game ends, wait for the input thread rejoin the main thread
-    inputThread.join();
+            //// move the ghost
+            MoveMonster(game, level, player, redGhost, ghosts);
+
+            // process any player / ghost collision again
+            PlayerMonsterCollision(game, level, player, ghosts);
+
+            // delay render if there's a collision
+            PlayerMonsterCollisionDelay(game, level);
+
+            // Draw the level current state
+            DrawLevel(game, level, player, ghosts);
+
+            // display stats and number lives
+            StatusBar(game, level, player, ghosts);
+
+            // end condition for the gmae once user has eaten all pellets
+            CheckLevelComplete(level);
+
+            // introduce a wait for fast PC
+            RefreshDelay(game, level);
+
+        } while (!level.is_complete && !game.game_over);
+
+        // when game ends, wait for the input thread rejoin the main thread
+        inputThread.join();
+
+        if (game.game_over)
+            break;
+        else
+            scene = 2;
+
+    } while (true);
+
+    
 
     return 0;
 }
 
 // level setup, display and management
-void SetUp(Game& game, Level& level, Player& player, Ghost ghosts[])
+void SetUp(Game& game, Level& level, Player& player, Ghost ghosts[], int scene)
 {
+    // pause level
+    level.level_paused = true;
+    
     // spawn ghost
     SpawnMonster(ghosts);
     
-    // initialize array and set default player values
-    CreateLevelScene(level, player, ghosts);
+    // initialize array and set default player values - any key starts game
+    CreateLevelScene(level, player, ghosts, scene);
 
     // start time for ghost chase mode
     level.chase_time_start = chrono::high_resolution_clock::now();
@@ -397,58 +414,72 @@ void SpawnMonster(Ghost ghosts[], Ghost ghost, bool playerDied)
 
     
 }
-void CreateLevelScene(Level& level, Player& player, Ghost ghosts[])
+void CreateLevelScene(Level& level, Player& player, Ghost ghosts[], int scene)
 {
     // create string with the level - this makes it easier to convert a string diagram to a level array
     // must be of the level dimensions 17 rows by 23 cols
-    string map;
-    /*map = "+----------------------+----------------------+";
-    map += "|%o...................%|%...................o%|";
-    map += "|%.%+-----+%.%+----+%.%|%.%+----+%.%+-----+%.%|";
-    map += "|%.%#######%.%######%.%|%.%######%.%#######%.%|";
-    map += "|%.%+-----+%.%+----+%.%|%.%+----+%.%+-----+%.%|";
-    map += "|%...........................................%|";
-    map += "|%.%+-----+%.%|%.%+---------+%.%|%.%+-----+%.%|";
-    map += "|%.%+-----+%.%|%.%+---------+%.%|%.%+-----+%.%|";
-    map += "|%...........%|%......%|%......%|%...........%|";
-    map += "|%.%+-----+%.%+----+%.%+%.%+----+%.%+-----+%.%|";
-    map += "|%.%#######%.%|%...............%|%.%#######%.%|";
-    map += "|%.%+-----+%.%|%.%+--+$$$+--+%.%|%.%+-----+%.%|";
-    map += "T ...........%|%.%|%O%R%Y%P%|%.%|%........... T";
-    map += "|%.%+-----+%.%|%.%+---------+%.%|%.%+-----+%.%|";
-    map += "|%.%#######%.%|%...............%|%.%#######%.%|";
-    map += "|%.%#######%.%|%.%+---------+%.%|%.%#######%.%|";
-    map += "|%.%+-----+%.%|%.%+---------+%.%|%.%+-----+%.%|";
-    map += "|%.....................S.....................%|";
-    map += "|%.%+-----+%.%+----+%.%|%.%+----+%.%+-----+%.%|";
-    map += "|%.%#######%.%######%.%|%.%######%.%#######%.%|";
-    map += "|%.%+-----+%.%+----+%.%|%.%+----+%.%+-----+%.%|";
-    map += "|%o...................%|%...................o%|";
-    map += "+----------------------+----------------------+";*/
+    string map, level1, level2;
 
-    map += "+----------------------+----------------------+";
-    map += "|.............................................|";
-    map += "|.............................................|";
-    map += "|.............................................|";
-    map += "|...o.....................................o...|";
-    map += "|.............................................|";
-    map += "|.............................................|";
-    map += "|.............................................|";
-    map += "|.............................................|";
-    map += "|.............................................|";
-    map += "|.............................................|";
-    map += "|................+--+$$$+--+..................|";
-    map += "T................|%O%R%Y%P%|..................T";
-    map += "|................+---------+..................|";
-    map += "|.............................................|";
-    map += "|.............................................|";
-    map += "|.............................................|";
-    map += "|......................S......................|";
-    map += "|...o.....................................o...|";
-    map += "|.............................................|";
-    map += "|.............................................|";
-    map += "|.............................................|";
-    map += "+----------------------+----------------------+";
+    level1 = "+----------------------+----------------------+";
+    level1 += "|%o...................%|%...................o%|";
+    level1 += "|%.%+-----+%.%+----+%.%|%.%+----+%.%+-----+%.%|";
+    level1 += "|%.%#######%.%######%.%|%.%######%.%#######%.%|";
+    level1 += "|%.%+-----+%.%+----+%.%|%.%+----+%.%+-----+%.%|";
+    level1 += "|%...........................................%|";
+    level1 += "|%.%+-----+%.%|%.%+---------+%.%|%.%+-----+%.%|";
+    level1 += "|%.%+-----+%.%|%.%+---------+%.%|%.%+-----+%.%|";
+    level1 += "|%...........%|%......%|%......%|%...........%|";
+    level1 += "|%.%+-----+%.%+----+%.%+%.%+----+%.%+-----+%.%|";
+    level1 += "|%.%#######%.%|%...............%|%.%#######%.%|";
+    level1 += "|%.%+-----+%.%|%.%+--+$$$+--+%.%|%.%+-----+%.%|";
+    level1 += "T ...........%|%.%|%O%R%Y%P%|%.%|%........... T";
+    level1 += "|%.%+-----+%.%|%.%+---------+%.%|%.%+-----+%.%|";
+    level1 += "|%.%#######%.%|%...............%|%.%#######%.%|";
+    level1 += "|%.%#######%.%|%.%+---------+%.%|%.%#######%.%|";
+    level1 += "|%.%+-----+%.%|%.%+---------+%.%|%.%+-----+%.%|";
+    level1 += "|%.....................S.....................%|";
+    level1 += "|%.%+-----+%.%+----+%.%|%.%+----+%.%+-----+%.%|";
+    level1 += "|%.%#######%.%######%.%|%.%######%.%#######%.%|";
+    level1 += "|%.%+-----+%.%+----+%.%|%.%+----+%.%+-----+%.%|";
+    level1 += "|%o...................%|%...................o%|";
+    level1 += "+----------------------+----------------------+";
+
+    level2 += "+----------------------+----------------------+";
+    level2 += "|.............................................|";
+    level2 += "|.............................................|";
+    level2 += "|.............................................|";
+    level2 += "|...o.....................................o...|";
+    level2 += "|.............................................|";
+    level2 += "|.............................................|";
+    level2 += "|.............................................|";
+    level2 += "|.............................................|";
+    level2 += "|.............................................|";
+    level2 += "|.............................................|";
+    level2 += "|................+--+$$$+--+..................|";
+    level2 += "T................|%O%R%Y%P%|..................T";
+    level2 += "|................+---------+..................|";
+    level2 += "|.............................................|";
+    level2 += "|.............................................|";
+    level2 += "|.............................................|";
+    level2 += "|......................S......................|";
+    level2 += "|...o.....................................o...|";
+    level2 += "|.............................................|";
+    level2 += "|.............................................|";
+    level2 += "|.............................................|";
+    level2 += "+----------------------+----------------------+";
+
+    switch (scene)
+    {
+    case 1:
+        map = level1;
+        break;
+    case 2:
+        map = level2;
+        break;
+    default:
+        map = level1;
+        break;
+    }
 
     // '|', '+' = wall; '%' = blank spot with collision; 'T' = portal; 'S' = player starting pos; 'M' = monsters; $ = one way exit only
 
@@ -678,6 +709,14 @@ void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[])
         // end of row ad line feed
         cout << endl;
     }
+
+    if (level.level_paused) {
+        cout << endl;
+        cout << " 'W' = up  'A' = Left  'S' = Down  'D' = Right";
+        char input = _getch();
+        level.level_paused = false;
+    }
+    
 }
 void StatusBar(Game& game, Level& level, Player& player, Ghost ghosts[])
 {
@@ -1478,4 +1517,47 @@ string GhostMode(Ghost& ghost)
         return "NONE";
     }
     return "NONE";
+}
+
+// credits
+void Credits()
+{
+    string ghost;
+    ghost += "                       %%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+    ghost += "                    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+    ghost += "               %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+    ghost += "               %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+    ghost += "           %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+    ghost += "           %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+    ghost += "           %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+    ghost += "           %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+    ghost += "           %%%%%%%%%%%%        %%%%%%%%        %%%%%%%%%%%%\n";
+    ghost += "           %%%%%%%%%%%%        %%%%%%%%        %%%%%%%%%%%%\n";
+    ghost += "       %%%%%%%%%%%%%%%%        %%%%%%%%        %%%%%%%%%%%%%%%%\n";
+    ghost += "       %%%%%%%%%%%%%%%%        %%%%%%%%        %%%%%%%%%%%%%%%%\n";
+    ghost += "       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+    ghost += "       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+    ghost += "       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+    ghost += "       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+    ghost += "       %%%%%%%%        %%%%%%%%        %%%%%%%%        %%%%%%%%\n";
+    ghost += "       %%%%%%%%        %%%%%%%%        %%%%%%%%        %%%%%%%%\n";
+    ghost += "       %%%%    %%%%%%%%        %%%%%%%%        %%%%%%%%    %%%%\n";
+    ghost += "       %%%%    %%%%%%%%        %%%%%%%%        %%%%%%%%    %%%%\n";
+    ghost += "       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+    ghost += "       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+    ghost += "       %%%%%%%%    %%%%%%%%%%%%        %%%%%%%%%%%%    %%%%%%%%\n";
+    ghost += "       %%%%%%%%    %%%%%%%%%%%%        %%%%%%%%%%%%    %%%%%%%%\n";
+    ghost += "       %%%%            %%%%%%%%        %%%%%%%%            %%%%\n";
+
+    cout << endl;
+    SetColor(9);
+    cout << ghost;
+    SetColor(7);
+    cout << endl;
+
+    cout <<  "                PACMAN 2021 - Press any key to start";
+
+    char input = _getch();
+    system("cls");
+    
 }
