@@ -69,7 +69,6 @@ struct Ghost {
 struct Level {
     // level info and size
     string title = "Scene 1";
-    string author = "Uris";
     char map[23][47]{};
     int rows = 23;
     int cols = 47;
@@ -165,20 +164,20 @@ void Credits();
 
 int main()
 {
-    Game game;
-    Level level;
-    Player player;
-    Ghost redGhost, yellowGhost, orangeGhost, pinkGhost;
-    Ghost ghosts[4] = { redGhost, yellowGhost, orangeGhost, pinkGhost };
-    bool skip_turn = false;
-    int scene = 1;
-
     //ShowColors(500); // find colors to use
 
     Credits(); // show credits
 
     do
     {
+        Game game;
+        Level level;
+        Player player;
+        Ghost redGhost, yellowGhost, orangeGhost, pinkGhost;
+        Ghost ghosts[4] = { redGhost, yellowGhost, orangeGhost, pinkGhost };
+        bool skip_turn = false;
+        int scene = 1;
+        
         // Set up variables and data
         SetUp(game, level, player, ghosts, scene);
 
@@ -226,9 +225,24 @@ int main()
         inputThread.join();
 
         if (game.game_over)
-            break;
+        {
+            cout << "       play again? 'y' = yes, 'n' = no         ";
+            char input = _getch();
+            if (input == 'n')
+            {
+                break;
+            }
+            else
+            {
+                system("cls");
+                scene = 1;
+            }
+        }
         else
+        {
+            system("cls");
             scene = 2;
+        }
 
     } while (true);
 
@@ -240,16 +254,35 @@ int main()
 // level setup, display and management
 void SetUp(Game& game, Level& level, Player& player, Ghost ghosts[], int scene)
 {
+    // name level
+    level.level_paused = true;
+    switch (scene)
+    {
+    case 1:
+        level.title = "Scene 1";
+        break;
+    case 2:
+        level.title = "Scene 2";
+        break;
+    default:
+        level.title = "Scene 1";
+        scene = 1;
+        break;
+    }
+
+    // set lives
+    player.lives = 3;
+
     // pause level
     level.level_paused = true;
     
-    // spawn ghost
+    // initialize ghosts
     SpawnMonster(ghosts);
     
-    // initialize array and set default player values - any key starts game
+    // create level maze, set level params and set up ghosts and players
     CreateLevelScene(level, player, ghosts, scene);
 
-    // start time for ghost chase mode
+    // start timer beggining with the chase mode
     level.chase_time_start = chrono::high_resolution_clock::now();
 }
 void SpawnMonster(Ghost ghosts[])
@@ -741,7 +774,7 @@ void StatusBar(Game& game, Level& level, Player& player, Ghost ghosts[])
     SetColor(14);
     cout << (level.eaten_ghots >= 4 ? "*" : "") << "x" << level.eaten_ghots << (level.eaten_ghots >= 4 ? "*" : "");
     SetColor(7);
-    cout << "   ";
+    cout << "       ";
     cout << "\r";
 }
 
