@@ -268,7 +268,7 @@ void SpawnMonster(Ghost ghosts[])
     ghosts[1].prev_pos = { ghosts[1].prev_pos.row = 0, ghosts[1].prev_pos.col = 0 };
     ghosts[1].spawn_target = { ghosts[1].spawn_target.row = 10, ghosts[1].spawn_target.col = 22 }; // just above spawn area
     ghosts[1].roam_target = { ghosts[1].roam_target.row = 24, ghosts[1].roam_target.col = 3 }; // roams to top right hand side
-    ghosts[1].chase_mod = { ghosts[1].chase_mod.row = 0, ghosts[1].chase_mod.col = 4 };
+    ghosts[1].chase_mod = { ghosts[1].chase_mod.row = 0, ghosts[1].chase_mod.col = 3 };
     ghosts[1].curr_direction = Direction::UP;
     ghosts[1].prev_direction = Direction::UP;
     ghosts[1].mode = Mode::CHASE;
@@ -290,7 +290,7 @@ void SpawnMonster(Ghost ghosts[])
     ghosts[2].prev_pos = { ghosts[2].prev_pos.row = 0, ghosts[2].prev_pos.col = 0 };
     ghosts[2].spawn_target = { ghosts[2].spawn_target.row = 10, ghosts[2].spawn_target.col = 22 }; // just above spawn area
     ghosts[2].roam_target = { ghosts[2].roam_target.row = -3, ghosts[2].roam_target.col = 2 }; // roams to top right hand side
-    ghosts[2].chase_mod = { ghosts[2].chase_mod.row = 0, ghosts[2].chase_mod.col = -4 };
+    ghosts[2].chase_mod = { ghosts[2].chase_mod.row = 0, ghosts[2].chase_mod.col = -3 };
     ghosts[2].curr_direction = Direction::UP;
     ghosts[2].prev_direction = Direction::UP;
     ghosts[2].mode = Mode::CHASE;
@@ -311,7 +311,7 @@ void SpawnMonster(Ghost ghosts[])
     ghosts[3].spawn_pos = { ghosts[3].spawn_pos.row = 0, ghosts[3].spawn_pos.col = 0 };
     ghosts[3].prev_pos = { ghosts[3].prev_pos.row = 0, ghosts[3].prev_pos.col = 0 };
     ghosts[3].spawn_target = { ghosts[3].spawn_target.row = 10, ghosts[3].spawn_target.col = 22 }; // just above spawn area
-    ghosts[3].roam_target = { ghosts[3].roam_target.row = 24, ghosts[3].roam_target.col = 45 }; // roams to top right hand side
+    ghosts[3].roam_target = { ghosts[3].roam_target.row = -3, ghosts[3].roam_target.col = 45 }; // roams to top right hand side
     ghosts[3].chase_mod = { ghosts[3].chase_mod.row = -3, ghosts[3].chase_mod.col = 0 };
     ghosts[3].curr_direction = Direction::UP;
     ghosts[3].prev_direction = Direction::UP;
@@ -402,7 +402,7 @@ void CreateLevelScene(Level& level, Player& player, Ghost ghosts[])
     // create string with the level - this makes it easier to convert a string diagram to a level array
     // must be of the level dimensions 17 rows by 23 cols
     string map;
-    map = "+----------------------+----------------------+";
+    /*map = "+----------------------+----------------------+";
     map += "|%o...................%|%...................o%|";
     map += "|%.%+-----+%.%+----+%.%|%.%+----+%.%+-----+%.%|";
     map += "|%.%#######%.%######%.%|%.%######%.%#######%.%|";
@@ -424,6 +424,30 @@ void CreateLevelScene(Level& level, Player& player, Ghost ghosts[])
     map += "|%.%#######%.%######%.%|%.%######%.%#######%.%|";
     map += "|%.%+-----+%.%+----+%.%|%.%+----+%.%+-----+%.%|";
     map += "|%o...................%|%...................o%|";
+    map += "+----------------------+----------------------+";*/
+
+    map += "+----------------------+----------------------+";
+    map += "|.............................................|";
+    map += "|.............................................|";
+    map += "|.............................................|";
+    map += "|...o.....................................o...|";
+    map += "|.............................................|";
+    map += "|.............................................|";
+    map += "|.............................................|";
+    map += "|.............................................|";
+    map += "|.............................................|";
+    map += "|.............................................|";
+    map += "|................+--+$$$+--+..................|";
+    map += "T................|%O%R%Y%P%|..................T";
+    map += "|................+---------+..................|";
+    map += "|.............................................|";
+    map += "|.............................................|";
+    map += "|.............................................|";
+    map += "|......................S......................|";
+    map += "|...o.....................................o...|";
+    map += "|.............................................|";
+    map += "|.............................................|";
+    map += "|.............................................|";
     map += "+----------------------+----------------------+";
 
     // '|', '+' = wall; '%' = blank spot with collision; 'T' = portal; 'S' = player starting pos; 'M' = monsters; $ = one way exit only
@@ -562,7 +586,7 @@ void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[])
     }
    
     // Level Title
-    cout << endl << "   PACMAN: " << TransformString(level.title, 0) << " by " << TransformString(level.author, 0) << endl << endl;
+    cout << endl << "                 PACMAN: " << TransformString(level.title, 0) << endl << endl;
 
     // draw current level map
     for (int r = 0; r < level.rows; r++)
@@ -666,25 +690,20 @@ void StatusBar(Game& game, Level& level, Player& player, Ghost ghosts[])
     player.score = ((level.eaten_pellets + 1) * level.points_pellet) + (level.eaten_ghots * level.points_ghost) + (level.eaten_ghots >= 4 ? level.all_ghost_bonus : 0);
     cout << endl;
     SetColor(7);
-    cout << " LIVES:";
+    cout << "    LIVES:";
     SetColor(14);
     cout << (player.lives > 0 ? lives : "-");
     SetColor(7);
-    cout << " SCORE:";
+    cout << "   SCORE:";
     SetColor(14);
     cout << setfill('0') << setw(8) << player.score;
     SetColor(7);
-    cout << " GHOSTS:";
+    cout << "   GHOSTS:";
     SetColor(14);
     cout << (level.eaten_ghots >= 4 ? "*" : "") << "x" << level.eaten_ghots << (level.eaten_ghots >= 4 ? "*" : "");
     SetColor(7);
     cout << "   ";
-    /*cout << " M:";
-    SetColor(14);
-    cout << GhostMode(ghosts[0]) << " ";
-    cout << (ghosts[0].run_first_move ? "T" : "F");
-    cout << "   ";
-    SetColor(7);*/
+    cout << "\r";
 }
 
 // Player movement
@@ -1107,9 +1126,9 @@ int MoveMonster(Game& game, Level& level, Player& player, Ghost& ghost, Ghost gh
             continue; // next ghost
         }
 
-        if (ghosts[0].mode != Mode::RUN)  // run recursive AI for chase, roam and spawn modes 
+        if (ghosts[g].mode != Mode::RUN)  // run recursive AI for chase, roam and spawn modes 
         {
-            int score = 0, bestScore = ghosts[g].mode == Mode::RUN ? -1000 : 1000;
+            int score = 0, bestScore = 1000;
             Coord nextMove;
             Coord move = { move.row = ghosts[g].curr_pos.row, move.col = ghosts[g].curr_pos.col };
             Direction new_direction = Direction::NONE;
@@ -1129,22 +1148,11 @@ int MoveMonster(Game& game, Level& level, Player& player, Ghost& ghost, Ghost gh
                     // revert ghost coords back
                     ghosts[g].curr_pos.row = move.row; ghosts[g].curr_pos.col = move.col;
 
-                    // if the new move score gets the ghost closer to the player than the current bestscore, set this as the best move
-                    if (ghosts[g].mode == Mode::RUN)
+                    // if the new move score gets the ghost closer to the target coord
+                    if (score < bestScore)
                     {
-                        if (score > bestScore)
-                        {
-                            bestScore = score; // set new best score
-                            bestMove = new_direction; // set new best move direction
-                        }
-                    }
-                    else
-                    {
-                        if (score < bestScore)
-                        {
-                            bestScore = score; // set new best score
-                            bestMove = new_direction; // set new best move direction
-                        }
+                        bestScore = score; // set new best score
+                        bestMove = new_direction; // set new best move direction
                     }
 
                 }
@@ -1259,6 +1267,7 @@ void SetGhostMode(Level& level, Player& player, Ghost ghosts[])
                 case Mode::ROAM:
                 case Mode::CHASE:
                     ghosts[g].mode = Mode::ROAM;
+                    ghosts[g].skip_turn = false;
                     break;
                 case Mode::RUN:
                 case Mode::SPAWN:
@@ -1312,7 +1321,7 @@ void SetGhostMode(Level& level, Player& player, Ghost ghosts[])
                 case Mode::SPAWN:
                     ghosts[g].mode = ghosts[g].mode;
                 }
-                ghosts[g].skip_turn = !ghosts[g].skip_turn; // when ghost is edible slow him down
+                ghosts[g].skip_turn = false; // when ghost is edible slow him down
                 ghosts[g].is_edible = false;
                 ghosts[g].run_first_move = true;
             }
