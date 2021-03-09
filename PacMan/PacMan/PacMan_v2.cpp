@@ -167,6 +167,7 @@ int main()
     //ShowColors(500); // find colors to use
 
     Credits(); // show credits
+    int scene = 1; // start at Scene 1
 
     do
     {
@@ -176,7 +177,7 @@ int main()
         Ghost redGhost, yellowGhost, orangeGhost, pinkGhost;
         Ghost ghosts[4] = { redGhost, yellowGhost, orangeGhost, pinkGhost };
         bool skip_turn = false;
-        int scene = 1;
+        
         
         // Set up variables and data
         SetUp(game, level, player, ghosts, scene);
@@ -592,6 +593,7 @@ void SpawnPlayer(Player& player)
 }
 void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[])
 {
+    int current_pellets = 0; // bug fix - loosing some pellets on map - will need to perma fix but this will do for now
     
     for (int r = 0; r < level.rows; r++)
     {
@@ -686,9 +688,11 @@ void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[])
                 SetColor(0); // black on black = not visible
                 break;
             case '.': // pellet
+                current_pellets++;
                 SetColor(7); // gray for bullets
                 break;
             case 'o': // power up
+                current_pellets++;
                 SetColor(7); // white for power ups
                 break;
             case 'P': // blue ghost
@@ -743,12 +747,19 @@ void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[])
         cout << endl;
     }
 
+    // before start of level get any key to start
     if (level.level_paused) {
         cout << endl;
-        cout << " 'W' = up  'A' = Left  'S' = Down  'D' = Right";
+        cout << " W-A-S-D keys to move. Press any key to start.";
         char input = _getch();
         level.level_paused = false;
     }
+
+    // ********
+    // BUG FIX - brute force - need to look at why we are dropping a few pellets
+    // we are essentially couting the current pellets on map, subtracting that from the level remaining
+    // this should be zero but when we loose pellets this is not the case.
+    level.eaten_pellets = level.eaten_pellets - 1 + (level.total_pellets - level.eaten_pellets - current_pellets);
     
 }
 void StatusBar(Game& game, Level& level, Player& player, Ghost ghosts[])
