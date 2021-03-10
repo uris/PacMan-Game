@@ -393,7 +393,7 @@ void SpawnMonster(Ghost ghosts[], Ghost ghost, bool playerDied)
         ghosts[0].is_edible = false;
         ghosts[0].color_on = false;
         ghosts[0].color = 71;
-        ghosts[0].wait = (playerDied ? 15 : 6);
+        ghosts[0].wait = (playerDied ? 15 : 15);
         ghosts[0].skip_turn = false; // use this to slow down moster if edible
         break;
     case 'Y':
@@ -409,7 +409,7 @@ void SpawnMonster(Ghost ghosts[], Ghost ghost, bool playerDied)
         ghosts[1].is_edible = false;
         ghosts[1].color_on = false;
         ghosts[1].color = 367;
-        ghosts[1].wait = (playerDied ? 30 : 6);
+        ghosts[1].wait = (playerDied ? 30 : 15);
         ghosts[1].skip_turn = false; // use this to slow down moster if edible
         break;
     case 'O':
@@ -425,7 +425,7 @@ void SpawnMonster(Ghost ghosts[], Ghost ghost, bool playerDied)
         ghosts[2].is_edible = false;
         ghosts[2].color_on = false;
         ghosts[2].color = 435;
-        ghosts[2].wait = (playerDied ? 45 : 6);
+        ghosts[2].wait = (playerDied ? 45 : 15);
         ghosts[2].skip_turn = false; // use this to slow down moster if edible
         break;
     case 'P':
@@ -441,7 +441,7 @@ void SpawnMonster(Ghost ghosts[], Ghost ghost, bool playerDied)
         ghosts[3].is_edible = false;
         ghosts[3].color_on = false;
         ghosts[3].color = 479;
-        ghosts[3].wait = (playerDied ? 60 : 6);
+        ghosts[3].wait = (playerDied ? 60 : 15);
         ghosts[3].skip_turn = false; // use this to slow down moster if edible
         break;
     }
@@ -750,7 +750,7 @@ void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[])
     // before start of level get any key to start
     if (level.level_paused) {
         cout << endl;
-        cout << " W-A-S-D keys to move. Press any key to start.";
+        cout << "           Press any key to start.";
         char input = _getch();
         level.level_paused = false;
     }
@@ -1567,40 +1567,27 @@ string GhostMode(Ghost& ghost)
 void Credits()
 {
     string ghost;
-    ghost += "                       %%%%%%%%%%%%%%%%%%%%%%%%%%\n";
-    ghost += "                    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
-    ghost += "               %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
-    ghost += "               %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
-    ghost += "           %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
-    ghost += "           %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
-    ghost += "           %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
-    ghost += "           %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
-    ghost += "           %%%%%%%%%%%%        %%%%%%%%        %%%%%%%%%%%%\n";
-    ghost += "           %%%%%%%%%%%%        %%%%%%%%        %%%%%%%%%%%%\n";
-    ghost += "       %%%%%%%%%%%%%%%%        %%%%%%%%        %%%%%%%%%%%%%%%%\n";
-    ghost += "       %%%%%%%%%%%%%%%%        %%%%%%%%        %%%%%%%%%%%%%%%%\n";
-    ghost += "       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
-    ghost += "       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
-    ghost += "       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
-    ghost += "       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
-    ghost += "       %%%%%%%%        %%%%%%%%        %%%%%%%%        %%%%%%%%\n";
-    ghost += "       %%%%%%%%        %%%%%%%%        %%%%%%%%        %%%%%%%%\n";
-    ghost += "       %%%%    %%%%%%%%        %%%%%%%%        %%%%%%%%    %%%%\n";
-    ghost += "       %%%%    %%%%%%%%        %%%%%%%%        %%%%%%%%    %%%%\n";
-    ghost += "       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
-    ghost += "       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
-    ghost += "       %%%%%%%%    %%%%%%%%%%%%        %%%%%%%%%%%%    %%%%%%%%\n";
-    ghost += "       %%%%%%%%    %%%%%%%%%%%%        %%%%%%%%%%%%    %%%%%%%%\n";
-    ghost += "       %%%%            %%%%%%%%        %%%%%%%%            %%%%\n";
 
-    cout << endl;
-    SetColor(9);
+    ghost += "               *********\n";
+    ghost += "           *****************\n";
+    ghost += "         *********************\n";
+    ghost += "       ******####********####**\n";
+    ghost += "       ****#########***#########\n";
+    ghost += "       ****#####    ***#####    *\n";
+    ghost += "    *******#####    ***#####    ***\n";
+    ghost += "    *********#####********####*****\n";
+    ghost += "    *******************************\n";
+    ghost += "    *******************************\n";
+    ghost += "    *******************************\n";
+    ghost += "    *****  *******    ******  *****\n";
+    ghost += "    ***      *****    ****      ***\n";
+    
+    cout << endl << endl;
+    SetColor(7);
     cout << ghost;
     SetColor(7);
-    cout << endl;
-
-    cout <<  "                PACMAN 2021 - Press any key to start";
-
+    //cout << endl << "      Press any key to start";
+    cout << endl << "              PACMAN 2021";
     char input = _getch();
     system("cls");
     
