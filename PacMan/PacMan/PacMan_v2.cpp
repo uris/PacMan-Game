@@ -108,7 +108,7 @@ struct Game {
     bool player_beat_pause = false;
     int gobble_delay = 500; // wait in milliseconds
     int player_beat_delay = 1000; // wait in milliseconds
-    int refresh_delay = 60; // milliseconds
+    int refresh_delay = 0; // milliseconds
     int ghost_color_on = 275; // for ghost flash
     int ghost_color_off = 155; // for ghost flash
 };
@@ -152,6 +152,7 @@ void SetGhostMode(Level& level, Player& player, Ghost ghosts[]);
 void CheckLevelComplete(Level& level);
 void RefreshDelay(Game& game, Level& level);
 void PlayerMonsterCollisionDelay(Game& game, Level& level);
+void ShowConsoleCursor(bool showFlag);
 
 // Helper and scaffolding
 string TransformString(string text, int operation);
@@ -166,6 +167,8 @@ void Credits();
 int main()
 {
     //ShowColors(500); // find colors to use
+
+    ShowConsoleCursor(false);
 
     Credits(); // show credits
     int scene = 1; // start at Scene 1
@@ -1610,6 +1613,17 @@ string GhostMode(Ghost& ghost)
     }
     return "NONE";
 }
+void ShowConsoleCursor(bool showFlag)
+{
+    HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    CONSOLE_CURSOR_INFO     cursorInfo;
+
+    GetConsoleCursorInfo(out, &cursorInfo);
+    cursorInfo.bVisible = showFlag; // set the cursor visibility
+    SetConsoleCursorInfo(out, &cursorInfo);
+}
+
 
 // credits
 void Credits()
