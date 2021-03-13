@@ -85,8 +85,8 @@ struct Level   {
     static constexpr int gPINK = 3;
 
     // level chars
-    static constexpr char powerup = 254; // powerup ascii
-    static constexpr char pellet = 250; // pellet ascii
+    static constexpr unsigned char powerup = 254; //extended set of ascii 
+    static constexpr unsigned char pellet = 250; // extended set of ascii
     static constexpr char player_start = 'S'; // pellet ascii
     static constexpr char ghost_spawn_target = '^'; // pellet ascii
     static constexpr char space = ' '; // pellet ascii
@@ -881,7 +881,7 @@ void StatusBar(const Game& game, Level& level, Player& player)
 #pragma region Player movement
 void GetPlayerDirection(const Game& game, const Level& level, Player& player)
 {
-    int input, extended;
+    int input;
 
     do
     {
