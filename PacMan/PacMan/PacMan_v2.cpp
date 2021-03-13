@@ -1,4 +1,4 @@
-#include <iostream> // base input / output
+﻿#include <iostream> // base input / output
 #include <string> // manipulate level string
 #include <Windows.h> // used to output colors
 #include <conio.h> // used to get input without requiring return
@@ -66,10 +66,21 @@ struct Ghost {
     bool skip_turn = false; // use this to slow down moster if edible
     int look_ahead = 5; // how far ahead the IA looks for player
 };
-struct Level {
+struct Level   {
+    // Colors
+    static constexpr int cINVISIBLE = 0; // black on black
+    static constexpr int cWHITE = 7; // white
+    static constexpr int cPLAYER = 14; // yellow
+    static constexpr int cWALLS = 392; // gray on gray text
+    // Ghosts
+    static constexpr int gRED = 0;
+    static constexpr int gYELLOW = 1;
+    static constexpr int gBLUE = 2;
+    static constexpr int gPINK = 3;
     // level info and size
     string title = "Scene 1";
-    char map[23][47]{};
+    char** p_map = nullptr;
+    //char map[23][47]{};
     int rows = 23;
     int cols = 47;
     bool level_paused = true;
@@ -78,9 +89,20 @@ struct Level {
     Coord tp_2 = { tp_2.row = 0, tp_2.col = 0 };
     Coord ghost_spawn = { ghost_spawn.row = 0, ghost_spawn.col = 0 };
     bool tp_row = true;
-    // level status and chars
-    static constexpr char chr_powerup = 'o';
-    static constexpr char chr_pellet = '.';
+    // level chars
+    static constexpr char powerup = 254; // powerup ascii
+    static constexpr char pellet = 250; // pellet ascii
+    static constexpr char player_start = 'S'; // pellet ascii
+    static constexpr char ghost_spawn_target = '^'; // pellet ascii
+    static constexpr char space = ' '; // pellet ascii
+    static constexpr char invisible_wall = '%'; // pellet ascii
+    static constexpr char one_way = '$'; // pellet ascii
+    static constexpr char teleport = 'T'; // pellet ascii
+    static constexpr char red_ghost = 'R'; // pellet ascii
+    static constexpr char yellow_ghost = 'Y'; // pellet ascii
+    static constexpr char blue_ghost = 'B'; // pellet ascii
+    static constexpr char pink_ghost = 'P'; // pellet ascii
+    // status info
     int total_pellets = 0; // totala level pellets
     int eaten_pellets = 0; // pellets consumed
     int eaten_ghots = 0; // pellets consumed
@@ -108,7 +130,7 @@ struct Game {
     bool player_beat_pause = false;
     int gobble_delay = 500; // wait in milliseconds
     int player_beat_delay = 1000; // wait in milliseconds
-    int refresh_delay = 0; // milliseconds
+    int refresh_delay = 60; // milliseconds
     int ghost_color_on = 275; // for ghost flash
     int ghost_color_off = 155; // for ghost flash
 };
@@ -116,8 +138,8 @@ struct Game {
 // Functions -->
 
 // level setup, display and management
-void SetUp(Game& game, Level& level, Player& player, Ghost ghosts[], int scene);
-void CreateLevelScene(Level& level, Player& player, Ghost ghosts[], int scene);
+void SetUp(Game& game, Level& level, Player& player, Ghost ghosts[], const int scene);
+char** CreateLevelScene(Level& level, Player& player, Ghost ghosts[], const int scene);
 void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[]);
 void StatusBar(Game& game, Level& level, Player& player, Ghost ghosts[]);
 void SpawnMonster(Level& level, Ghost ghosts[]);
@@ -127,17 +149,16 @@ void SpawnPlayer(Player& player);
 // Player movement
 void GetPlayerDirection(Game& game, Level& level, Player& player);
 void MovePlayer(Game& game, Level& level, Player& player, Ghost ghosts[]);
-void KeepMovePlayer(Game& game, Level& level, Player& player, Ghost ghosts[]);
-bool PlayerCanMove(Level& level, int newPRow, int newPCol);
+Coord NewPos(const Coord& currentPos, const Direction& direction);
 
 // Ghost movement
 int MoveMonster(Game& game, Level& level, Player& player, Ghost& ghost, Ghost ghosts[]);
 void DoMonsterMove(Level& level, Player& player, Ghost ghosts[], Ghost& ghost, Direction bestMove);
 int GetBestMove(Level& level, Player& player, Ghost& ghost, Coord move, Direction curr_direction, int depth, bool isGhost);
-bool NotWall(Level& level, Coord move, Direction direction);
+bool NotWall(const Level& level, const Coord& move, const Direction& direction);
 bool CanMove(Level& level, Ghost& ghost, Coord move, Direction direction, Direction curr_direction);
 Coord NewMove(Level& level, Ghost& ghost, Coord move, Direction direction);
-bool IsTeleport(Level& level, Coord move);
+bool IsTeleport(const Level& level, const Coord& move);
 Direction RandomGhostMove(Level& level, Ghost& ghost);
 char GetSquareContentNow(Level& level, Ghost ghosts[], Coord square);
 Coord GhostTeleport(Level& level, Ghost& ghost, Coord move, Direction direction);
@@ -153,6 +174,7 @@ void CheckLevelComplete(Level& level);
 void RefreshDelay(Game& game, Level& level);
 void PlayerMonsterCollisionDelay(Game& game, Level& level);
 void ShowConsoleCursor(bool showFlag);
+void DeallocateMem(Level& level);
 
 // Helper and scaffolding
 string TransformString(string text, int operation);
@@ -161,15 +183,16 @@ void ShowColors(int colors);
 void TopLeft(int rows);
 string GhostMode(Ghost& ghost);
 void Credits();
+void ReplaceString(string& text, string from, char to);
+Coord MapSize(const string& map);
+void ShowConsoleCursor(bool showFlag);
 
 // ************
 
 int main()
 {
     //ShowColors(500); // find colors to use
-
-    ShowConsoleCursor(false);
-
+ 
     Credits(); // show credits
     int scene = 1; // start at Scene 1
 
@@ -180,11 +203,12 @@ int main()
         Player player;
         Ghost redGhost, yellowGhost, orangeGhost, pinkGhost;
         Ghost ghosts[4] = { redGhost, yellowGhost, orangeGhost, pinkGhost };
-        bool skip_turn = false;
-        
-        
+               
         // Set up variables and data
         SetUp(game, level, player, ghosts, scene);
+
+        // remove cursor from view for less flicker during game
+        ShowConsoleCursor(false);
 
         // draw initial level state
         DrawLevel(game, level, player, ghosts);
@@ -229,12 +253,16 @@ int main()
         // when game ends, wait for the input thread rejoin the main thread
         inputThread.join();
 
+        // bring cursor fro the console back into view
+        ShowConsoleCursor(false);
+
         if (game.game_over)
         {
             cout << "       play again? 'y' = yes, 'n' = no         ";
             char input = _getch();
             if (input == 'n')
             {
+                DeallocateMem(level);
                 break;
             }
             else
@@ -250,8 +278,6 @@ int main()
         }
 
     } while (true);
-
-    
 
     return 0;
 }
@@ -285,14 +311,7 @@ void SetUp(Game& game, Level& level, Player& player, Ghost ghosts[], int scene)
     SpawnMonster(level, ghosts);
     
     // create level maze, set level params and set up ghosts and players
-    CreateLevelScene(level, player, ghosts, scene);
-
-    // set spawn target
-    for (int g = 0; g < 4; g++) // loop through ghosts
-    {
-        ghosts[g].spawn_target.row = level.ghost_spawn.row;
-        ghosts[g].spawn_target.col = level.ghost_spawn.col;
-    }
+    level.p_map = CreateLevelScene(level, player, ghosts, scene);
 
     // start timer beggining with the chase mode
     level.chase_time_start = chrono::high_resolution_clock::now();
@@ -300,7 +319,7 @@ void SetUp(Game& game, Level& level, Player& player, Ghost ghosts[], int scene)
 void SpawnMonster(Level& level, Ghost ghosts[])
 {
     // spawn red ghost
-    ghosts[0].ghost = 'R';
+    ghosts[0].ghost = Level::red_ghost;
     ghosts[0].square_content_now = ' ';
     ghosts[0].square_content_prior = ghosts[0].square_content_now;
     ghosts[0].curr_pos = { ghosts[0].curr_pos.row = 0, ghosts[0].curr_pos.col = 0 };
@@ -322,7 +341,7 @@ void SpawnMonster(Level& level, Ghost ghosts[])
     ghosts[0].look_ahead = 5; // how far ahead the IA looks for player
 
     // spawn yellow ghost
-    ghosts[1].ghost = 'Y';
+    ghosts[1].ghost = Level::yellow_ghost;
     ghosts[1].square_content_now = ' ';
     ghosts[1].square_content_prior = ghosts[1].square_content_now;
     ghosts[1].curr_pos = { ghosts[1].curr_pos.row = 0, ghosts[1].curr_pos.col = 0 };
@@ -344,7 +363,7 @@ void SpawnMonster(Level& level, Ghost ghosts[])
     ghosts[1].look_ahead = 5; // how far ahead the IA looks for player
 
     // spawn blue ghost
-    ghosts[2].ghost = 'O';
+    ghosts[2].ghost = Level::blue_ghost;
     ghosts[2].square_content_now = ' ';
     ghosts[2].square_content_prior = ghosts[2].square_content_now;
     ghosts[2].curr_pos = { ghosts[2].curr_pos.row = 0, ghosts[2].curr_pos.col = 0 };
@@ -366,7 +385,7 @@ void SpawnMonster(Level& level, Ghost ghosts[])
     ghosts[2].look_ahead = 5; // how far ahead the IA looks for player
 
     // spawn pink ghost
-    ghosts[3].ghost = 'P';
+    ghosts[3].ghost = Level::pink_ghost;
     ghosts[3].square_content_now = ' ';
     ghosts[3].square_content_prior = ghosts[3].square_content_now;
     ghosts[3].curr_pos = { ghosts[3].curr_pos.row = 0, ghosts[3].curr_pos.col = 0 };
@@ -391,7 +410,7 @@ void SpawnMonster(Level& level, Ghost ghosts[], Ghost ghost, bool playerDied)
 {
     switch (ghost.ghost)
     {
-    case 'R':
+    case Level::red_ghost:
         // spawn red ghost
         ghosts[0].square_content_now = ' ';
         ghosts[0].square_content_prior = ghosts[0].square_content_now;
@@ -407,7 +426,7 @@ void SpawnMonster(Level& level, Ghost ghosts[], Ghost ghost, bool playerDied)
         ghosts[0].wait = (playerDied ? 15 : 15);
         ghosts[0].skip_turn = false; // use this to slow down moster if edible
         break;
-    case 'Y':
+    case Level::yellow_ghost:
         // spawn yellow ghost
         ghosts[1].square_content_now = ' ';
         ghosts[1].square_content_prior = ghosts[1].square_content_now;
@@ -423,7 +442,7 @@ void SpawnMonster(Level& level, Ghost ghosts[], Ghost ghost, bool playerDied)
         ghosts[1].wait = (playerDied ? 30 : 15);
         ghosts[1].skip_turn = false; // use this to slow down moster if edible
         break;
-    case 'O':
+    case Level::blue_ghost:
         // spawn blue ghost
         ghosts[2].square_content_now = ' ';
         ghosts[2].square_content_prior = ghosts[2].square_content_now;
@@ -439,7 +458,7 @@ void SpawnMonster(Level& level, Ghost ghosts[], Ghost ghost, bool playerDied)
         ghosts[2].wait = (playerDied ? 45 : 15);
         ghosts[2].skip_turn = false; // use this to slow down moster if edible
         break;
-    case 'P':
+    case Level::pink_ghost:
         // spawn pink ghost
         ghosts[3].square_content_now = ' ';
         ghosts[3].square_content_prior = ghosts[3].square_content_now;
@@ -459,37 +478,37 @@ void SpawnMonster(Level& level, Ghost ghosts[], Ghost ghost, bool playerDied)
 
     
 }
-void CreateLevelScene(Level& level, Player& player, Ghost ghosts[], int scene)
+char** CreateLevelScene(Level& level, Player& player, Ghost ghosts[], int scene)
 {
     // create string with the level - this makes it easier to convert a string diagram to a level array
     // must be of the level dimensions 17 rows by 23 cols
     string map, level1, level2;
 
-    level1 = "+----------------------+----------------------+";
+    level1 =  "+---------------------------------------------+";
     level1 += "|%o...................%|%...................o%|";
-    level1 += "|%.%+-----+%.%+----+%.%|%.%+----+%.%+-----+%.%|";
+    level1 += "|%.%-------%.%------%.%|%.%------%.%-------%.%|";
     level1 += "|%.%#######%.%######%.%|%.%######%.%#######%.%|";
-    level1 += "|%.%+-----+%.%+----+%.%|%.%+----+%.%+-----+%.%|";
+    level1 += "|%.%-------%.%------%.%|%.%------%.%-------%.%|";
     level1 += "|%...........................................%|";
-    level1 += "|%.%+-----+%.%|%.%+---------+%.%|%.%+-----+%.%|";
-    level1 += "|%.%+-----+%.%|%.%+---------+%.%|%.%+-----+%.%|";
+    level1 += "|%.%-------%.%|%.%-----------%.%|%.%-------%.%|";
+    level1 += "|%.%-------%.%|%.%-----------%.%|%.%-------%.%|";
     level1 += "|%...........%|%......%|%......%|%...........%|";
-    level1 += "|%.%+-----+%.%+----+%.%+%.%+----+%.%+-----+%.%|";
+    level1 += "|%.%-------%.%------%.%-%.%------%.%-------%.%|";
     level1 += "|%.%#######%.%|%.......^.......%|%.%#######%.%|";
-    level1 += "|%.%+-----+%.%|%.%+--+$$$+--+%.%|%.%+-----+%.%|";
-    level1 += "T ...........%|%.%| O R Y P |%.%|%........... T";
-    level1 += "|%.%+-----+%.%|%.%+---------+%.%|%.%+-----+%.%|";
+    level1 += "|%.%-------%.%|%.%----$$$----%.%|%.%-------%.%|";
+    level1 += "T ...........%|%.%| B R Y P |%.%|%........... T";
+    level1 += "|%.%-------%.%|%.%-----------%.%|%.%-------%.%|";
     level1 += "|%.%#######%.%|%...............%|%.%#######%.%|";
-    level1 += "|%.%#######%.%|%.%+---------+%.%|%.%#######%.%|";
-    level1 += "|%.%+-----+%.%|%.%+---------+%.%|%.%+-----+%.%|";
+    level1 += "|%.%#######%.%|%.%-----------%.%|%.%#######%.%|";
+    level1 += "|%.%-------%.%|%.%-----------%.%|%.%-------%.%|";
     level1 += "|%.....................S.....................%|";
-    level1 += "|%.%+-----+%.%+----+%.%|%.%+----+%.%+-----+%.%|";
+    level1 += "|%.%-------%.%------%.%|%.%------%.%-------%.%|";
     level1 += "|%.%#######%.%######%.%|%.%######%.%#######%.%|";
-    level1 += "|%.%+-----+%.%+----+%.%|%.%+----+%.%+-----+%.%|";
+    level1 += "|%.%-------%.%------%.%|%.%------%.%-------%.%|";
     level1 += "|%o...................%|%...................o%|";
-    level1 += "+----------------------+----------------------+";
+    level1 += "+---------------------------------------------+";
 
-    level2 += "+----------------------+----------------------+";
+    level2 =  "+---------------------------------------------+";
     level2 += "|.............................................|";
     level2 += "|.............................................|";
     level2 += "|.............................................|";
@@ -500,9 +519,9 @@ void CreateLevelScene(Level& level, Player& player, Ghost ghosts[], int scene)
     level2 += "|.............................................|";
     level2 += "|.............................................|";
     level2 += "|.....................^.......................|";
-    level2 += "|................+--+$$$+--+..................|";
-    level2 += "T................| O R Y P |..................T";
-    level2 += "|................+---------+..................|";
+    level2 += "|................----$$$----..................|";
+    level2 += "T................| B R Y P |..................T";
+    level2 += "|................-----------..................|";
     level2 += "|.............................................|";
     level2 += "|.............................................|";
     level2 += "|.............................................|";
@@ -511,7 +530,7 @@ void CreateLevelScene(Level& level, Player& player, Ghost ghosts[], int scene)
     level2 += "|.............................................|";
     level2 += "|.............................................|";
     level2 += "|.............................................|";
-    level2 += "+----------------------+----------------------+";
+    level2 += "+---------------------------------------------+";
 
     switch (scene)
     {
@@ -526,63 +545,77 @@ void CreateLevelScene(Level& level, Player& player, Ghost ghosts[], int scene)
         break;
     }
 
-    // '|', '+' = wall; '%' = blank spot with collision; 'T' = portal; 'S' = player starting pos; 'M' = monsters; $ = one way exit only
+    // parse through string to replace pellt and powerup markers to their ascii code
+    ReplaceString(map, ".", Level::pellet);
+    ReplaceString(map, "o", Level::powerup);
 
+    // create dynamic two dimension pointer array to hold map
+    Coord size = MapSize(map); // get width and height of the map
+    level.cols = size.col; // set lsizes in level
+    level.rows = size.row; // set sizes in level
+    char** p_mapArray = new char*[size.row];
+    for (int i = 0; i < size.row; i++)
+    {
+        p_mapArray[i] = new char[size.col];
+    }
+    
+    // parse through map string and convert into the level map array
+    // '|', '+' = wall; '%' = blank spot with collision; 'T' = portal; 'S' = player starting pos; 'M' = monsters; $ = one way exit only
     int t_row = 0, t_col = 0;
 
-    // iterate through the string
+    // iterate through the characters of the map string
     for (string::size_type i = 0; i < map.size(); i++)
     {
-        // add to level map array
-        level.map[t_row][t_col] = map[i];
+        // add to dynamic map array
+        p_mapArray[t_row][t_col] = map[i];
 
         // count pellets that determine end game condition
-        if (map[i] == Level::chr_pellet || map[i] == Level::chr_powerup)
+        if (map[i] == Level::pellet || map[i] == Level::powerup)
             level.total_pellets++;
 
         // Set player start to position 'S'
-        if (map[i] == 'S')
+        if (map[i] == Level::player_start)
         {
             player.spawn_pos.row = player.curr_pos.row = player.prev_pos.row = t_row;
             player.spawn_pos.col = player.curr_pos.col = player.prev_pos.col = t_col;
-            level.map[t_row][t_col] = Level::chr_pellet;
-            level.total_pellets++; // bug - player start should not be pellet so error on count.
         }
 
-        // Set ghost spawn location
-        if (map[i] == '^')
+        // Set ghost spawn target location
+        if (map[i] == Level::ghost_spawn_target)
         {
             level.ghost_spawn.row = t_row;
             level.ghost_spawn.col = t_col;
-            level.map[t_row][t_col] = Level::chr_pellet;
+            p_mapArray[t_row][t_col] = Level::pellet;
             level.total_pellets++;
-
-            //for (int g = 0; g < 4; g++) // loop through ghosts
-            //{
-            //    ghosts[g].spawn_target.row = t_row;
-            //    ghosts[g].spawn_target.col = t_col;
-            //}
-        }
-
-        // Set player start to position 'S'
-        if (map[i] == 'S')
-        {
-            player.spawn_pos.row = player.curr_pos.row = player.prev_pos.row = t_row;
-            player.spawn_pos.col = player.curr_pos.col = player.prev_pos.col = t_col;
-            level.map[t_row][t_col] = Level::chr_pellet;
-            level.total_pellets++;
+            
+            // set ghosts spawn target
+            for (int g = 0; g < 4; g++) // loop through ghosts
+            {
+                ghosts[g].spawn_target.row = t_row;
+                ghosts[g].spawn_target.col = t_col;
+            }
         }
 
         // Set Ghost start position
-        for (int g = 0; g < 4; g++) // loop through ghosts
+        int ghostIndex = -1;
+        switch (map[i])
         {
-            if (map[i] == ghosts[g].ghost)
-            {
-                ghosts[g].spawn_pos.row = ghosts[g].curr_pos.row = ghosts[g].prev_pos.row = t_row;
-                ghosts[g].spawn_pos.col = ghosts[g].curr_pos.col = ghosts[g].prev_pos.col = t_col;
-                ghosts[g].spawn_target.row = 8;
-                ghosts[g].spawn_target.col = 25;
-            }
+        case Level::red_ghost:
+            ghostIndex = Level::gRED;
+            break;
+        case Level::yellow_ghost:
+            ghostIndex = Level::gYELLOW;
+            break;
+        case Level::blue_ghost:
+            ghostIndex = Level::gBLUE;
+            break;
+        case Level::pink_ghost:
+            ghostIndex = Level::gPINK;
+            break;
+        }
+        if (ghostIndex >= 0) {
+            ghosts[ghostIndex].spawn_pos.row = ghosts[ghostIndex].curr_pos.row = ghosts[ghostIndex].prev_pos.row = t_row;
+            ghosts[ghostIndex].spawn_pos.col = ghosts[ghostIndex].curr_pos.col = ghosts[ghostIndex].prev_pos.col = t_col;
         }
         
 
@@ -603,7 +636,6 @@ void CreateLevelScene(Level& level, Player& player, Ghost ghosts[], int scene)
             else if (t_row == 0) {
                 level.tp_row = false; // teleport certically
             }
-
         }
 
         // if reached end of map columns process next row
@@ -616,6 +648,9 @@ void CreateLevelScene(Level& level, Player& player, Ghost ghosts[], int scene)
             t_col++; // increment columns count
         }
     }
+
+    // return map array pointer
+    return p_mapArray;
 }
 void SpawnPlayer(Player& player)
 {
@@ -628,22 +663,24 @@ void SpawnPlayer(Player& player)
 }
 void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[])
 {
+    
     int current_pellets = 0; // bug fix - loosing some pellets on map - will need to perma fix but this will do for now
     
+    // set the content of the sqaure the ghosts are currently back to what they moved over (pellet, power up or space)
     for (int r = 0; r < level.rows; r++)
     {
         for (int c = 0; c < level.cols; c++)
         {
-            switch(level.map[r][c])
+            switch(level.p_map[r][c])
             {
-            case 'R':
-                level.map[r][c] = ghosts[0].square_content_prior;
-            case 'Y':
-                level.map[r][c] = ghosts[1].square_content_prior;
-            case 'O':
-                level.map[r][c] = ghosts[2].square_content_prior;
-            case 'P':
-                level.map[r][c] = ghosts[3].square_content_prior;
+            case Level::red_ghost:
+                level.p_map[r][c] = ghosts[level.gRED].square_content_prior;
+            case Level::yellow_ghost:
+                level.p_map[r][c] = ghosts[level.gYELLOW].square_content_prior;
+            case Level::blue_ghost:
+                level.p_map[r][c] = ghosts[level.gBLUE].square_content_prior;
+            case Level::pink_ghost:
+                level.p_map[r][c] = ghosts[level.gPINK].square_content_prior;
             }
         }
     }
@@ -653,40 +690,41 @@ void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[])
 
     // remove player from map at last position if they are different
     if (player.prev_pos.row != player.curr_pos.row || player.prev_pos.col != player.curr_pos.col)
-        level.map[player.prev_pos.row][player.prev_pos.col] = ' ';
+        level.p_map[player.prev_pos.row][player.prev_pos.col] = Level::space;
 
     // player in tunnel
-    if (player.curr_pos.row == 12 && player.curr_pos.col == 0) {
-        level.map[player.curr_pos.row][player.curr_pos.col] = 'T';
-        player.curr_pos.col = 46;
+    if (player.curr_pos.row == level.tp_1.row && player.curr_pos.col == level.tp_1.col) {
+        level.p_map[player.curr_pos.row][player.curr_pos.col] = Level::teleport;
+        player.curr_pos.col = level.tp_2.col;
     }
-    else if (player.curr_pos.row == 12 && player.curr_pos.col == 46) {
-        level.map[player.curr_pos.row][player.curr_pos.col] = 'T';
-        player.curr_pos.col = 0;
+    else if (player.curr_pos.row == level.tp_2.row && player.curr_pos.col == level.tp_2.col) {
+        level.p_map[player.curr_pos.row][player.curr_pos.col] = Level::teleport;
+        player.curr_pos.col = level.tp_1.col;
     }
     
     for (int g = 0; g < 4; g++) // loop through ghots
     {
         // remove ghosts from map at last position if they are different
         if (ghosts[g].prev_pos.row != ghosts[g].curr_pos.row || ghosts[g].prev_pos.col != ghosts[g].curr_pos.col)
-            level.map[ghosts[g].prev_pos.row][ghosts[g].prev_pos.col] = ' ';
+            level.p_map[ghosts[g].prev_pos.row][ghosts[g].prev_pos.col] = Level::space;
         
         // ghost in tunnel
         if (!ghosts[g].skip_turn)
         {
-            if (ghosts[g].curr_pos.row == 12 && ghosts[g].curr_pos.col == 0) {
-                level.map[ghosts[g].curr_pos.row][ghosts[g].curr_pos.col] = 'T';
-                ghosts[g].curr_pos.col = 46;
+            if (ghosts[g].curr_pos.row == level.tp_1.row && ghosts[g].curr_pos.col == level.tp_1.col) {
+                level.p_map[ghosts[g].curr_pos.row][ghosts[g].curr_pos.col] = Level::teleport;
+                ghosts[g].curr_pos.col = level.tp_2.col;
             }
-            else if (ghosts[g].curr_pos.row == 12 && ghosts[g].curr_pos.col == 46) {
-                level.map[ghosts[g].curr_pos.row][ghosts[g].curr_pos.col] = 'T';
-                ghosts[g].curr_pos.col = 0;
+            else if (ghosts[g].curr_pos.row == level.tp_2.row && ghosts[g].curr_pos.col == level.tp_2.col) {
+                level.p_map[ghosts[g].curr_pos.row][ghosts[g].curr_pos.col] = Level::teleport;
+                ghosts[g].curr_pos.col = level.tp_1.col;
             }
         }
         
     }
    
     // Level Title
+    SetColor(Level::cWHITE);
     cout << endl << "                 PACMAN: " << TransformString(level.title, 0) << endl << endl;
 
     // draw current level map
@@ -696,87 +734,87 @@ void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[])
         {
             // position player
             if (r == player.curr_pos.row && c == player.curr_pos.col)
-                level.map[r][c] = player.player;
+                level.p_map[r][c] = player.player;
 
             for (int g = 0; g < 4; g++) // loop through ghots
             {
                 // position ghost
                 if (r == ghosts[g].curr_pos.row && c == ghosts[g].curr_pos.col)
-                    level.map[r][c] = ghosts[g].ghost;
+                    level.p_map[r][c] = ghosts[g].ghost;
 
                 // if the ghost moved from the last position
                 if (ghosts[g].prev_pos.row != ghosts[g].curr_pos.row || ghosts[g].prev_pos.col != ghosts[g].curr_pos.col)
                 {
                     // put back the content of the square the ghost was last at 
                     if (r == ghosts[g].prev_pos.row && c == ghosts[g].prev_pos.col)
-                        level.map[r][c] = ghosts[g].square_content_prior;
+                        level.p_map[r][c] = ghosts[g].square_content_prior;
                 }
             }
 
             // set color of map content at this position
-            switch (level.map[r][c])
+            switch (level.p_map[r][c])
             {
-            case '%': // invisible wall
-            case 'T': // portal
-            case ' ': // empty space
-            case '$': // one way door for ghost spawn area
-                SetColor(0); // black on black = not visible
+            case Level::invisible_wall: // % = invisible wall
+            case Level::teleport: // T = portal
+            case Level::space: // ' ' = empty space
+            case Level::one_way: // $ = one way door for ghost spawn area
+                SetColor(Level::cINVISIBLE); // black on black = not visible
                 break;
-            case '.': // pellet
+            case Level::pellet: // . = pellet
                 current_pellets++;
-                SetColor(7); // gray for bullets
+                SetColor(Level::cWHITE); // gray for bullets
                 break;
-            case 'o': // power up
+            case Level::powerup: // o = power up
                 current_pellets++;
-                SetColor(7); // white for power ups
+                SetColor(Level::cWHITE); // white for power ups
                 break;
-            case 'P': // blue ghost
-                if (ghosts[3].is_edible) { // flashing effect - signals edible sate of ghost
-                    ghosts[3].color_on ? SetColor(game.ghost_color_on) : SetColor(game.ghost_color_off);
-                    ghosts[3].color_on = !ghosts[3].color_on;
+            case Level::pink_ghost: // blue ghost
+                if (ghosts[Level::gPINK].is_edible) { // flashing effect - signals edible sate of ghost
+                    ghosts[Level::gPINK].color_on ? SetColor(game.ghost_color_on) : SetColor(game.ghost_color_off);
+                    ghosts[Level::gPINK].color_on = !ghosts[Level::gPINK].color_on;
                 }
                 else { // solid color
-                    SetColor(ghosts[3].color);
+                    SetColor(ghosts[Level::gPINK].color);
                 }
                 break;
-            case 'Y': // yellow ghost
-                if (ghosts[1].is_edible) { // flashing effect - signals edible sate of ghost
-                    ghosts[1].color_on ? SetColor(game.ghost_color_on) : SetColor(game.ghost_color_off);
-                    ghosts[1].color_on = !ghosts[1].color_on;
+            case Level::yellow_ghost: // yellow ghost
+                if (ghosts[Level::gYELLOW].is_edible) { // flashing effect - signals edible sate of ghost
+                    ghosts[Level::gYELLOW].color_on ? SetColor(game.ghost_color_on) : SetColor(game.ghost_color_off);
+                    ghosts[Level::gYELLOW].color_on = !ghosts[Level::gYELLOW].color_on;
                 } else { // solid color
-                    SetColor(ghosts[1].color);
+                    SetColor(ghosts[Level::gYELLOW].color);
                 }
                 break;
-            case 'O': // green ghost
-                if (ghosts[2].is_edible) { // flashing effect - signals edible sate of ghost
-                    ghosts[2].color_on ? SetColor(game.ghost_color_on) : SetColor(game.ghost_color_off);
-                    ghosts[2].color_on = !ghosts[2].color_on;
+            case Level::blue_ghost: // green ghost
+                if (ghosts[Level::gBLUE].is_edible) { // flashing effect - signals edible sate of ghost
+                    ghosts[Level::gBLUE].color_on ? SetColor(game.ghost_color_on) : SetColor(game.ghost_color_off);
+                    ghosts[Level::gBLUE].color_on = !ghosts[Level::gBLUE].color_on;
                 }
                 else { // solid color
-                    SetColor(ghosts[2].color);
+                    SetColor(ghosts[Level::gBLUE].color);
                 }
                 break;
-            case 'R': // red ghost
-                if (ghosts[0].is_edible) { // flashing effect - signals edible sate of ghost
-                    ghosts[0].color_on ? SetColor(game.ghost_color_on) : SetColor(game.ghost_color_off);
-                    ghosts[0].color_on = !ghosts[0].color_on;
+            case Level::red_ghost: // red ghost
+                if (ghosts[Level::gRED].is_edible) { // flashing effect - signals edible sate of ghost
+                    ghosts[Level::gRED].color_on ? SetColor(game.ghost_color_on) : SetColor(game.ghost_color_off);
+                    ghosts[Level::gRED].color_on = !ghosts[Level::gRED].color_on;
                 } else { // solid color
-                    SetColor(ghosts[0].color);
+                    SetColor(ghosts[Level::gRED].color);
                 }
                 break;
             case Player::player: // player
-                SetColor(14);
+                SetColor(Level::cPLAYER);
                 break;
             default:
-                SetColor(392); // gray bg on gray text for all other chars making them walls essentially
+                SetColor(Level::cWALLS); // gray bg on gray text for all other chars making them walls essentially
                 break;
             }
 
             // print char
-            cout << level.map[r][c];
+            cout << level.p_map[r][c];
 
             // set color back to default
-            SetColor(7);
+            SetColor(Level::cWHITE);
         }
         // end of row ad line feed
         cout << endl;
@@ -792,10 +830,8 @@ void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[])
 
     // ********
     // BUG FIX - brute force - need to look at why we are dropping a few pellets
-    // we are essentially couting the current pellets on map, subtracting that from the level remaining
-    // this should be zero but when we loose pellets this is not the case.
-    level.eaten_pellets = level.eaten_pellets - 1 + (level.total_pellets - level.eaten_pellets - current_pellets);
-    
+    level.eaten_pellets = level.eaten_pellets + (level.total_pellets - level.eaten_pellets - current_pellets);
+
 }
 void StatusBar(Game& game, Level& level, Player& player, Ghost ghosts[])
 {
@@ -825,65 +861,6 @@ void StatusBar(Game& game, Level& level, Player& player, Ghost ghosts[])
 }
 
 // Player movement
-void MovePlayer(Game& game, Level& level, Player& player, Ghost ghosts[])
-{
-    player.prev_pos.row = player.curr_pos.row;
-    player.prev_pos.col = player.curr_pos.col;
-    switch (player.curr_direction)
-    {
-    case Direction::UP: //up
-        if (PlayerCanMove(level, player.curr_pos.row - 1, player.curr_pos.col)) {
-            player.curr_pos.row--;
-            SetPlayerState(game, level, player, ghosts);
-            player.prev_direction = Direction::UP;
-        }
-        else {
-            KeepMovePlayer(game, level, player, ghosts);
-        }
-        break;
-    case Direction::RIGHT: // right
-        if (PlayerCanMove(level, player.curr_pos.row, player.curr_pos.col + 1)) {
-            player.curr_pos.col++;
-            SetPlayerState(game, level, player, ghosts);
-            player.prev_direction = Direction::RIGHT;
-        }
-        else {
-            KeepMovePlayer(game, level, player, ghosts);
-        }
-        break;
-    case Direction::DOWN: // down
-        if (PlayerCanMove(level, player.curr_pos.row + 1, player.curr_pos.col)) {
-            player.curr_pos.row++;
-            SetPlayerState(game, level, player, ghosts);
-            player.prev_direction = Direction::DOWN;
-        }
-        else {
-            KeepMovePlayer(game, level, player, ghosts);
-        }
-        break;
-    case Direction::LEFT: // left
-        if (PlayerCanMove(level, player.curr_pos.row, player.curr_pos.col - 1)) {
-            player.curr_pos.col--;
-            SetPlayerState(game, level, player, ghosts);
-            player.prev_direction = Direction::LEFT;
-        }
-        else {
-            KeepMovePlayer(game, level, player, ghosts);
-        }
-        break;
-    default:
-        KeepMovePlayer(game, level, player, ghosts);
-        break;
-    }
-    for (int g = 0; g < 4; g++)
-    {
-        if (CheckCollision(player, ghosts[g])) {
-            ghosts[g].prev_pos.row = player.curr_pos.row;
-            ghosts[g].prev_pos.col = player.curr_pos.col;
-        }
-    }
-    
-}
 void GetPlayerDirection(Game& game, Level& level, Player& player)
 {
     do
@@ -908,57 +885,63 @@ void GetPlayerDirection(Game& game, Level& level, Player& player)
         }
     } while (!level.is_complete && !game.game_over);
 }
-void KeepMovePlayer(Game& game, Level& level, Player& player, Ghost ghosts[])
+void MovePlayer(Game& game, Level& level, Player& player, Ghost ghosts[])
 {
     player.prev_pos.row = player.curr_pos.row;
     player.prev_pos.col = player.curr_pos.col;
-    switch (player.prev_direction)
+
+    Coord currentPos, nextPos;
+    currentPos = { player.curr_pos.row, player.curr_pos.col };
+    nextPos = NewPos(currentPos, player.prev_direction);
+
+    switch (player.curr_direction)
     {
     case Direction::UP: //up
-        if (PlayerCanMove(level, player.curr_pos.row - 1, player.curr_pos.col)) {
-            player.curr_pos.row--;
-            SetPlayerState(game, level, player, ghosts);
+        if (NotWall(level, NewPos(currentPos, Direction::UP), Direction::UP)) {
+            nextPos = NewPos(currentPos, Direction::UP);
+            player.prev_direction = Direction::UP;
         }
-
         break;
     case Direction::RIGHT: // right
-        if (PlayerCanMove(level, player.curr_pos.row, player.curr_pos.col + 1)) {
-            player.curr_pos.col++;
-            SetPlayerState(game, level, player, ghosts);
+        if (NotWall(level, NewPos(currentPos, Direction::RIGHT), Direction::RIGHT)) {
+            nextPos = NewPos(currentPos, Direction::RIGHT);
+            player.prev_direction = Direction::RIGHT;
         }
-
         break;
     case Direction::DOWN: // down
-        if (PlayerCanMove(level, player.curr_pos.row + 1, player.curr_pos.col)) {
-            player.curr_pos.row++;
-            SetPlayerState(game, level, player, ghosts);
+        if (NotWall(level, NewPos(currentPos, Direction::DOWN), Direction::DOWN)) {
+            nextPos = NewPos(currentPos, Direction::DOWN);
+            player.prev_direction = Direction::DOWN;
         }
-
         break;
     case Direction::LEFT: // left
-        if (PlayerCanMove(level, player.curr_pos.row, player.curr_pos.col - 1)) {
-            player.curr_pos.col--;
-            SetPlayerState(game, level, player, ghosts);
+        if (NotWall(level, NewPos(currentPos, Direction::LEFT), Direction::LEFT)) {
+            nextPos = NewPos(currentPos, Direction::LEFT);
+            player.prev_direction = Direction::LEFT;
         }
         break;
     }
-}
-bool PlayerCanMove(Level& level, int newPRow, int newPCol)
-{
-    char levelObj = level.map[newPRow][newPCol];
-    switch (levelObj)
-    {
-    case ' ':
-    case 'T':
-    case '.':
-    case 'o':
-    case 'R':
-    case 'Y':
-    case 'O':
-    case 'P':
-        return true;
+
+    if (!NotWall(level, nextPos, player.prev_direction)) {
+            nextPos = currentPos;
     }
-    return false;
+
+    // move the player
+    player.curr_pos.row = nextPos.row;
+    player.curr_pos.col = nextPos.col;
+
+    // set any statuses that need setting
+    SetPlayerState(game, level, player, ghosts);
+
+    // check collision with a ghost and set the ghosts previous row to the new player position
+    for (int g = 0; g < 4; g++)
+    {
+        if (CheckCollision(player, ghosts[g])) {
+            ghosts[g].prev_pos.row = player.curr_pos.row;
+            ghosts[g].prev_pos.col = player.curr_pos.col;
+        }
+    }
+    
 }
 
 // Ghost movement
@@ -1114,34 +1097,7 @@ bool CanMove(Level& level, Ghost& ghost, Coord move, Direction direction, Direct
 
     return 0; // should never really hit this
 }
-bool NotWall(Level& level, Coord move, Direction direction)
-{
-    switch (level.map[move.row][move.col])
-    {
-    case ' ':
-    case 'T':
-    case '.':
-    case 'o':
-    case 'R':
-    case 'Y':
-    case 'O':
-    case 'P':
-    case 'C':
-        return true;
-    case '$': // one way move to exit ghost spawn area
-        return (direction != Direction::DOWN ? true : false);
 
-    }
-    return false;
-}
-bool IsTeleport(Level& level, Coord move)
-{
-    if (level.tp_1.row == move.row && level.tp_1.col == move.col)
-        return true;
-    if (level.tp_2.row == move.row && level.tp_2.col == move.col)
-        return true;
-    return false;
-}
 Coord GhostTeleport(Level& level, Ghost& ghost, Coord move, Direction direction)
 {
     if (level.tp_1.row == move.row && level.tp_1.col == move.col && ghost.prev_pos.col != level.tp_1.col)
@@ -1159,18 +1115,7 @@ Coord GhostTeleport(Level& level, Ghost& ghost, Coord move, Direction direction)
 }
 Direction RandomGhostMove(Level& level, Ghost& ghost)
 {
-    if (ghost.curr_pos.row == level.tp_1.row && ghost.curr_pos.col == level.tp_1.col)
-    {
-        // stop
-        int test = 1;
-    }
-
-    if (ghost.curr_pos.row == level.tp_2.row && ghost.curr_pos.col == level.tp_2.col)
-    {
-        // stop
-        int test = 1;
-    }
-
+    
     Direction newDirection = Direction::NONE;
     Coord move = { move.row = ghost.curr_pos.row, move.col = ghost.curr_pos.col };
     int unsigned seed = (int)(std::chrono::system_clock::now().time_since_epoch().count());
@@ -1197,7 +1142,6 @@ Direction RandomGhostMove(Level& level, Ghost& ghost)
 
     do
     {
-        int randomNumber = rand() % 4; //generate random number to select from the 4 possible options
         if (!ghost.run_first_move)
         {
             if (IsTeleport(level, move))
@@ -1213,6 +1157,7 @@ Direction RandomGhostMove(Level& level, Ghost& ghost)
             }
             else
             {
+                int randomNumber = rand() % 4; //generate random number to select from the 4 possible options
                 newDirection = static_cast<Direction>(randomNumber);
             }
         }
@@ -1226,12 +1171,6 @@ int MoveMonster(Game& game, Level& level, Player& player, Ghost& ghost, Ghost gh
 
     for (int g = 0; g < 4; g++)
     {
-        if (g == 1)
-        {
-            Ghost ghostTest = ghosts[g];
-            bool stop = true;
-        }
-        
         if (ghosts[g].skip_turn || game.game_over || CheckCollision(player, ghosts[g]))
         {
             continue; // next ghost (no move)
@@ -1320,43 +1259,96 @@ void DoMonsterMove(Level& level, Player& player, Ghost ghosts[], Ghost& ghost, D
         break;
     }
     // if the sqaure the ghost moved into is the player
-    ghost.square_content_now == 'C' ? ghost.square_content_now = ' ' : ghost.square_content_now;
+    ghost.square_content_now == Player::player ? ghost.square_content_now = Level::space : ghost.square_content_now;
 
     // if the mosnter is over the player save a blank space to buffer
-    CheckCollision(player, ghost) ? ghost.square_content_now = ' ' : ghost.square_content_now;
+    CheckCollision(player, ghost) ? ghost.square_content_now = Level::space : ghost.square_content_now;
 
 }
 char GetSquareContentNow(Level& level, Ghost ghosts[], Coord square)
 {
-    switch (level.map[square.row][square.col])
+    switch (level.p_map[square.row][square.col])
     {
-        case '.':
-        case 'o':
+        case Level::pellet:
+        case Level::powerup:
         case ' ':
-            return(level.map[square.row][square.col]);
-        case 'R':
+            return(level.p_map[square.row][square.col]);
+        case Level::red_ghost:
             return ghosts[0].square_content_now;
-        case 'Y':
+        case Level::yellow_ghost:
             return ghosts[1].square_content_now;
-        case 'O':
+        case Level::blue_ghost:
             return ghosts[2].square_content_now;
-        case 'P':
+        case Level::pink_ghost:
             return ghosts[3].square_content_now;
         default:
-            return(level.map[square.row][square.col]);
+            return(level.p_map[square.row][square.col]);
     }
+}
+
+// Player & Ghost Common Movement functions
+bool NotWall(const Level& level, const Coord& move, const Direction& direction)
+{
+    switch (level.p_map[move.row][move.col])
+    {
+    case Level::space:
+    case Level::teleport:
+    case Level::pellet:
+    case Level::powerup:
+    case Level::red_ghost:
+    case Level::yellow_ghost:
+    case Level::blue_ghost:
+    case Level::pink_ghost:
+    case Player::player:
+        return true;
+        break;
+    case Level::one_way: // one way move to exit ghost spawn area
+        return (direction != Direction::DOWN ? true : false);
+        break;
+    }
+    return false;
+}
+Coord NewPos(const Coord& currentPos, const Direction& direction)
+{
+    Coord newPos;
+    newPos.row = currentPos.row;
+    newPos.col = currentPos.col;
+    switch (direction)
+    {
+    case Direction::UP: //up
+        newPos.row--;
+        break;
+    case Direction::RIGHT: // right
+        newPos.col++;
+        break;
+    case Direction::DOWN: // down
+        newPos.row++;
+        break;
+    case Direction::LEFT: // left
+        newPos.col--;
+        break;
+    }
+    return newPos;
+}
+bool IsTeleport(const Level& level, const Coord& move)
+{
+    if (level.tp_1.row == move.row && level.tp_1.col == move.col)
+        return true;
+    if (level.tp_2.row == move.row && level.tp_2.col == move.col)
+        return true;
+    return false;
 }
 
 // Player/Ghost Events and Status
 void SetPlayerState(Game& game, Level& level, Player& player, Ghost ghosts[])
 {
-    char levelObj = level.map[player.curr_pos.row][player.curr_pos.col];
+    char levelObj = level.p_map[player.curr_pos.row][player.curr_pos.col];
     switch (levelObj)
     {
-    case '.': // eat pellet
+    case Level::pellet: // eat pellet
         level.eaten_pellets++;
         break;
-    case 'o': // eat power up
+    case Level::powerup: // eat power up
         for (int g = 0; g < 4; g++) // loop ghosts
         {
             ghosts[g].mode != Mode::SPAWN ? ghosts[g].is_edible = true : ghosts[g].is_edible = false; // ghost only edible on power up if out of spwan area
@@ -1486,7 +1478,7 @@ void PlayerMonsterCollision(Game& game, Level& level, Player& player, Ghost ghos
             if (ghosts[g].is_edible) // ghost dies
             {
                 // if the ghost was on a pellet/powerup sqaure need to count it up
-                if (ghosts[g].square_content_now == Level::chr_pellet || ghosts[g].square_content_now == Level::chr_powerup)
+                if (ghosts[g].square_content_now == Level::pellet || ghosts[g].square_content_now == Level::powerup)
                     level.eaten_pellets++;
                 level.eaten_ghots++; // increment ghosts eaten
                 game.gobble_pause = true; // set small pause after eating ghost
@@ -1517,7 +1509,7 @@ void PlayerMonsterCollision(Game& game, Level& level, Player& player, Ghost ghos
             SpawnPlayer(player);
             for (int g = 0; g < 4; g++) {
                 // replace ghost with empty sqaure since the player was there an any pellet got eaten
-                level.map[ghosts[g].curr_pos.row][ghosts[g].curr_pos.col] = ' ';
+                level.p_map[ghosts[g].curr_pos.row][ghosts[g].curr_pos.col] = ' ';
                 // respawn ghost
                 SpawnMonster(level, ghosts, ghosts[g], true);
             }
@@ -1557,7 +1549,16 @@ void PlayerMonsterCollisionDelay(Game& game, Level& level)
 }
 void CheckLevelComplete(Level& level)
 {
-    level.eaten_pellets == level.total_pellets - 1 ? level.is_complete = true : level.is_complete = false; // if all pellets are eaten game ends - 339 in this map
+    level.eaten_pellets == level.total_pellets ? level.is_complete = true : level.is_complete = false; // if all pellets are eaten game ends - 339 in this map
+}
+void DeallocateMem(Level& level)
+{
+    // dealocate dynamic array with level map
+    for (int i = 0; i < level.rows; i++) {
+        delete[] level.p_map[i];
+    }
+    delete[] level.p_map;
+    level.p_map = nullptr;
 }
 
 // Helper and scaffolding
@@ -1622,6 +1623,35 @@ void ShowConsoleCursor(bool showFlag)
     GetConsoleCursorInfo(out, &cursorInfo);
     cursorInfo.bVisible = showFlag; // set the cursor visibility
     SetConsoleCursorInfo(out, &cursorInfo);
+}
+void ReplaceString(string& text, const string from, const char to)
+{
+    int start_pos = 0;
+    string to_string = { to };
+    while ((start_pos = text.find(from, start_pos)) != std::string::npos) {
+    text.replace(start_pos, from.length(), to_string);
+    start_pos += to_string.length(); // ...
+    }
+}
+Coord MapSize(const string& map)
+{
+    int rows = 0, cols = 0;
+    size_t pos;
+
+    pos = map.find("+");
+    if (pos != string::npos)
+    {
+        pos = map.find("+", pos + 1);
+        if (pos != string::npos)
+        {
+            cols = pos + 1;
+            pos = map.find("+", pos + 1);
+            if (pos != string::npos) {
+                rows = (pos / cols) + 1;
+            }
+        }
+    }
+    return{ rows, cols };
 }
 
 
