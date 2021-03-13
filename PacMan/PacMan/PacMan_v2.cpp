@@ -1,4 +1,5 @@
-﻿#include <iostream> // base input / output
+﻿#pragma region Includes, Namespaces
+#include <iostream> // base input / output
 #include <string> // manipulate level string
 #include <Windows.h> // used to output colors
 #include <conio.h> // used to get input without requiring return
@@ -9,7 +10,8 @@
 
 using namespace std;
 using namespace std::chrono;
-
+#pragma endregion
+#pragma region Enums, Objects, Scaffolding
 // enum classes -->
 enum class Direction {
     UP = 0,
@@ -164,6 +166,8 @@ struct Game {
 
 };
 
+#pragma endregion
+#pragma region Functions
 // Functions -->
 
 // level setup, display and management
@@ -176,11 +180,11 @@ void SpawnMonster(const Level& level, Ghost ghosts[], Ghost ghost, const bool pl
 void SpawnPlayer(Player& player);
 
 // Player movement
-void GetPlayerDirection(Game& game, Level& level, Player& player);
-void MovePlayer(Game& game, Level& level, Player& player, Ghost ghosts[]);
+void GetPlayerDirection(const Game& game, const Level& level, Player& player);
+void MovePlayer(Level& level, Player& player, Ghost ghosts[]);
 
 // Ghost movement
-int MoveGhost(Game& game, Level& level, Player& player, Ghost& ghost, Ghost ghosts[]);
+int MoveGhost(const Game& game, Level& level, Player& player, Ghost& ghost, Ghost ghosts[]);
 void DoGhostMove(Level& level, Player& player, Ghost ghosts[], Ghost& ghost, Direction bestMove);
 int GetBestMove(Level& level, Player& player, Ghost& ghost, Coord move, Direction curr_direction, int depth, bool isGhost);
 Direction RandomGhostMove(const Level& level, Ghost& ghost);
@@ -197,7 +201,7 @@ bool IsReverse(const Direction& curr_direction, const Direction& new_direction);
 // Player/Ghost Events and Status
 void PlayerMonsterCollision(Game& game, Level& level, Player& player, Ghost ghosts[]);
 bool CheckCollision(Player& player, Ghost& ghost);
-void SetPlayerState(Game& game, Level& level, Player& player, Ghost ghosts[]);
+void SetPlayerState(Level& level, const Player& player, Ghost ghosts[]);
 void SetGhostMode(Level& level, Player& player, Ghost ghosts[]);
 
 // Game management
@@ -219,7 +223,7 @@ void ReplaceString(string& text, string from, char to);
 Coord MapSize(const string& map);
 void ShowConsoleCursor(bool showFlag);
 
-// ************
+#pragma endregion
 
 int main()
 {
@@ -250,7 +254,7 @@ int main()
         do
         {
             // move the player
-            MovePlayer(game, level, player, ghosts);
+            MovePlayer(level, player, ghosts);
 
             // process any player / ghost collision
             PlayerMonsterCollision(game, level, player, ghosts);
@@ -296,7 +300,7 @@ int main()
     return 0;
 }
 
-// level setup, display and management
+#pragma region level setup, display and management
 void SetUp(const Game& game, Level& level, Player& player, Ghost ghosts[])
 {
     // name level
@@ -872,9 +876,10 @@ void StatusBar(const Game& game, Level& level, Player& player)
     cout << "       ";
     cout << "\r";
 }
+#pragma endregion
 
-// Player movement
-void GetPlayerDirection(Game& game, Level& level, Player& player)
+#pragma region Player movement
+void GetPlayerDirection(const Game& game, const Level& level, Player& player)
 {
     int input, extended;
 
@@ -908,7 +913,7 @@ void GetPlayerDirection(Game& game, Level& level, Player& player)
         }
     } while (!level.is_complete && !game.game_over);
 }
-void MovePlayer(Game& game, Level& level, Player& player, Ghost ghosts[])
+void MovePlayer(Level& level, Player& player, Ghost ghosts[])
 {
     player.prev_pos.row = player.curr_pos.row;
     player.prev_pos.col = player.curr_pos.col;
@@ -954,7 +959,7 @@ void MovePlayer(Game& game, Level& level, Player& player, Ghost ghosts[])
     player.curr_pos.col = nextPos.col;
 
     // set any statuses that need setting
-    SetPlayerState(game, level, player, ghosts);
+    SetPlayerState(level, player, ghosts);
 
     // check collision with a ghost and set the ghosts previous row to the new player position
     for (int g = 0; g < 4; g++)
@@ -966,9 +971,10 @@ void MovePlayer(Game& game, Level& level, Player& player, Ghost ghosts[])
     }
     
 }
+#pragma endregion
 
-// Ghost movement
-int MoveGhost(Game& game, Level& level, Player& player, Ghost& ghost, Ghost ghosts[])
+#pragma region  Ghost movement
+int MoveGhost(const Game& game, Level& level, Player& player, Ghost& ghost, Ghost ghosts[])
 {
     Direction bestMove = Direction::NONE; // will store the next move
 
@@ -1211,8 +1217,9 @@ char GetSquareContentNow(Level& level, Ghost ghosts[], Coord square)
             return(level.p_map[square.row][square.col]);
     }
 }
+#pragma endregion
 
-// Player & Ghost Common Movement functions
+#pragma region Player & Ghost Common Movement functions
 bool NotWall(const Level& level, const Coord& move, const Direction& direction)
 {
     switch (level.p_map[move.row][move.col])
@@ -1283,9 +1290,10 @@ bool IsReverse(const Direction& curr_direction, const Direction& new_direction)
     }
     return false;
 }
+#pragma endregion
 
-// Player/Ghost Events and Status
-void SetPlayerState(Game& game, Level& level, Player& player, Ghost ghosts[])
+#pragma region Player/Ghost Events and Status
+void SetPlayerState(Level& level, const Player& player, Ghost ghosts[])
 {
     char levelObj = level.p_map[player.curr_pos.row][player.curr_pos.col];
     switch (levelObj)
@@ -1470,8 +1478,9 @@ bool CheckCollision(Player& player, Ghost& ghost)
 {
     return(player.curr_pos.col == ghost.curr_pos.col && player.curr_pos.row == ghost.curr_pos.row ? true : false);
 }
+#pragma endregion
 
-// Game management
+#pragma region Game management
 void RefreshDelay(Game& game, Level& level)
 {
     if (!level.is_complete && !game.game_over)
@@ -1526,8 +1535,9 @@ void DeallocateMem(Level& level)
     delete[] level.p_map;
     level.p_map = nullptr;
 }
+#pragma endregion
 
-// Helper and scaffolding
+#pragma region Helper and scaffolding
 void SetColor(int color)
 {
     // windows only - sets text color for command line
@@ -1619,8 +1629,9 @@ Coord MapSize(const string& map)
     }
     return{ rows, cols };
 }
+#pragma endregion
 
-// credits
+#pragma region info, about, credits
 void Credits()
 {
     string ghost;
@@ -1648,3 +1659,4 @@ void Credits()
     char input = _getch();
     system("cls");
 }
+#pragma endregion
