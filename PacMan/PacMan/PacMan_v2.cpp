@@ -99,8 +99,8 @@ struct Level   {
     static constexpr int gPINK = 3;
 
     // level chars
-    static constexpr unsigned char powerup = 254; //extended set of ascii 
-    static constexpr unsigned char pellet = 250; // extended set of ascii
+    static constexpr char powerup = 254; //extended set of ascii 
+    static constexpr char pellet = 250; // extended set of ascii
     static constexpr char player_start = 'S'; // pellet ascii
     static constexpr char ghost_spawn_target = '^'; // pellet ascii
     static constexpr char space = ' '; // pellet ascii
@@ -1670,11 +1670,13 @@ bool NextLevelRestartGame(Game& game, Level& level)
         }
         else
         {
+            DeallocateMem(level);
             system("cls");
             game.current_scene = 1;
             return true;
         }
     }
+    DeallocateMem(level);
     game.current_scene <= game.total_scenes ? game.current_scene++ : game.current_scene = 1;
     return true;
 }
