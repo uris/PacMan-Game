@@ -2,6 +2,7 @@
 #include <iostream> // base input / output
 #include <string> // manipulate level string
 #include <Windows.h> // used to output colors
+#include <mmsystem.h> // sounds
 #include <conio.h> // used to get input without requiring return
 #include <thread> // used to get input while running game
 #include <chrono> // used for timers
@@ -85,8 +86,8 @@ struct Level   {
     static constexpr int gPINK = 3;
 
     // level chars
-    static constexpr unsigned char powerup = 254; //extended set of ascii 
-    static constexpr unsigned char pellet = 250; // extended set of ascii
+    static constexpr char powerup = 254; //extended set of ascii 
+    static constexpr char pellet = 250; // extended set of ascii
     static constexpr char player_start = 'S'; // pellet ascii
     static constexpr char ghost_spawn_target = '^'; // pellet ascii
     static constexpr char space = ' '; // pellet ascii
@@ -1649,6 +1650,9 @@ void Credits()
     ghost += "    *******************************\n";
     ghost += "    *****  *******    ******  *****\n";
     ghost += "    ***      *****    ****      ***\n";
+    
+    bool play = PlaySound(TEXT("pacman_intro.wav"), NULL, SND_FILENAME | SND_ASYNC);
+    cout << play << endl;
     
     cout << endl << endl;
     SetColor(7);
