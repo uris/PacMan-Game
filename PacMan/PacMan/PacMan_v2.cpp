@@ -27,6 +27,19 @@ enum class Mode {
     RUN = 2,
     SPAWN = -1,
 };
+enum class Play {
+    MUNCH,
+    EAT_GHOST,
+    INTRO,
+    SIREN,
+    LIFE,
+    INTERMISSION,
+    EAT_FRUIT,
+    DEATH,
+    CREDIT,
+    POWER_UP,
+    NONE,
+};
 
 // scaffolding -->
 struct Coord {
@@ -98,7 +111,7 @@ struct Level   {
     static constexpr char yellow_ghost = 'Y'; // pellet ascii
     static constexpr char blue_ghost = 'B'; // pellet ascii
     static constexpr char pink_ghost = 'P'; // pellet ascii
-    
+
     // level map and scene
     string title = "Scene 1";
     char** p_map = nullptr;
@@ -147,10 +160,14 @@ struct Game {
     int total_scenes = 2;
     int current_scene = 1;
 
+    //SFX
+    Play sfx = Play::NONE;
+    high_resolution_clock::time_point sfx_start = std::chrono::high_resolution_clock::now();
+
     // time delays for game events
     static constexpr int gobble_delay = 500; // wait in milliseconds
     static constexpr int player_beat_delay = 1000; // wait in milliseconds
-    static constexpr int refresh_delay = 60; // milliseconds
+    static constexpr int refresh_delay = 75; //lliseconds
 
     // Player movement and input keys
     static constexpr char kLEFT = 97; // 'a';
@@ -174,11 +191,12 @@ struct Game {
 // level setup, display and management
 void SetUp(const Game& game, Level& level, Player& player, Ghost ghosts[]);
 char** CreateLevelScene(const Game& game, Level& level, Player& player, Ghost ghosts[]);
-void DrawLevel(const Game& game, Level& level, Player& player, Ghost ghosts[]);
+void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[]);
 void StatusBar(const Game& game, Level& level, Player& player);
 void SpawnMonster(const Level& level, Ghost ghosts[]);
 void SpawnMonster(const Level& level, Ghost ghosts[], Ghost ghost, const bool playerDied);
 void SpawnPlayer(Player& player);
+int SFX(Game& game, Level& level, Play playSFX);
 
 // Player movement
 void GetPlayerDirection(const Game& game, const Level& level, Player& player);
@@ -197,7 +215,6 @@ bool NotWall(const Level& level, const Coord& move, const Direction& direction);
 bool IsTeleport(const Level& level, const Coord& move);
 Coord NewPos(const Coord& currentPos, const Direction& direction);
 bool IsReverse(const Direction& curr_direction, const Direction& new_direction);
-
 
 // Player/Ghost Events and Status
 void PlayerMonsterCollision(Game& game, Level& level, Player& player, Ghost ghosts[]);
@@ -219,7 +236,7 @@ void SetColor(int color);
 void ShowColors(int colors);
 void TopLeft(int rows);
 string GhostMode(Ghost& ghost);
-void Credits();
+void Credits(Game& game, Level& level);
 void ReplaceString(string& text, string from, char to);
 Coord MapSize(const string& map);
 void ShowConsoleCursor(bool showFlag);
@@ -229,13 +246,14 @@ void ShowConsoleCursor(bool showFlag);
 int main()
 {
 
-     Credits(); // show credits
-     Game game; // set up game that persists through multiple levels
+    Game game; // set up game that persists through multiple levels
+    Level level;
+    Credits(game, level); // show credits
 
     do
     {
         // these reset with each new level
-        Level level;
+        
         Player player;
         Ghost redGhost, yellowGhost, orangeGhost, pinkGhost;
         Ghost ghosts[4] = { redGhost, yellowGhost, orangeGhost, pinkGhost };
@@ -679,9 +697,11 @@ void SpawnPlayer(Player& player)
     player.is_super = false;
     player.color_on = false;
 }
-void DrawLevel(const Game& game, Level& level, Player& player, Ghost ghosts[])
+void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[])
 {
-    
+    // set the content of the sqaure the player is moving into
+    char plyayer_move_content = level.p_map[player.curr_pos.row][player.curr_pos.col];
+        
     int current_pellets = 0; // bug fix - loosing some pellets on map - will need to perma fix but this will do for now
     
     // set the content of the sqaure the ghosts are currently back to what they moved over (pellet, power up or space)
@@ -838,6 +858,21 @@ void DrawLevel(const Game& game, Level& level, Player& player, Ghost ghosts[])
         cout << endl;
     }
 
+    // play the appropriate game sound
+    switch (plyayer_move_content)
+    {
+    case Level::pellet:
+        SFX(game, level, Play::MUNCH);
+        break;
+    case Level::powerup:
+        SFX(game, level, Play::POWER_UP);
+        break;
+    case Level::space:
+    case Player::player:
+        SFX(game, level, Play::SIREN);
+        break;
+    }
+
     // before start of level get any key to start
     if (level.level_paused) {
         cout << endl;
@@ -876,6 +911,100 @@ void StatusBar(const Game& game, Level& level, Player& player)
     SetColor(7);
     cout << "       ";
     cout << "\r";
+}
+int SFX(Game& game, Level& level, Play playSFX)
+{
+    LPCTSTR sfx = NULL;
+    bool played = false;
+    bool timerOn = false;
+    DWORD params = SND_FILENAME | SND_ASYNC;
+    float duration = 0.0f;
+
+    switch (playSFX)
+    {
+    case Play::INTRO:
+        sfx = TEXT("sfx_intro.wav");
+        params = SND_FILENAME | SND_SYNC;
+        break;
+    case Play::INTERMISSION:
+        sfx = TEXT("sfx_intermission.wav");
+        params = SND_FILENAME | SND_SYNC;
+        break;
+    case Play::MUNCH:
+        if (game.sfx == Play::MUNCH)
+            return 0;
+        sfx = TEXT("sfx_munch_lg.wav");
+        params = SND_LOOP | SND_FILENAME | SND_ASYNC;
+        break;
+    case Play::DEATH:
+        sfx = TEXT("sfx_death.wav");
+        params = SND_FILENAME | SND_SYNC;
+        break;
+    case Play::CREDIT:
+        sfx = TEXT("sfx_bonus.wav");
+        break;
+    case Play::POWER_UP:
+        sfx = TEXT("sfx_powerup.wav");
+        params = SND_LOOP | SND_FILENAME | SND_ASYNC;
+        break;
+    case Play::SIREN:
+        if (game.sfx == Play::SIREN)
+            return 0;
+        sfx = TEXT("sfx_siren.wav");
+        params = SND_LOOP | SND_FILENAME | SND_ASYNC;
+        break;
+    case Play::LIFE:
+        sfx = TEXT("sfx_xlife.wav");
+        break;
+    case Play::EAT_GHOST:
+        sfx = TEXT("sfx_eatghost.wav");
+        params = SND_FILENAME | SND_SYNC;
+        break;
+    case Play::EAT_FRUIT:
+        sfx = TEXT("sfx_eatfruit.wav");
+        break;
+    default:
+        sfx = NULL;
+        break;
+    }
+
+    // immediately cancel all audio sfx is trying to play none
+    if (playSFX == Play::NONE && game.sfx != Play::NONE)
+    {
+        played = PlaySound(sfx, NULL, params);
+        game.sfx = Play::NONE;
+        return 0;
+    }
+
+    // if mode is RUN and not ghost eat or death, then play power up
+    if (level.level_mode == Mode::RUN)
+    {
+        if (game.sfx != Play::POWER_UP)
+        {
+            played = PlaySound(TEXT("sfx_powerup.wav"), NULL, SND_LOOP | SND_FILENAME | SND_ASYNC);
+            game.sfx = Play::POWER_UP;
+            return 0;
+        }
+    }
+
+    if (playSFX != game.sfx)
+    {
+        if (playSFX == Play::DEATH || playSFX == Play::EAT_GHOST)
+        {
+            played = PlaySound(sfx, NULL, params);
+            game.sfx = playSFX;
+            return 0;
+        }
+        else if (level.level_mode != Mode::RUN)
+        {
+            played = PlaySound(sfx, NULL, params);
+            game.sfx = playSFX;
+            return 0;
+        }
+    }
+
+    return 0;
+
 }
 #pragma endregion
 
@@ -970,7 +1099,7 @@ void MovePlayer(Level& level, Player& player, Ghost ghosts[])
             ghosts[g].prev_pos.col = player.curr_pos.col;
         }
     }
-    
+
 }
 #pragma endregion
 
@@ -1437,6 +1566,7 @@ void PlayerMonsterCollision(Game& game, Level& level, Player& player, Ghost ghos
                 level.eaten_ghosts++; // increment ghosts eaten
                 game.gobble_pause = true; // set small pause after eating ghost
                 SpawnMonster(level, ghosts, ghosts[g], false); // reset ghost to spawn area whihc resets mode to spawn
+                SFX(game, level, Play::EAT_GHOST);
             }
             else
             {
@@ -1467,10 +1597,12 @@ void PlayerMonsterCollision(Game& game, Level& level, Player& player, Ghost ghos
                 // respawn ghost
                 SpawnMonster(level, ghosts, ghosts[g], true);
             }
+            SFX(game, level, Play::DEATH);
         }
         else
         {
             game.game_over = true;
+            SFX(game, level, Play::DEATH);
         }
     }
 
@@ -1633,7 +1765,7 @@ Coord MapSize(const string& map)
 #pragma endregion
 
 #pragma region info, about, credits
-void Credits()
+void Credits(Game& game, Level& level)
 {
     string ghost;
 
@@ -1651,15 +1783,18 @@ void Credits()
     ghost += "    *****  *******    ******  *****\n";
     ghost += "    ***      *****    ****      ***\n";
     
-    bool play = PlaySound(TEXT("pacman_intro.wav"), NULL, SND_FILENAME | SND_ASYNC);
-    cout << play << endl;
-    
+    // print image
     cout << endl << endl;
     SetColor(7);
     cout << ghost;
     SetColor(7);
     //cout << endl << "      Press any key to start";
     cout << endl << "              PACMAN 2021";
+
+    // play intro
+    SFX(game, level, Play::INTRO);
+
+    // any key press starts game
     char input = _getch();
     system("cls");
 }
