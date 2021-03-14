@@ -99,8 +99,8 @@ struct Level   {
     static constexpr int gPINK = 3;
 
     // level chars
-    static constexpr char powerup = 254; //extended set of ascii 
-    static constexpr char pellet = 250; // extended set of ascii
+    static constexpr unsigned char powerup = 254; //extended set of ascii 
+    static constexpr unsigned char pellet = 250; // extended set of ascii
     static constexpr char player_start = 'S'; // pellet ascii
     static constexpr char ghost_spawn_target = '^'; // pellet ascii
     static constexpr char space = ' '; // pellet ascii
@@ -1754,7 +1754,7 @@ void ShowConsoleCursor(bool showFlag)
 }
 void ReplaceString(string& text, const string from, const char to)
 {
-    int start_pos = 0;
+    size_t start_pos = 0;
     string to_string = { to };
     while ((start_pos = text.find(from, start_pos)) != std::string::npos) {
     text.replace(start_pos, from.length(), to_string);
@@ -1763,7 +1763,7 @@ void ReplaceString(string& text, const string from, const char to)
 }
 Coord MapSize(const string& map)
 {
-    int rows = 0, cols = 0;
+    size_t rows = 0, cols = 0;
     size_t pos;
 
     pos = map.find("+");
@@ -1779,7 +1779,7 @@ Coord MapSize(const string& map)
             }
         }
     }
-    return{ rows, cols };
+    return{ (int)rows, (int)cols };
 }
 #pragma endregion
 
