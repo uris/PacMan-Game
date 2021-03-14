@@ -49,7 +49,7 @@ struct Coord {
 
 // globals objects -->
 struct Player {
-    static constexpr char player = 'C';
+    static constexpr char player = 67; // 'C';
     Coord curr_pos = { curr_pos.row = 0, curr_pos.col = 0 };
     Coord spawn_pos = { spawn_pos.row = 0, spawn_pos.col = 0 };
     Coord prev_pos = { prev_pos.row = 0, prev_pos.col = 0 };
@@ -167,7 +167,7 @@ struct Game {
     // time delays for game events
     static constexpr int gobble_delay = 500; // wait in milliseconds
     static constexpr int player_beat_delay = 1000; // wait in milliseconds
-    static constexpr int refresh_delay = 75; //lliseconds
+    static constexpr int refresh_delay = 45; //milliseconds
 
     // Player movement and input keys
     static constexpr char kLEFT = 97; // 'a';
@@ -192,7 +192,7 @@ struct Game {
 void SetUp(const Game& game, Level& level, Player& player, Ghost ghosts[]);
 char** CreateLevelScene(const Game& game, Level& level, Player& player, Ghost ghosts[]);
 void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[]);
-void StatusBar(const Game& game, Level& level, Player& player);
+void StatusBar(Game& game, Level& level, Player& player);
 void SpawnMonster(const Level& level, Ghost ghosts[]);
 void SpawnMonster(const Level& level, Ghost ghosts[], Ghost ghost, const bool playerDied);
 void SpawnPlayer(Player& player);
@@ -253,7 +253,6 @@ int main()
     do
     {
         // these reset with each new level
-        
         Player player;
         Ghost redGhost, yellowGhost, orangeGhost, pinkGhost;
         Ghost ghosts[4] = { redGhost, yellowGhost, orangeGhost, pinkGhost };
@@ -293,26 +292,28 @@ int main()
             // Draw the level current state
             DrawLevel(game, level, player, ghosts);
 
-            // display stats and number lives
-            StatusBar(game, level, player);
-
             // end condition for the gmae once user has eaten all pellets
             CheckLevelComplete(level);
+
+            // display stats and number lives
+            StatusBar(game, level, player);
 
             // introduce a wait for fast PC
             RefreshDelay(game, level);
 
         } while (!level.is_complete && !game.game_over);
 
+        SFX(game, level, Play::NONE);
+
         // when game ends, wait for the input thread rejoin the main thread
         inputThread.join();
-
-        // bring cursor from the console back into view
-        ShowConsoleCursor(true);
 
         // continue to next level, play again or quit
         if(!NextLevelRestartGame(game, level))
             break;
+        
+        // bring cursor from the console back into view
+        ShowConsoleCursor(true);
 
     } while (true);
 
@@ -340,8 +341,9 @@ void SetUp(const Game& game, Level& level, Player& player, Ghost ghosts[])
     // set lives
     player.lives = 3;
 
-    // pause level
+    // set level initial state
     level.level_paused = true;
+    level.level_mode = Mode::CHASE;
     
     // initialize ghosts
     SpawnMonster(level, ghosts);
@@ -351,6 +353,7 @@ void SetUp(const Game& game, Level& level, Player& player, Ghost ghosts[])
 
     // start timer beggining with the chase mode
     level.chase_time_start = chrono::high_resolution_clock::now();
+
 }
 void SpawnMonster(const Level& level, Ghost ghosts[])
 {
@@ -857,28 +860,31 @@ void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[])
         // end of row ad line feed
         cout << endl;
     }
-
-    // play the appropriate game sound
-    switch (plyayer_move_content)
-    {
-    case Level::pellet:
-        SFX(game, level, Play::MUNCH);
-        break;
-    case Level::powerup:
-        SFX(game, level, Play::POWER_UP);
-        break;
-    case Level::space:
-    case Player::player:
-        SFX(game, level, Play::SIREN);
-        break;
-    }
-
-    // before start of level get any key to start
+        
     if (level.level_paused) {
+        // before start of level get any key to start
         cout << endl;
-        cout << "           Press any key to start.";
+        cout << "           Press any key to start.             ";
+        SFX(game, level, Play::INTERMISSION);
         char input = _getch();
         level.level_paused = false;
+    }
+    else
+    {
+        // play the appropriate game sound
+        switch (plyayer_move_content)
+        {
+        case Level::pellet:
+            SFX(game, level, Play::MUNCH);
+            break;
+        case Level::powerup:
+            SFX(game, level, Play::POWER_UP);
+            break;
+        case Level::space:
+        case Player::player:
+            SFX(game, level, Play::SIREN);
+            break;
+        }
     }
 
     // ********
@@ -886,7 +892,7 @@ void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[])
     level.eaten_pellets = level.eaten_pellets + (level.total_pellets - level.eaten_pellets - current_pellets);
 
 }
-void StatusBar(const Game& game, Level& level, Player& player)
+void StatusBar(Game& game, Level& level, Player& player)
 {
     // get number of lives
     string lives;
@@ -911,6 +917,17 @@ void StatusBar(const Game& game, Level& level, Player& player)
     SetColor(7);
     cout << "       ";
     cout << "\r";
+
+    // message game over or level complete
+    if (game.game_over)
+    {
+        cout << "      Game OVer! Press a key to continue.      ";
+    }
+    else if (level.is_complete)
+    {
+        cout << "    Level complete! Press a key to continue.    ";
+    }
+       
 }
 int SFX(Game& game, Level& level, Play playSFX)
 {
@@ -969,9 +986,9 @@ int SFX(Game& game, Level& level, Play playSFX)
     }
 
     // immediately cancel all audio sfx is trying to play none
-    if (playSFX == Play::NONE && game.sfx != Play::NONE)
+    if (playSFX == Play::NONE)
     {
-        played = PlaySound(sfx, NULL, params);
+        played = PlaySound(NULL, NULL, params);
         game.sfx = Play::NONE;
         return 0;
     }
@@ -1636,12 +1653,14 @@ void PlayerMonsterCollisionDelay(Game& game, Level& level)
 }
 void CheckLevelComplete(Level& level)
 {
-    level.eaten_pellets == level.total_pellets ? level.is_complete = true : level.is_complete = false; // if all pellets are eaten game ends - 339 in this map
+    level.eaten_pellets >= level.total_pellets ? level.is_complete = true : level.is_complete = false; // if all pellets are eaten game ends - 339 in this map
 }
 bool NextLevelRestartGame(Game& game, Level& level)
 {
     if (game.game_over)
     {
+        
+        cout << "\r";
         cout << "       play again? 'y' = yes, 'n' = no         ";
         char input = _getch();
         if (input == Game::kNO)
