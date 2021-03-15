@@ -344,6 +344,10 @@ void SetUp(const Game& game, Level& level, Player& player, Ghost ghosts[])
     // set level initial state
     level.level_paused = true;
     level.level_mode = Mode::CHASE;
+    level.eaten_pellets = 0;
+    level.eaten_ghosts = 0;
+    level.roam_count = 0;
+    level.is_complete = false;
     
     // initialize ghosts
     SpawnMonster(level, ghosts);
