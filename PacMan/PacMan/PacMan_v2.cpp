@@ -165,7 +165,7 @@ struct Game {
     high_resolution_clock::time_point sfx_start = std::chrono::high_resolution_clock::now();
 
     // time delays for game events
-    static constexpr int gobble_delay = 500; // wait in milliseconds
+    static constexpr int gobble_delay = 750; // wait in milliseconds
     static constexpr int player_beat_delay = 1000; // wait in milliseconds
     static constexpr int refresh_delay = 45; //milliseconds
 
@@ -189,7 +189,7 @@ struct Game {
 // Functions -->
 
 // level setup, display and management
-void SetUp(const Game& game, Level& level, Player& player, Ghost ghosts[]);
+void SetUp(Game& game, Level& level, Player& player, Ghost ghosts[]);
 char** CreateLevelScene(const Game& game, Level& level, Player& player, Ghost ghosts[]);
 void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[]);
 void StatusBar(Game& game, Level& level, Player& player);
@@ -246,17 +246,18 @@ void ShowConsoleCursor(bool showFlag);
 int main()
 {
 
-    Game game; // set up game that persists through multiple levels
+    // set up game objects
+    Game game;
     Level level;
-    Credits(game, level); // show credits
+    Player player;
+    Ghost redGhost, yellowGhost, orangeGhost, pinkGhost;
+    Ghost ghosts[4] = { redGhost, yellowGhost, orangeGhost, pinkGhost };
 
+    Credits(game, level); // show credits
+    
     do
     {
-        // these reset with each new level
-        Player player;
-        Ghost redGhost, yellowGhost, orangeGhost, pinkGhost;
-        Ghost ghosts[4] = { redGhost, yellowGhost, orangeGhost, pinkGhost };
-               
+        
         // Set up game and initialize data
         SetUp(game, level, player, ghosts);
 
@@ -321,8 +322,14 @@ int main()
 }
 
 #pragma region level setup, display and management
-void SetUp(const Game& game, Level& level, Player& player, Ghost ghosts[])
+void SetUp(Game& game, Level& level, Player& player, Ghost ghosts[])
 {
+    // set player state
+    game.game_over ? player.lives = 3 : player.lives;
+    
+    // initialize ghosts
+    SpawnMonster(level, ghosts);
+
     // name level
     level.level_paused = true;
     switch (game.current_scene)
@@ -338,9 +345,6 @@ void SetUp(const Game& game, Level& level, Player& player, Ghost ghosts[])
         break;
     }
 
-    // set lives
-    player.lives = 3;
-
     // set level initial state
     level.level_paused = true;
     level.level_mode = Mode::CHASE;
@@ -349,14 +353,14 @@ void SetUp(const Game& game, Level& level, Player& player, Ghost ghosts[])
     level.roam_count = 0;
     level.is_complete = false;
     
-    // initialize ghosts
-    SpawnMonster(level, ghosts);
-    
     // create level maze, set level params and set up ghosts and players
     level.p_map = CreateLevelScene(game, level, player, ghosts);
 
     // start timer beggining with the chase mode
     level.chase_time_start = chrono::high_resolution_clock::now();
+
+    // reset game
+    game.game_over ? game.game_over = false : game.game_over;
 
 }
 void SpawnMonster(const Level& level, Ghost ghosts[])
@@ -684,11 +688,11 @@ char** CreateLevelScene(const Game& game, Level& level, Player& player, Ghost gh
         // if reached end of map columns process next row
         if (t_col == level.cols - 1) {
             t_col = 0;
-            t_row++;
+            t_row < size.row ? t_row++ : t_row;
         }
         else
         {
-            t_col++; // increment columns count
+            t_col < size.col ? t_col++ : t_col; // increment columns count
         }
     }
 
