@@ -1088,11 +1088,17 @@ string LoadSceneFromFile(string filename, int scene, Level& level)
                 processLines = false;
             }
         }
+        scenesFile.close();
     }
     else
     {
-        //unable to read file - write sine error code.
+        //unable to read file - write sine error code. For now not polished.
+        system("cls");
+        cout << "Can't seem to load the PacMan scenes. Check your code man!" << endl;
+        system("pause");
+        exit(0);
     }
+
     return (map.size() > 0 ? map : "false");
 }
 void ClearEatenGhosts(Level& level)
