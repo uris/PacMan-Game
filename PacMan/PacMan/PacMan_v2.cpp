@@ -1013,55 +1013,55 @@ string LoadSceneFromFile(string filename, int scene, Level& level)
 
                         section = "title:";
                         if (fileLine.find(TransformString(section,1), 0) != std::string::npos) {
-                            level.title = fileLine.substr(TransformString(section, 1).size(), 10);
+                            level.title = fileLine.substr(TransformString(section, 1).size(), (fileLine.size()-section.size()));
                             continue;
                         }
 
                         section = "pellet_points:";
                         if (fileLine.find(TransformString(section, 1), 0) != std::string::npos) {
-                            level.points_ghost = stoi(fileLine.substr(TransformString(section, 1).size(), 10));
+                            level.points_ghost = stoi(fileLine.substr(TransformString(section, 1).size(), (fileLine.size() - section.size())));
                             continue;
                         }
 
                         section = "ghost_points:";
                         if (fileLine.find(TransformString(section, 1), 0) != std::string::npos) {
-                            level.points_ghost = stoi(fileLine.substr(TransformString(section, 1).size(), 10));
+                            level.points_ghost = stoi(fileLine.substr(TransformString(section, 1).size(), (fileLine.size() - section.size())));
                             continue;
                         }
 
                         section = "all_ghosts_bonus:";
                         if (fileLine.find(TransformString(section, 1), 0) != std::string::npos) {
-                            level.all_ghost_bonus = stoi(fileLine.substr(TransformString(section, 1).size(), 10));
+                            level.all_ghost_bonus = stoi(fileLine.substr(TransformString(section, 1).size(), (fileLine.size() - section.size())));
                             continue;
                         }
 
                         section = "edible_ghost duration:";
                         if (fileLine.find(TransformString(section, 1), 0) != std::string::npos) {
-                            level.edible_ghost_duration = stoi(fileLine.substr(TransformString(section, 1).size(), 10));
+                            level.edible_ghost_duration = stoi(fileLine.substr(TransformString(section, 1).size(), (fileLine.size() - section.size())));
                             continue;
                         }
 
                         section = "chase_duration:";
                         if (fileLine.find(TransformString(section, 1), 0) != std::string::npos) {
-                            level.chase_for = stoi(fileLine.substr(TransformString(section, 1).size(), 10));
+                            level.chase_for = stoi(fileLine.substr(TransformString(section, 1).size(), (fileLine.size() - section.size())));
                             continue;
                         }
 
                         section = "run_duration:";
                         if (fileLine.find(TransformString(section, 1), 0) != std::string::npos) {
-                            level.run_for = stoi(fileLine.substr(TransformString(section, 1).size(), 10));
+                            level.run_for = stoi(fileLine.substr(TransformString(section, 1).size(), (fileLine.size() - section.size())));
                             continue;
                         }
 
                         section = "roam_duration:";
                         if (fileLine.find(TransformString(section, 1), 0) != std::string::npos) {
-                            level.roam_for = stoi(fileLine.substr(TransformString(section, 1).size(), 10));
+                            level.roam_for = stoi(fileLine.substr(TransformString(section, 1).size(), (fileLine.size() - section.size())));
                             continue;
                         }
 
                         section = "roam_count:";
                         if (fileLine.find(TransformString(section, 1), 0) != std::string::npos) {
-                            level.roam_count = stoi(fileLine.substr(TransformString(section, 1).size(), 10));
+                            level.roam_count = stoi(fileLine.substr(TransformString(section, 1).size(), (fileLine.size() - section.size())));
                             continue;
                         }
 
