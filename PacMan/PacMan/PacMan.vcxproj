@@ -137,6 +137,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -144,6 +145,21 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\..\Desktop\PacMan.bak" />
+    <None Include="PacMan.scenes" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="sfx_bonus.wav" />
+    <Media Include="sfx_death.wav" />
+    <Media Include="sfx_eatfruit.wav" />
+    <Media Include="sfx_eatghost.wav" />
+    <Media Include="sfx_intermission.wav" />
+    <Media Include="sfx_intro.wav" />
+    <Media Include="sfx_munch.wav" />
+    <Media Include="sfx_munch_lg.wav" />
+    <Media Include="sfx_powerup.wav" />
+    <Media Include="sfx_retreat.wav" />
+    <Media Include="sfx_siren.wav" />
+    <Media Include="sfx_xlife.wav" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

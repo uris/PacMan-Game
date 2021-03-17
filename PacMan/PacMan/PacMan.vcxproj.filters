@@ -26,5 +26,46 @@
     <None Include="..\..\..\..\..\Desktop\PacMan.bak">
       <Filter>Backup</Filter>
     </None>
+    <None Include="PacMan.scenes">
+      <Filter>Source Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="sfx_bonus.wav">
+      <Filter>Source Files</Filter>
+    </Media>
+    <Media Include="sfx_death.wav">
+      <Filter>Source Files</Filter>
+    </Media>
+    <Media Include="sfx_eatfruit.wav">
+      <Filter>Source Files</Filter>
+    </Media>
+    <Media Include="sfx_eatghost.wav">
+      <Filter>Source Files</Filter>
+    </Media>
+    <Media Include="sfx_intermission.wav">
+      <Filter>Source Files</Filter>
+    </Media>
+    <Media Include="sfx_intro.wav">
+      <Filter>Source Files</Filter>
+    </Media>
+    <Media Include="sfx_munch.wav">
+      <Filter>Source Files</Filter>
+    </Media>
+    <Media Include="sfx_munch_lg.wav">
+      <Filter>Source Files</Filter>
+    </Media>
+    <Media Include="sfx_powerup.wav">
+      <Filter>Source Files</Filter>
+    </Media>
+    <Media Include="sfx_retreat.wav">
+      <Filter>Source Files</Filter>
+    </Media>
+    <Media Include="sfx_siren.wav">
+      <Filter>Source Files</Filter>
+    </Media>
+    <Media Include="sfx_xlife.wav">
+      <Filter>Source Files</Filter>
+    </Media>
   </ItemGroup>
 </Project>

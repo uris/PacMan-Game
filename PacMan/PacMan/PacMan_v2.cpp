@@ -8,6 +8,8 @@
 #include <chrono> // used for timers
 #include <iomanip> // formating output
 #include <algorithm> // string transforms
+#include <fstream> // file manipulation
+#include <stdlib.h> // exit
 
 using namespace std;
 using namespace std::chrono;
@@ -197,6 +199,7 @@ void SpawnMonster(const Level& level, Ghost ghosts[]);
 void SpawnMonster(const Level& level, Ghost ghosts[], Ghost ghost, const bool playerDied);
 void SpawnPlayer(Player& player);
 int SFX(Game& game, Level& level, Play playSFX);
+string LoadSceneFromFile(string filename, int scene, Level& level);
 
 // Player movement
 void GetPlayerDirection(const Game& game, const Level& level, Player& player);
@@ -527,69 +530,15 @@ void SpawnMonster(const Level& level, Ghost ghosts[], Ghost ghost, const bool pl
 }
 char** CreateLevelScene(const Game& game, Level& level, Player& player, Ghost ghosts[])
 {
-    // create string with the level - this makes it easier to convert a string diagram to a level array
-    // must be of the level dimensions 17 rows by 23 cols
-    string map, level1, level2;
+    // load level info and map from scenes file using games current level
+    string map = LoadSceneFromFile("PacMan.scenes", game.current_scene, level);
 
-    level1 =  "+---------------------------------------------+";
-    level1 += "|%o...................%|%...................o%|";
-    level1 += "|%.%-------%.%------%.%|%.%------%.%-------%.%|";
-    level1 += "|%.%#######%.%######%.%|%.%######%.%#######%.%|";
-    level1 += "|%.%-------%.%------%.%|%.%------%.%-------%.%|";
-    level1 += "|%...........................................%|";
-    level1 += "|%.%-------%.%|%.%-----------%.%|%.%-------%.%|";
-    level1 += "|%.%-------%.%|%.%-----------%.%|%.%-------%.%|";
-    level1 += "|%...........%|%......%|%......%|%...........%|";
-    level1 += "|%.%-------%.%------%.%-%.%------%.%-------%.%|";
-    level1 += "|%.%#######%.%|%.......^.......%|%.%#######%.%|";
-    level1 += "|%.%-------%.%|%.%----$$$----%.%|%.%-------%.%|";
-    level1 += "T ...........%|%.%| B R Y P |%.%|%........... T";
-    level1 += "|%.%-------%.%|%.%-----------%.%|%.%-------%.%|";
-    level1 += "|%.%#######%.%|%...............%|%.%#######%.%|";
-    level1 += "|%.%#######%.%|%.%-----------%.%|%.%#######%.%|";
-    level1 += "|%.%-------%.%|%.%-----------%.%|%.%-------%.%|";
-    level1 += "|%.....................S.....................%|";
-    level1 += "|%.%-------%.%------%.%|%.%------%.%-------%.%|";
-    level1 += "|%.%#######%.%######%.%|%.%######%.%#######%.%|";
-    level1 += "|%.%-------%.%------%.%|%.%------%.%-------%.%|";
-    level1 += "|%o...................%|%...................o%|";
-    level1 += "+---------------------------------------------+";
-
-    level2 =  "+---------------------------------------------+";
-    level2 += "|.............................................|";
-    level2 += "|.............................................|";
-    level2 += "|.............................................|";
-    level2 += "|...o.....................................o...|";
-    level2 += "|.............................................|";
-    level2 += "|.............................................|";
-    level2 += "|.............................................|";
-    level2 += "|.............................................|";
-    level2 += "|.............................................|";
-    level2 += "|.....................^.......................|";
-    level2 += "|................----$$$----..................|";
-    level2 += "T................| B R Y P |..................T";
-    level2 += "|................-----------..................|";
-    level2 += "|.............................................|";
-    level2 += "|.............................................|";
-    level2 += "|.............................................|";
-    level2 += "|......................S......................|";
-    level2 += "|...o.....................................o...|";
-    level2 += "|.............................................|";
-    level2 += "|.............................................|";
-    level2 += "|.............................................|";
-    level2 += "+---------------------------------------------+";
-
-    switch (game.current_scene)
-    {
-    case 1:
-        map = level1;
-        break;
-    case 2:
-        map = level2;
-        break;
-    default:
-        map = level1;
-        break;
+    // if the string return "false" then you've reached the end of the game
+    if (map == "false") {
+        system("cls");
+        cout << "You beat the PC! Good for you" << endl;
+        system("pause");
+        exit(0);
     }
 
     // parse through string to replace pellt and powerup markers to their ascii code
@@ -600,19 +549,20 @@ char** CreateLevelScene(const Game& game, Level& level, Player& player, Ghost gh
     Coord size = MapSize(map); // get width and height of the map
     level.cols = size.col; // set lsizes in level
     level.rows = size.row; // set sizes in level
+
     char** p_mapArray = new char*[size.row];
     for (int i = 0; i < size.row; i++)
     {
         p_mapArray[i] = new char[size.col];
     }
     
-    // parse through map string and convert into the level map array
-    // '|', '+' = wall; '%' = blank spot with collision; 'T' = portal; 'S' = player starting pos; 'M' = monsters; $ = one way exit only
-    int t_row = 0, t_col = 0;
+    int t_row = 0;
+    int t_col = 0;
 
     // iterate through the characters of the map string
     for (string::size_type i = 0; i < map.size(); i++)
     {
+        
         // add to dynamic map array
         p_mapArray[t_row][t_col] = map[i];
 
@@ -667,7 +617,7 @@ char** CreateLevelScene(const Game& game, Level& level, Player& player, Ghost gh
         
 
         // Set teleport coords for T1 and T2
-        if (map[i] == 'T') {
+        if (map[i] == Level::teleport) {
             if (t_row == 0 || t_col == 0) {
                 level.tp_1.col = t_col;
                 level.tp_1.row = t_row;
@@ -685,7 +635,7 @@ char** CreateLevelScene(const Game& game, Level& level, Player& player, Ghost gh
             }
         }
 
-        // if reached end of map columns process next row
+        //if reached end of map columns process next row
         if (t_col == level.cols - 1) {
             t_col = 0;
             t_row < size.row ? t_row++ : t_row;
@@ -1030,6 +980,112 @@ int SFX(Game& game, Level& level, Play playSFX)
 
     return 0;
 
+}
+string LoadSceneFromFile(string filename, int scene, Level& level)
+{
+    ifstream scenesFile(filename);
+    string fileLine, section, map = "";
+    bool processLines = true;
+    
+    if (scenesFile) {
+        // file exists and is open 
+        while(getline(scenesFile, fileLine))
+        {
+            
+            //check for right scene
+            section = "#scene:";
+            if (fileLine.find(TransformString(section, 1), 0) != std::string::npos) { // if line is scene identifier
+
+                if (scene == stoi(fileLine.substr(TransformString(section, 1).size(), 2))) // and if the sence is the one I'm looking for
+                {
+                    //this is the scene we are looking for so let's process it until your get to the end of the level info
+                    while(getline(scenesFile, fileLine))
+                    {
+                        // get the next line and set the relevant info in the level info
+
+                        section = "title:";
+                        if (fileLine.find(TransformString(section,1), 0) != std::string::npos) {
+                            level.title = fileLine.substr(TransformString(section, 1).size(), 10);
+                            continue;
+                        }
+
+                        section = "pellet_points:";
+                        if (fileLine.find(TransformString(section, 1), 0) != std::string::npos) {
+                            level.points_ghost = stoi(fileLine.substr(TransformString(section, 1).size(), 10));
+                            continue;
+                        }
+
+                        section = "ghost_points:";
+                        if (fileLine.find(TransformString(section, 1), 0) != std::string::npos) {
+                            level.points_ghost = stoi(fileLine.substr(TransformString(section, 1).size(), 10));
+                            continue;
+                        }
+
+                        section = "all_ghosts_bonus:";
+                        if (fileLine.find(TransformString(section, 1), 0) != std::string::npos) {
+                            level.all_ghost_bonus = stoi(fileLine.substr(TransformString(section, 1).size(), 10));
+                            continue;
+                        }
+
+                        section = "edible_ghost duration:";
+                        if (fileLine.find(TransformString(section, 1), 0) != std::string::npos) {
+                            level.edible_ghost_duration = stoi(fileLine.substr(TransformString(section, 1).size(), 10));
+                            continue;
+                        }
+
+                        section = "chase_duration:";
+                        if (fileLine.find(TransformString(section, 1), 0) != std::string::npos) {
+                            level.chase_for = stoi(fileLine.substr(TransformString(section, 1).size(), 10));
+                            continue;
+                        }
+
+                        section = "run_duration:";
+                        if (fileLine.find(TransformString(section, 1), 0) != std::string::npos) {
+                            level.run_for = stoi(fileLine.substr(TransformString(section, 1).size(), 10));
+                            continue;
+                        }
+
+                        section = "roam_duration:";
+                        if (fileLine.find(TransformString(section, 1), 0) != std::string::npos) {
+                            level.roam_for = stoi(fileLine.substr(TransformString(section, 1).size(), 10));
+                            continue;
+                        }
+
+                        section = "roam_count:";
+                        if (fileLine.find(TransformString(section, 1), 0) != std::string::npos) {
+                            level.roam_count = stoi(fileLine.substr(TransformString(section, 1).size(), 10));
+                            continue;
+                        }
+
+                        section = "level_map:";
+                        if (fileLine.find(TransformString(section, 1), 0) != std::string::npos) {
+                            // get map info into the map string ending when you reach end of map
+                            section = "#end_scene";
+                            while (getline(scenesFile, fileLine))
+                            {
+                                if (fileLine.find(TransformString(section, 1), 0) == std::string::npos)
+                                    map += fileLine;
+                                else
+                                    break;
+                            }
+                        }
+
+                        section = "#scene:"; // check to see if reached the next scene;
+                        if (fileLine.find(TransformString(section, 1), 0) != std::string::npos) {
+                            break;
+                        }
+                           
+                    }
+                }
+                processLines = false;
+            }
+        }
+    }
+    else
+    {
+        //unable to read file - write sine error code.
+    }
+    return (map.size() > 0 ? map : "false");
 }
 #pragma endregion
 
@@ -1685,7 +1741,7 @@ bool NextLevelRestartGame(Game& game, Level& level)
         }
     }
     DeallocateMem(level);
-    game.current_scene <= game.total_scenes ? game.current_scene++ : game.current_scene = 1;
+    game.current_scene++;
     return true;
 }
 void DeallocateMem(Level& level)
