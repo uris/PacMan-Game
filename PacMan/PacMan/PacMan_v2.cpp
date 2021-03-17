@@ -131,12 +131,14 @@ struct Level   {
     int total_pellets = 0; // totala level pellets
     int eaten_pellets = 0; // pellets consumed
     int eaten_ghosts = 0; // pellets consumed
+    int all_eaten_ghosts = 0; // pellets consumed
     int points_pellet = 10;
     int points_ghost = 250;
     int all_ghost_bonus = 2600;
     bool is_complete = false;
 
     // Manange modes
+    bool ghosts_in_a_row[4]{false,false,false,false};
     Mode level_mode = Mode::CHASE;
     int edible_ghost_duration = 20; // seconds
     int roam_count = 8;
@@ -200,6 +202,8 @@ void SpawnMonster(const Level& level, Ghost ghosts[], Ghost ghost, const bool pl
 void SpawnPlayer(Player& player);
 int SFX(Game& game, Level& level, Play playSFX);
 string LoadSceneFromFile(string filename, int scene, Level& level);
+void ClearEatenGhosts(Level& level);
+bool AllGhostsEaten(Level& level);
 
 // Player movement
 void GetPlayerDirection(const Game& game, const Level& level, Player& player);
@@ -353,8 +357,11 @@ void SetUp(Game& game, Level& level, Player& player, Ghost ghosts[])
     level.level_mode = Mode::CHASE;
     level.eaten_pellets = 0;
     level.eaten_ghosts = 0;
+    level.all_eaten_ghosts = 0;
     level.roam_count = 0;
     level.is_complete = false;
+    ClearEatenGhosts(level);
+
     
     // create level maze, set level params and set up ghosts and players
     level.p_map = CreateLevelScene(game, level, player, ghosts);
@@ -930,6 +937,7 @@ int SFX(Game& game, Level& level, Play playSFX)
         break;
     case Play::LIFE:
         sfx = TEXT("sfx_xlife.wav");
+        params = SND_FILENAME | SND_SYNC;
         break;
     case Play::EAT_GHOST:
         sfx = TEXT("sfx_eatghost.wav");
@@ -964,7 +972,7 @@ int SFX(Game& game, Level& level, Play playSFX)
 
     if (playSFX != game.sfx)
     {
-        if (playSFX == Play::DEATH || playSFX == Play::EAT_GHOST)
+        if (playSFX == Play::DEATH || playSFX == Play::EAT_GHOST || playSFX == Play::LIFE)
         {
             played = PlaySound(sfx, NULL, params);
             game.sfx = playSFX;
@@ -1086,6 +1094,22 @@ string LoadSceneFromFile(string filename, int scene, Level& level)
         //unable to read file - write sine error code.
     }
     return (map.size() > 0 ? map : "false");
+}
+void ClearEatenGhosts(Level& level)
+{
+    for (int i = 0; i < 4; i++)
+    {
+        level.ghosts_in_a_row[i] = false;
+    }
+}
+bool AllGhostsEaten(Level& level)
+{
+    for (int i = 0; i < 4; i++)
+    {
+        if (!level.ghosts_in_a_row[i])
+            return false;
+    }
+    return true;
 }
 #pragma endregion
 
@@ -1519,6 +1543,8 @@ void SetPlayerState(Level& level, const Player& player, Ghost ghosts[])
             ghosts[g].is_edible ? ghosts[g].mode = Mode::RUN : ghosts[g].mode = ghosts[g].mode;
             ghosts[g].mode == Mode::RUN ? ghosts[g].run_first_move = true : ghosts[g].run_first_move = false;
         }
+        if (level.level_mode != Mode::RUN)
+            ClearEatenGhosts(level);
         level.level_mode = Mode::RUN;
         level.run_time_start = chrono::high_resolution_clock::now();
         level.eaten_pellets++;
@@ -1647,7 +1673,18 @@ void PlayerMonsterCollision(Game& game, Level& level, Player& player, Ghost ghos
                 level.eaten_ghosts++; // increment ghosts eaten
                 game.gobble_pause = true; // set small pause after eating ghost
                 SpawnMonster(level, ghosts, ghosts[g], false); // reset ghost to spawn area whihc resets mode to spawn
-                SFX(game, level, Play::EAT_GHOST);
+                level.ghosts_in_a_row[g] = true;
+                if  (AllGhostsEaten(level)) {
+                    level.all_eaten_ghosts += 1;
+                    SFX(game, level, Play::LIFE);
+                    ClearEatenGhosts(level);
+                    level.level_mode = Mode::CHASE;
+                    level.chase_time_start = chrono::high_resolution_clock::now();
+                }
+                else {
+                    SFX(game, level, Play::EAT_GHOST);
+                }
+                
             }
             else
             {
