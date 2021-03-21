@@ -28,3 +28,11 @@ enum class Play {
     POWER_UP,
     NONE,
 };
+
+enum class Ghosts
+{
+    RED = 0,
+    YELLOW = 1,
+    BLUE = 2,
+    PINK = 3,
+};

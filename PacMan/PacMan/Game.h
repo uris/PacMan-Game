@@ -1,6 +1,7 @@
 #pragma once
 #include "Enums.h"
 #include "Player.h"
+#include "Ghost.h"
 #include <chrono>
 
 using namespace std::chrono;
@@ -9,6 +10,9 @@ class Game
 {
     // player pointer
     Player* p_player = nullptr;
+
+    // pointer to array of ghosts
+    Ghost* p_ghosts = nullptr;
 
     // level pointer
     //Level* p_level = nullptr;
@@ -49,7 +53,7 @@ class Game
 
         // constructors
         Game();
-        Game(Player& player);
+        Game(Player& player, Ghost* ghosts);
         /*Game(Player& player, Level& level);*/
 
         //destructors
@@ -75,6 +79,6 @@ class Game
         Player* GetPlayer();
         /*void AddLevel(Level& level);
         Level* GetLevel();*/
-        void Add(Player& player);
+        void Add(Player& player, Ghost* ghosts);
 
 };

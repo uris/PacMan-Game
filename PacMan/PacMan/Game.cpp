@@ -5,9 +5,10 @@ using namespace std;
 
 Game::Game() {};
 
-Game::Game(Player& player)
+Game::Game(Player& player, Ghost* ghosts)
 {
     p_player = &player;
+    p_ghosts = ghosts;
 };
 
 //Game::Game(Player& player, Level& level)
@@ -22,6 +23,7 @@ Game::~Game()
     // no need to delete as object were created outside of the game class
     //in static memory
     p_player = nullptr;
+    p_ghosts = nullptr;
     //p_level = nullptr;
 };
 
@@ -100,9 +102,10 @@ void Game::StartSFX()
 	sfx_start = std::chrono::high_resolution_clock::now();
 }
 
-void Game::Add(Player& player)
+void Game::Add(Player& player, Ghost* ghosts)
 {
     p_player = &player;
+    p_ghosts = ghosts;
     /*p_level = &level;*/
 }
 

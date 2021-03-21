@@ -15,31 +15,32 @@
 #include "Draw.h"
 #include "Character.h"
 #include "Player.h"
+#include "Ghost.h"
 #include "Game.h"
 
 using namespace std;
 using namespace std::chrono;
 #pragma endregion
 
-struct Ghost {
-    char ghost = 'R';
-    char square_content_now = ' ';
-    char square_content_prior = square_content_now;
-    Coord current_pos, spawn_pos, previous_pos;
-    Coord spawn_target; // just above spawn area
-    Coord roam_target; // roams to top right hand side
-    Coord chase_modifier; // runs after player position
-    Direction current_direction = Direction::UP;
-    Direction previous_direction = Direction::UP;
-    Mode mode = Mode::CHASE;
-    bool run_first_move = true;
-    bool is_edible = false;
-    bool color_on = false;
-    int color = 455;
-    int wait = 0;
-    bool skip_turn = false; // use this to slow down moster if edible
-    int look_ahead = 5; // how far ahead the IA looks for player
-};
+//struct Ghost {
+//    char ghost = 'R';
+//    char square_content_now = ' ';
+//    char square_content_prior = square_content_now;
+//    Coord current_pos, spawn_pos, previous_pos;
+//    Coord spawn_target; // just above spawn area
+//    Coord roam_target; // roams to top right hand side
+//    Coord chase_modifier; // runs after player position
+//    Direction current_direction = Direction::UP;
+//    Direction previous_direction = Direction::UP;
+//    Mode mode = Mode::CHASE;
+//    bool run_first_move = true;
+//    bool is_edible = false;
+//    bool color_on = false;
+//    int color = 455;
+//    int wait = 0;
+//    bool skip_turn = false; // use this to slow down moster if edible
+//    int look_ahead = 5; // how far ahead the IA looks for player
+//};
 
 struct Level {
 
@@ -173,9 +174,13 @@ int main()
     Game game;
     Level level;
     Player player;
-    game.SetGameObjects(player);
-    Ghost redGhost, yellowGhost, orangeGhost, pinkGhost;
-    Ghost ghosts[4] = { redGhost, yellowGhost, orangeGhost, pinkGhost };
+    Ghost redGhost(Ghosts::BLUE), yellowGhost(Ghosts::YELLOW), blueGhost(Ghosts::BLUE), pinkGhost(Ghosts::PINK);
+    Ghost* p_ghosts = new Ghost[4]{ redGhost , yellowGhost, blueGhost, pinkGhost };
+    game.Add(player, p_ghosts);
+    
+    //Ghost redGhost, yellowGhost, orangeGhost, pinkGhost;
+    //Ghost ghosts[4] = { redGhost, yellowGhost, blueGhost, pinkGhost };
+
     Draw draw;
 
     Credits(game, level); // show credits
