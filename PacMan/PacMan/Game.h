@@ -13,6 +13,7 @@ class Game
 
     // pointer to array of ghosts
     Ghost* p_ghosts = nullptr;
+    int total_ghosts = 4;
 
     // level pointer
     //Level* p_level = nullptr;
@@ -77,8 +78,7 @@ class Game
         void AddPlayer(Player& player);
         Player* GetPlayer();
         Ghost* GetGhosts();
-        /*void AddLevel(Level& level);
-        Level* GetLevel();*/
         void Add(Player& player, Ghost& red, Ghost& yellow, Ghost& blue, Ghost& pink);
-
+        void SpawnThisGhost(Ghosts name, bool player_died);
+        void SpawnAllGhosts();
 };

@@ -3,19 +3,15 @@
 
 using namespace std;
 
+//constructors
 Game::Game() {};
 
 Game::Game(Player& player, Ghost& red, Ghost& yellow, Ghost& blue, Ghost& pink)
 {
     p_player = &player;
-    p_ghosts = new Ghost[4]{ red, yellow, blue, pink };
+    p_ghosts = new Ghost[total_ghosts]{ red, yellow, blue, pink };
+    
 };
-
-//Game::Game(Player& player, Level& level)
-//{
-//    p_player = &player;
-//    p_level = &level;
-//};
 
 //destructors
 Game::~Game()
@@ -29,6 +25,7 @@ Game::~Game()
     
 };
 
+// methods
 bool Game::IsGameOn()
 {
 	return(game_on);
@@ -126,16 +123,6 @@ Ghost* Game::GetGhosts()
     return p_ghosts;
 }
 
-//void Game::AddLevel(Level& level)
-//{
-//    p_level = &level;
-//}
-//
-//Level* Game::GetLevel()
-//{
-//    return(p_level);
-//}
-
 void Game::GetKeyboardInput()
 {
     int input;
@@ -169,4 +156,41 @@ void Game::GetKeyboardInput()
             break;
         }
     } while (/*!p_level->is_complete &&*/ !game_over);
+}
+
+void Game::SpawnThisGhost(Ghosts name, bool player_died)
+{
+    if (p_ghosts)
+    {
+        switch (name)
+        {
+        case Ghosts::RED:
+            p_ghosts[0].SpawnGhost(player_died);
+            break;
+        case Ghosts::YELLOW:
+            p_ghosts[1].SpawnGhost(player_died);
+            break;
+        case Ghosts::BLUE:
+            p_ghosts[2].SpawnGhost(player_died);
+            break;
+        case Ghosts::PINK:
+            p_ghosts[3].SpawnGhost(player_died);
+            break;
+        default:
+            break;
+        }
+    }
+    
+}
+
+void Game::SpawnAllGhosts()
+{
+    if (p_ghosts)
+    {
+        for(int i = 0; i < total_ghosts; i++)
+        {
+            p_ghosts[i].SpawnGhost(true);
+        }
+    }
+
 }
