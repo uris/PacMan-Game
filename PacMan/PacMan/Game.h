@@ -53,8 +53,7 @@ class Game
 
         // constructors
         Game();
-        Game(Player& player, Ghost* ghosts);
-        /*Game(Player& player, Level& level);*/
+        Game(Player& player, Ghost& red, Ghost& yellow, Ghost& blue, Ghost& pink);
 
         //destructors
         ~Game();
@@ -77,8 +76,9 @@ class Game
         void GetKeyboardInput();
         void AddPlayer(Player& player);
         Player* GetPlayer();
+        Ghost* GetGhosts();
         /*void AddLevel(Level& level);
         Level* GetLevel();*/
-        void Add(Player& player, Ghost* ghosts);
+        void Add(Player& player, Ghost& red, Ghost& yellow, Ghost& blue, Ghost& pink);
 
 };

@@ -5,10 +5,10 @@ using namespace std;
 
 Game::Game() {};
 
-Game::Game(Player& player, Ghost* ghosts)
+Game::Game(Player& player, Ghost& red, Ghost& yellow, Ghost& blue, Ghost& pink)
 {
     p_player = &player;
-    p_ghosts = ghosts;
+    p_ghosts = new Ghost[4]{ red, yellow, blue, pink };
 };
 
 //Game::Game(Player& player, Level& level)
@@ -20,11 +20,13 @@ Game::Game(Player& player, Ghost* ghosts)
 //destructors
 Game::~Game()
 {
-    // no need to delete as object were created outside of the game class
-    //in static memory
+    // player pointer to null
     p_player = nullptr;
+
+    // delete ghosts array and set pointer to null
+    delete[] p_ghosts;
     p_ghosts = nullptr;
-    //p_level = nullptr;
+    
 };
 
 bool Game::IsGameOn()
@@ -102,11 +104,11 @@ void Game::StartSFX()
 	sfx_start = std::chrono::high_resolution_clock::now();
 }
 
-void Game::Add(Player& player, Ghost* ghosts)
+void Game::Add(Player& player, Ghost& red, Ghost& yellow, Ghost& blue, Ghost& pink)
 {
     p_player = &player;
-    p_ghosts = ghosts;
-    /*p_level = &level;*/
+    p_ghosts = new Ghost[4]{red, yellow, blue, pink};
+
 }
 
 void Game::AddPlayer(Player& player)
@@ -117,6 +119,11 @@ void Game::AddPlayer(Player& player)
 Player* Game::GetPlayer()
 {
     return(p_player);
+}
+
+Ghost* Game::GetGhosts()
+{
+    return p_ghosts;
 }
 
 //void Game::AddLevel(Level& level)

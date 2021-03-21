@@ -174,12 +174,11 @@ int main()
     Game game;
     Level level;
     Player player;
-    Ghost redGhost(Ghosts::BLUE), yellowGhost(Ghosts::YELLOW), blueGhost(Ghosts::BLUE), pinkGhost(Ghosts::PINK);
-    Ghost* p_ghosts = new Ghost[4]{ redGhost , yellowGhost, blueGhost, pinkGhost };
-    game.Add(player, p_ghosts);
-    
-    //Ghost redGhost, yellowGhost, orangeGhost, pinkGhost;
-    //Ghost ghosts[4] = { redGhost, yellowGhost, blueGhost, pinkGhost };
+    Ghost redGhost(Ghosts::RED);
+    Ghost yellowGhost(Ghosts::YELLOW);
+    Ghost blueGhost(Ghosts::BLUE);
+    Ghost pinkGhost(Ghosts::PINK);
+    game.Add(player, redGhost, yellowGhost, blueGhost, pinkGhost);
 
     Draw draw;
 
