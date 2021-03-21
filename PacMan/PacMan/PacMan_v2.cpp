@@ -247,6 +247,7 @@ void Credits(Game& game, Level& level);
 void ReplaceString(string& text, string from, char to);
 Coord MapSize(const string& map);
 void ShowConsoleCursor(bool showFlag);
+string Spacer(string format, const Level& level);
 
 #pragma endregion
 
@@ -569,6 +570,7 @@ char** CreateLevelScene(const Game& game, Level& level, Player& player, Ghost gh
     // iterate through the characters of the map string
     for (string::size_type i = 0; i < map.size(); i++)
     {
+        // try looking at logic to determine if there's a row in the array (size);
         
         // add to dynamic map array
         p_mapArray[t_row][t_col] = map[i];
@@ -730,8 +732,13 @@ void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[])
     }
    
     // Level Title
+    string format = Spacer(" PACMAN: " + TransformString(level.title, 0), level);
     SetColor(Level::cWHITE);
-    cout << endl << "                 PACMAN: " << TransformString(level.title, 0) << endl << endl;
+    cout << endl;
+    cout << format;
+    cout << "PACMAN: " << TransformString(level.title, 0);
+    cout << format;
+    cout << endl << endl;
 
     // draw current level map
     for (int r = 0; r < level.rows; r++)
@@ -828,8 +835,11 @@ void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[])
         
     if (level.level_paused) {
         // before start of level get any key to start
+        format = Spacer("Press any key to start.", level);
         cout << endl;
-        cout << "           Press any key to start.             ";
+        cout << format;
+        cout << "Press any key to start.";
+        cout << format;
         SFX(game, level, Play::INTERMISSION);
         char input = _getch();
         level.level_paused = false;
@@ -860,27 +870,25 @@ void DrawLevel(Game& game, Level& level, Player& player, Ghost ghosts[])
 void StatusBar(Game& game, Level& level, Player& player)
 {
     // get number of lives
+    string format = Spacer("LIVES:CCC    SCORE:00000000", level);
     string lives;
-    for (int i = 0; i < player.lives; i++)
+    for (int i = 1; i < 6; i++)
     {
-        lives = lives + player.player;
+        player.lives >= i ? lives = lives + player.player : lives = lives + " ";
     }
     player.score = ((level.eaten_pellets + 1) * level.points_pellet) + (level.eaten_ghosts * level.points_ghost) + (level.eaten_ghosts >= 4 ? level.all_ghost_bonus : 0);
     cout << endl;
+    cout << format;
     SetColor(7);
-    cout << "    LIVES:";
+    cout << "LIVES:";
     SetColor(14);
     cout << (player.lives > 0 ? lives : "-");
     SetColor(7);
-    cout << "   SCORE:";
+    cout << " SCORE:";
     SetColor(14);
     cout << setfill('0') << setw(8) << player.score;
     SetColor(7);
-    cout << "   GHOSTS:";
-    SetColor(14);
-    cout << (level.eaten_ghosts >= 4 ? "*" : "") << "x" << level.eaten_ghosts << (level.eaten_ghosts >= 4 ? "*" : "");
-    SetColor(7);
-    cout << "       ";
+    cout << format;
     cout << "\r";
 
     // message game over or level complete
@@ -1767,8 +1775,11 @@ bool NextLevelRestartGame(Game& game, Level& level)
     if (game.game_over)
     {
         
+        string format = Spacer("play again? 'y' = yes, 'n' = no", level);
         cout << "\r";
-        cout << "       play again? 'y' = yes, 'n' = no         ";
+        cout << format;
+        cout << "play again? 'y' = yes, 'n' = no";
+        cout << format;
         char input = _getch();
         if (input == Game::kNO)
         {
@@ -1890,6 +1901,16 @@ Coord MapSize(const string& map)
     }
     return{ (int)rows, (int)cols };
 }
+string Spacer(string format, const Level& level)
+{
+    int spacer = (int)((level.cols - (int)format.size()) / 2);
+    format = "";
+    for (int i = 0; i < spacer; i++)
+    {
+        format = format + " ";
+    }
+    return format;
+}
 #pragma endregion
 
 #pragma region info, about, credits
@@ -1912,12 +1933,14 @@ void Credits(Game& game, Level& level)
     ghost += "    ***      *****    ****      ***\n";
     
     // print image
+    string format = Spacer("PACMAN 2021", level);
     cout << endl << endl;
     SetColor(7);
     cout << ghost;
     SetColor(7);
-    //cout << endl << "      Press any key to start";
-    cout << endl << "              PACMAN 2021";
+    cout << format;
+    cout << "PACMAN 2021";
+    cout << format;
 
     // play intro
     SFX(game, level, Play::INTRO);
