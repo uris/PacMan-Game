@@ -1,5 +1,6 @@
 #pragma once
 #include "Character.h"
+#include "Enums.h"
 
 class Ghost: public Character
 {
@@ -34,7 +35,7 @@ public:
     // destructors
     ~Ghost();
 
-    //methods
+    //encapsulation
     char GetPreviousSqaureContent();
     void SetPreviousSqaureContent(char content);
     char GetContentCurrent();

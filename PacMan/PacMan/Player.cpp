@@ -102,3 +102,13 @@ bool Player::HasNoLives()
 {
 	return(lives < 1 ? true : false);
 }
+
+void Player::SetMovedIntoSquareContents(char ascii)
+{
+	player_move_content = ascii;
+}
+
+char Player::GetMovedIntoSquareContents()
+{
+	return player_move_content;
+}

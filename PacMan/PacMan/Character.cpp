@@ -8,6 +8,28 @@ Character::Character() {};
 Character::~Character() {};
 
 // methods
+
+bool IsReverse(const Direction& curr_direction, const Direction& new_direction)
+{
+	switch (new_direction)
+	{
+	case Direction::UP:
+		return (curr_direction == Direction::DOWN ? true : false);
+		break;
+	case Direction::RIGHT:
+		return (curr_direction == Direction::LEFT ? true : false);
+		break;
+	case Direction::DOWN:
+		return (curr_direction == Direction::UP ? true : false);
+		break;
+	case Direction::LEFT:
+		return (curr_direction == Direction::RIGHT ? true : false);
+		break;
+	}
+	return false;
+}
+
+// encapsulate
 bool Character::IsReverseDirection(Direction new_direction)
 {
     switch (new_direction)

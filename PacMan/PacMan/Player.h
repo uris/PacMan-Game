@@ -9,6 +9,8 @@ private:
     int lives = 3;
     int score = 0;
     bool ghosts_eaten[4] = { false, false, false, false };
+    char player_move_content = '.';
+
 public:
     // variables
     static constexpr char character = 67; // 'C'
@@ -34,4 +36,6 @@ public:
     void ClearEatenGohsts();
     bool AllGhostsEaten();
     bool HasNoLives();
+    void SetMovedIntoSquareContents(char ascii);
+    char GetMovedIntoSquareContents();
 };

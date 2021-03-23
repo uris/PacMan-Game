@@ -1,4 +1,6 @@
 #include "Ghost.h"
+#include "Coord.h"
+#include "Enums.h"
 
 using namespace std;
 
@@ -7,8 +9,8 @@ Ghost::Ghost()
 {
     name = Ghosts::RED;
     ghost = 'R';
-    roam_target = Coord(24, 45);
-    chase_modifier = Coord(0, 0);
+    roam_target = { 24, 45 };
+    chase_modifier = { 0, 0 };
     name = Ghosts::RED;
     color = 71;
     wait = 15;
@@ -21,40 +23,40 @@ Ghost::Ghost(Ghosts ghost)
     {
     case Ghosts::RED:
         name = Ghosts::RED;
-        roam_target = Coord(24, 45);
-        chase_modifier = Coord(0, 0);
+        roam_target = { 24, 45 };
+        chase_modifier = { 0, 0 };
         this->ghost = 'R';
         color = 71;
         wait = 15;
         break;
     case Ghosts::YELLOW:
         name = Ghosts::YELLOW;
-        roam_target = Coord(24, 2);
-        chase_modifier = Coord(0, 3);
+        roam_target = { 24, 2 };
+        chase_modifier = { 0, 3 };
         this->ghost = 'Y';
         color = 367;
         wait = 30;
         break;
     case Ghosts::BLUE:
         name = Ghosts::BLUE;
-        roam_target = Coord(-3, 2);
-        chase_modifier = Coord(0, -3);
+        roam_target = { -3, 2 };
+        chase_modifier = { 0, -3 };
         this->ghost = 'B';
         color = 435;
         wait = 45;
         break;
     case Ghosts::PINK:
         name = Ghosts::PINK;
-        roam_target = Coord(-3, 45);
-        chase_modifier = Coord(-3, 0);
+        roam_target = { -3, 45 };
+        chase_modifier = { -3, 0 };
         this->ghost = 'P';
         color = 479;
         wait = 60;
         break;
     default:
         name = Ghosts::RED;
-        roam_target = Coord(24, 45);
-        chase_modifier = Coord(0, 0);
+        roam_target = { 24, 45 };
+        chase_modifier = { 0, 0 };
         name = Ghosts::RED;
         this->ghost = 'R';
         color = 71;
@@ -66,7 +68,8 @@ Ghost::Ghost(Ghosts ghost)
 // destructors
 Ghost::~Ghost() {};
 
-//methods
+// encapsulation
+
 char Ghost::GetPreviousSqaureContent()
 {
     return square_content_prior;

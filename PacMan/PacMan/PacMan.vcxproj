@@ -145,9 +145,11 @@
     <ClCompile Include="Coord.cpp" />
     <ClCompile Include="Draw.cpp" />
     <ClCompile Include="Ghost.cpp" />
+    <ClCompile Include="Level.cpp" />
     <ClCompile Include="PacMan_v2.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="Utility.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\..\Desktop\PacMan.bak" />
@@ -174,7 +176,9 @@
     <ClInclude Include="Enums.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Ghost.h" />
+    <ClInclude Include="Level.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="Utility.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

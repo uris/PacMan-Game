@@ -2,24 +2,30 @@
 #include "Enums.h"
 #include "Player.h"
 #include "Ghost.h"
+#include "Level.h"
+#include "Utility.h"
+#include "Draw.h"
 #include <chrono>
 
 using namespace std::chrono;
 
 class Game
 {
+    // helper
+    Utility utility;
+    Draw draw;
+    
+    // level pointer
+    Level* p_level = nullptr;
+    
     // player pointer
     Player* p_player = nullptr;
 
     // pointer to array of ghosts
     Ghost* p_ghosts = nullptr;
     int total_ghosts = 4;
-
-    // level pointer
-    //Level* p_level = nullptr;
     
     // Game States
-    bool game_on = false;
     bool game_over = false;
     bool gobble_pause = false;
     bool player_beat_pause = false;
@@ -34,7 +40,7 @@ class Game
 
     public:
 
-        // Player movement and input keys
+        // game player movement and input keys
         static constexpr char kLEFT = 97; // 'a';
         static constexpr char kUP = 119; // 'w';
         static constexpr char kDOWN = 115; // 's';
@@ -47,38 +53,45 @@ class Game
         static constexpr char kYES = 121; // 'y'
         static constexpr char kNO = 110; // 'n'
 
-        // delay defaults
+        // game delay defaults
         static constexpr int gobble_delay = 750; // wait in milliseconds
         static constexpr int player_beat_delay = 1000; // wait in milliseconds
-        static constexpr int refresh_delay = 45; //milliseconds
+        static constexpr int refresh_delay = 30; //milliseconds
 
-        // constructors
+        // game constructors
         Game();
-        Game(Player& player, Ghost& red, Ghost& yellow, Ghost& blue, Ghost& pink);
 
-        //destructors
+        // game destructors
         ~Game();
 
-        bool IsGameOn();
-        void SetGameOn(bool game_on);
-        bool IsGameOver();
-        void SetGameOver(bool game_over);
-        bool PauseForGobble();
-        void SetPauseForGobble(bool pause);
-        bool PauseForPalyerDeath();
-        void SetPauseForPlayerDeath(bool pause);
-        int GetCurrentScene();
-        void SetCurrentScene(int scene);
-        void SetTotalScenes(int scenes);
+        // game flow
+        void RunGame();
+
+        // game functions
+        void GameCredits();
+        void SetupGame();
+        void MovePlayer();
+        int MoveGhosts();
+        int GetBestMove(Ghost& ghost, Coord move, Direction curr_direction, int depth, bool isGhost);
+        void DoGhostMove(Ghost& ghost, Direction direction);
+        char GetSquareContentNow(Coord square);
+        Direction RandomGhostMove(Ghost& ghost);
+        void SetPlayerState();
+        void PlayerMonsterCollision();
+        void SetGhostMode();
+        void RefreshDelay();
+        void PlayerMonsterCollisionDelay();
+        void CheckLevelComplete();
+        bool NextLevelRestartGame();
+        void StatusBar();
         void NextScene();
-        void SetPlaySFX(Play sfx);
-        Play GetPlaySFX();
-        void StartSFX();
         void GetKeyboardInput();
-        void AddPlayer(Player& player);
-        Player* GetPlayer();
-        Ghost* GetGhosts();
-        void Add(Player& player, Ghost& red, Ghost& yellow, Ghost& blue, Ghost& pink);
+        void Add(Player& player);
+        void Add(Ghost& red, Ghost& yellow, Ghost& blue, Ghost& pink);
+        void Add(Level& level);
         void SpawnThisGhost(Ghosts name, bool player_died);
         void SpawnAllGhosts();
+        int SFX(Play playSFX);
+        void DrawLevel();
+        
 };
