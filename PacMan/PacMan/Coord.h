@@ -12,13 +12,8 @@ public:
 	Coord(int row, int col);
 	Coord(Coord coord, Direction direction);
 
-	// destructors
-	~Coord();
-
 	// methods
 	bool IsSame(Coord coord);
 	void SetTo(Coord coord);
 	void SetTo(Coord coord, Direction direction);
-	int DistanceTo(Coord coord);
-	int DistanceTo(Coord coord, Coord modifier);
 };

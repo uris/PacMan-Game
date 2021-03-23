@@ -431,7 +431,7 @@ int Game::MoveGhosts()
 
     for (int g = 0; g < 4; g++)
     {
-        if (p_ghosts[g].SkipTurn() || game_over || p_player->GetCurrentPosition().IsSame(p_ghosts[g].GetCurrentPosition()))
+        if (p_ghosts[g].SkipTurn() || game_over || p_player->HasCollided(p_ghosts[g]))
         {
             continue; // next ghost (no move)
         }
@@ -444,8 +444,8 @@ int Game::MoveGhosts()
 
         if (p_ghosts[g].GetMode() == Mode::RUN) // make random moves truning opposite direction on first move
         {
-            bestMove = RandomGhostMove(p_ghosts[g]);
-            DoGhostMove(p_ghosts[g], bestMove);
+            bestMove = RandomGhostMove(g);
+            DoGhostMove(g, bestMove);
             continue; // next ghost
         }
 
@@ -453,7 +453,7 @@ int Game::MoveGhosts()
         {
             int score = 0, bestScore = 1000;
             Coord nextMove;
-            Coord move(p_ghosts[g].GetCurrentPosition());
+            Coord move = p_ghosts[g].GetCurrentPosition();
             Direction new_direction = Direction::NONE;
 
             for (int i = 0; i <= 3; i++) // cycle through up,down,left,right to find the valid best next move
@@ -466,7 +466,7 @@ int Game::MoveGhosts()
                     p_ghosts[g].SetCurrentPosition(nextMove);
 
                     // calculate distance score based on new coords
-                    int score = GetBestMove(p_ghosts[g], nextMove, new_direction, 1, true); // get the minimax score for the move (recurssive)
+                    int score = GetBestMove(g, nextMove, new_direction, 1, true); // get the minimax score for the move (recurssive)
 
                     // revert ghost coords back
                     p_ghosts[g].SetCurrentPosition(move);
@@ -480,7 +480,7 @@ int Game::MoveGhosts()
 
                 }
             }
-            DoGhostMove(p_ghosts[g], bestMove);
+            DoGhostMove(g, bestMove);
             continue; // next ghost
         }
     }
@@ -488,58 +488,54 @@ int Game::MoveGhosts()
     return 0; // clean exit
 }
 
-int Game::GetBestMove(Ghost& ghost, Coord move, Direction curr_direction, int depth, bool isGhost)
+int Game::GetBestMove(int g, Coord move, Direction curr_direction, int depth, bool isGhost)
 {
     // and on the target the ghost chases: red chases player pos, yellow player pos + 2 cols (to the right of player)
-    switch (ghost.GetMode())
+    switch (p_ghosts[g].GetMode())
     {
     case Mode::CHASE: // redude distance to player
-        if (ghost.GetCurrentPosition().DistanceTo(p_player->GetCurrentPosition(), ghost.GetChaseModifier()) == 0) { // if player and ghost collide return 0 + depth as score
+        if (p_ghosts[g].DistanceToPlayer(p_player->GetCurrentPosition()) == 0) { // if player and ghost collide return 0 + depth as score
             return 0 + depth; // add depth to get fastest path
         }
-        if (depth == ghost.GetLookAhead()) { // if depth X return the distance score, increase this to make the ghost look forward more
-            return (ghost.GetCurrentPosition().DistanceTo(p_player->GetCurrentPosition(), ghost.GetChaseModifier()) + depth); // add depth to get fastest path
+        if (depth == p_ghosts[g].GetLookAhead()) { // if depth X return the distance score, increase this to make the ghost look forward more
+            return (p_ghosts[g].DistanceToPlayer(p_player->GetCurrentPosition()) + depth); // add depth to get fastest path
         }
         break;
     case Mode::ROAM: // reduce distance to the ghost's roam target
-        if (depth == ghost.GetLookAhead()) {
-            return abs(ghost.GetCurrentPosition().DistanceTo(ghost.GetRoamTarget()));
+        if (depth == p_ghosts[g].GetLookAhead()) {
+            return p_ghosts[g].DistanceToRoamTarget();
         }
         break;
     case Mode::SPAWN: // target is above the exit area
-        int distance_to_target = abs(ghost.GetCurrentPosition().DistanceTo(ghost.GetSpawnTarget()));
-        if (distance_to_target == 0)
-            ghost.SetMode(p_level->level_mode == Mode::RUN ? Mode::CHASE : p_level->level_mode);
-        return distance_to_target;
+        if(p_ghosts[g].DistanceToSpawnTarget() == 0)
+            p_ghosts[g].SetMode(p_level->level_mode == Mode::RUN ? Mode::CHASE : p_level->level_mode);
+        return p_ghosts[g].DistanceToSpawnTarget();
         break;
     }
 
     if (isGhost) {
         // if its the ghost move we want the lowest possible distance to player
-        int score = 1000, bestScore = (ghost.GetMode() == Mode::RUN ? -1000 : 1000);
+        int score = 1000, bestScore = 1000;
         Coord nextMove;
         Direction new_direction = Direction::NONE;
 
         for (int i = 0; i <= 3; i++) // cycle through each next possible move up, down, left, right
         {
             new_direction = static_cast<Direction>(i); // cast index to direction up, down, left, right
-            if (p_level->NotWall(p_player, Coord(move, new_direction), new_direction) && !ghost.IsReverseDirection(new_direction)) // check if the direction is valid i.e not wall or reverse
+            if (p_level->NotWall(p_player, Coord(move, new_direction), new_direction) && !p_ghosts[g].IsReverseDirection(new_direction)) // check if the direction is valid i.e not wall or reverse
             {
                 // set new coords of ghost
                 nextMove.SetTo(move, new_direction);
-                ghost.SetCurrentPosition(nextMove);
+                p_ghosts[g].SetCurrentPosition(nextMove);
 
                 // calculate distance score based on new coords
-                int score = GetBestMove(ghost, nextMove, new_direction, depth + 1, true); // get the minimax score for the move (recurssive)
+                int score = GetBestMove(g, nextMove, new_direction, depth + 1, true); // get the minimax score for the move (recurssive)
 
                 // revert ghost coords back
-                ghost.SetCurrentPosition(move);
+                p_ghosts[g].SetCurrentPosition(move);
 
                 // if the score of is better than the current bestscore set the score to be the new best score (min to get closer, max when running away)
-                if (ghost.GetMode() == Mode::RUN)
-                    bestScore = max(score, bestScore);
-                else
-                    bestScore = min(score, bestScore);
+                bestScore = min(score, bestScore);
             }
         }
         return bestScore;
@@ -552,52 +548,70 @@ int Game::GetBestMove(Ghost& ghost, Coord move, Direction curr_direction, int de
 
 }
 
-void Game::DoGhostMove(Ghost& ghost, Direction direction)
+void Game::DoGhostMove(int g, Direction direction)
 {
-    ghost.SetPreviousPosition(ghost.GetCurrentPosition());
-    ghost.SetPreviousSqaureContent(ghost.GetContentCurrent());
+    p_ghosts[g].SetPreviousPosition(p_ghosts[g].GetCurrentPosition());
+    p_ghosts[g].SetPreviousSqaureContent(p_ghosts[g].GetContentCurrent());
     
-    switch (ghost.GetDirection())
+    switch (direction)
     {
     case Direction::UP: //up
-        ghost.SetPreviousSqaureContent(GetSquareContentNow(Coord(ghost.GetCurrentRow() - 1, ghost.GetCurrentCol())));
-        ghost.MoveTo(ghost.GetCurrentPosition(), Direction::UP);
-        ghost.SetDirection(Direction::UP);
+        p_ghosts[g].SetPreviousSqaureContent(GetSquareContentNow(g, Direction::UP));
+        p_ghosts[g].MoveTo(p_ghosts[g].GetCurrentPosition(), Direction::UP);
+        p_ghosts[g].SetDirection(Direction::UP);
         break;
     case Direction::RIGHT: // right
-        ghost.SetPreviousSqaureContent(GetSquareContentNow(Coord(ghost.GetCurrentRow(), ghost.GetCurrentCol() + 1)));
-        ghost.MoveTo(ghost.GetCurrentPosition(), Direction::RIGHT);
-        ghost.SetDirection(Direction::RIGHT);
+        p_ghosts[g].SetPreviousSqaureContent(GetSquareContentNow(g, Direction::RIGHT));
+        p_ghosts[g].MoveTo(p_ghosts[g].GetCurrentPosition(), Direction::RIGHT);
+        p_ghosts[g].SetDirection(Direction::RIGHT);
         break;
     case Direction::DOWN: // down
-        ghost.SetPreviousSqaureContent(GetSquareContentNow(Coord(ghost.GetCurrentRow() + 1, ghost.GetCurrentCol())));
-        ghost.MoveTo(ghost.GetCurrentPosition(), Direction::DOWN);
-        ghost.SetDirection(Direction::DOWN);
+        p_ghosts[g].SetPreviousSqaureContent(GetSquareContentNow(g, Direction::DOWN));
+        p_ghosts[g].MoveTo(p_ghosts[g].GetCurrentPosition(), Direction::DOWN);
+        p_ghosts[g].SetDirection(Direction::DOWN);
         break;
     case Direction::LEFT: // left
-        ghost.SetPreviousSqaureContent(GetSquareContentNow(Coord(ghost.GetCurrentRow(), ghost.GetCurrentCol() - 1)));
-        ghost.MoveTo(ghost.GetCurrentPosition(), Direction::LEFT);
-        ghost.SetDirection(Direction::LEFT);
+        p_ghosts[g].SetPreviousSqaureContent(GetSquareContentNow(g, Direction::LEFT));
+        p_ghosts[g].MoveTo(p_ghosts[g].GetCurrentPosition(), Direction::LEFT);
+        p_ghosts[g].SetDirection(Direction::LEFT);
         break;
     default:
         break;
     }
     // if the sqaure the ghost moved into is the player
-    ghost.GetPreviousSqaureContent() == Player::character ? ghost.SetContentCurrent(Level::space) : ghost.SetContentCurrent(ghost.GetContentCurrent());
+    p_ghosts[g].GetPreviousSqaureContent() == Player::character ? p_ghosts[g].SetContentCurrent(Level::space) : p_ghosts[g].SetContentCurrent(true);
 
     // if the mosnter is over the player save a blank space to buffer
-    p_player->GetCurrentPosition().IsSame(ghost.GetCurrentPosition()) ? ghost.SetContentCurrent(Level::space) : ghost.SetContentCurrent(ghost.GetContentCurrent());
+    p_ghosts[g].PlayerCollision(p_player->GetCurrentPosition()) ? p_ghosts[g].SetContentCurrent(Level::space) : p_ghosts[g].SetContentCurrent(true);
 
 }
 
-char Game::GetSquareContentNow(Coord square)
+char Game::GetSquareContentNow(int g, Direction direction)
 {
-    switch (p_level->p_map[square.row][square.col])
+    int row = p_ghosts[g].GetCurrentRow();
+    int col = p_ghosts[g].GetCurrentCol();
+    switch (direction)
+    {
+    case Direction::UP:
+        row--;
+        break;
+    case Direction::RIGHT:
+        col++;
+        break;
+    case Direction::DOWN:
+        row++;
+        break;
+    case Direction::LEFT:
+        col--;
+        break;
+    }
+    
+    switch (p_level->p_map[row][col])
     {
     case (char)Level::pellet:
     case (char)Level::powerup:
     case ' ':
-        return(p_level->p_map[square.row][square.col]);
+        return(p_level->p_map[row][col]);
     case Level::red_ghost:
         return p_ghosts[0].GetContentCurrent();
     case Level::yellow_ghost:
@@ -607,17 +621,17 @@ char Game::GetSquareContentNow(Coord square)
     case Level::pink_ghost:
         return p_ghosts[3].GetContentCurrent();
     default:
-        return(p_level->p_map[square.row][square.col]);
+        return(p_level->p_map[row][col]);
     }
 }
 
-Direction Game::RandomGhostMove(Ghost& ghost)
+Direction Game::RandomGhostMove(int g)
 {
     Direction newDirection = Direction::NONE;
 
     // first move when on the run is ALWAYS to reverse direction which is ALWAYS a valid move
-    if (ghost.ReverseMove()) {
-        switch (ghost.GetDirection())
+    if (p_ghosts[g].ReverseMove()) {
+        switch (p_ghosts[g].GetDirection())
         {
         case Direction::UP:
             newDirection = Direction::DOWN;
@@ -632,26 +646,24 @@ Direction Game::RandomGhostMove(Ghost& ghost)
             newDirection = Direction::RIGHT;
             break;
         }
-        ghost.SetReverseMove(false);
+        p_ghosts[g].SetReverseMove(false);
         return newDirection;
     }
 
-    // if this is not the first move chose the next move randomly
-    Coord move(ghost.GetCurrentPosition());
+    Coord move(p_ghosts[g].GetCurrentPosition());
     int unsigned seed = (int)(std::chrono::system_clock::now().time_since_epoch().count());
     srand(seed);
 
     if (p_level->IsTeleport(move)) // if on teleportkeep the same direction
-        ghost.GetDirection() == Direction::LEFT ? newDirection = Direction::LEFT : newDirection = Direction::RIGHT;
+        p_ghosts[g].GetDirection() == Direction::LEFT ? newDirection = Direction::LEFT : newDirection = Direction::RIGHT;
     else // else choose a valid random direction
     {
         do
         {
             int randomNumber = rand() % 4; //generate random number to select from the 4 possible options
             newDirection = static_cast<Direction>(randomNumber);
-        } while (!p_level->NotWall(p_player, Coord(move, newDirection), newDirection) || !ghost.IsReverseDirection(newDirection));
+        } while (!p_level->NotWall(p_player, Coord(move, newDirection), newDirection) || p_ghosts[g].IsReverseDirection(newDirection));
     }
-
     return newDirection;
 }
 

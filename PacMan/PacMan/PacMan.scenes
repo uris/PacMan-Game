@@ -4,7 +4,7 @@ pellet_points:10
 ghost_points:250
 all_ghosts_bonus:2600
 edible_ghost_duration:20
-chase_duration:16
+chase_duration:1000000
 run_duration:15
 roam_duration:6
 roam_count:6

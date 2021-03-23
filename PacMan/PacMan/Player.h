@@ -1,5 +1,6 @@
 #pragma once
 #include "Character.h"
+#include "Ghost.h"
 
 class Player : public Character
 {
@@ -38,4 +39,5 @@ public:
     bool HasNoLives();
     void SetMovedIntoSquareContents(char ascii);
     char GetMovedIntoSquareContents();
+    bool HasCollided(Ghost& ghost);
 };

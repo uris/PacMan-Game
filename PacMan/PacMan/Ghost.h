@@ -25,7 +25,7 @@ private:
     bool is_edible = false;
     bool color_on = false;
     bool skip_turn = false; // use this to slow down moster if edible
-    int look_ahead = 5; // how far ahead the IA looks for player
+    int look_ahead = 1; // how far ahead the IA looks for player
 
 public:
     // constructors
@@ -35,11 +35,18 @@ public:
     // destructors
     ~Ghost();
 
+    // methods
+    int DistanceToPlayer(Coord player_current_position);
+    int DistanceToRoamTarget();
+    int DistanceToSpawnTarget();
+    bool PlayerCollision(Coord player_coord);
+
     //encapsulation
     char GetPreviousSqaureContent();
     void SetPreviousSqaureContent(char content);
     char GetContentCurrent();
     void SetContentCurrent(char content);
+    void SetContentCurrent(bool same);
     Mode GetMode();
     void SetMode(Mode mode);
     bool IsEdible();

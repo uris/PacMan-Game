@@ -56,7 +56,7 @@ class Game
         // game delay defaults
         static constexpr int gobble_delay = 750; // wait in milliseconds
         static constexpr int player_beat_delay = 1000; // wait in milliseconds
-        static constexpr int refresh_delay = 30; //milliseconds
+        static constexpr int refresh_delay = 300; //milliseconds
 
         // game constructors
         Game();
@@ -72,10 +72,10 @@ class Game
         void SetupGame();
         void MovePlayer();
         int MoveGhosts();
-        int GetBestMove(Ghost& ghost, Coord move, Direction curr_direction, int depth, bool isGhost);
-        void DoGhostMove(Ghost& ghost, Direction direction);
-        char GetSquareContentNow(Coord square);
-        Direction RandomGhostMove(Ghost& ghost);
+        int GetBestMove(int g, Coord move, Direction curr_direction, int depth, bool isGhost);
+        void DoGhostMove(int g, Direction direction);
+        char GetSquareContentNow(int g, Direction direction);
+        Direction RandomGhostMove(int g);
         void SetPlayerState();
         void PlayerMonsterCollision();
         void SetGhostMode();

@@ -112,3 +112,8 @@ char Player::GetMovedIntoSquareContents()
 {
 	return player_move_content;
 }
+
+bool Player::HasCollided(Ghost& ghost)
+{
+	return current_position.IsSame(ghost.GetCurrentPosition());
+}

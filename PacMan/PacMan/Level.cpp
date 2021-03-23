@@ -6,6 +6,7 @@
 #include "Enums.h"
 #include "Utility.h"
 #include "Draw.h"
+#include "Level.h"
 
 using namespace std;
 using namespace std::chrono;

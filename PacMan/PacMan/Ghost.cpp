@@ -1,6 +1,7 @@
 #include "Ghost.h"
 #include "Coord.h"
 #include "Enums.h"
+#include <iomanip> // abs function
 
 using namespace std;
 
@@ -68,6 +69,32 @@ Ghost::Ghost(Ghosts ghost)
 // destructors
 Ghost::~Ghost() {};
 
+// methods
+int Ghost::DistanceToPlayer(Coord player_current_position)
+{
+    // overload to return the distance to a coord with a specified modifier
+    return (abs(current_position.col - (player_current_position.col + chase_modifier.col)) + abs(current_position.row - (player_current_position.row + chase_modifier.row)));
+}
+
+int Ghost::DistanceToRoamTarget()
+{
+    // overload to return the distance to a coord with a specified modifier
+    return ( abs(current_position.col - roam_target.col) + abs(current_position.row - roam_target.row) );
+}
+
+int Ghost::DistanceToSpawnTarget()
+{
+    // overload to return the distance to a coord with a specified modifier
+    return (abs(current_position.col - spawn_target.col) + abs(current_position.row - spawn_target.row));
+}
+
+bool Ghost::PlayerCollision(Coord player_coord)
+{
+    return (current_position.row == player_coord.row && current_position.col == player_coord.col) ? true : false;
+        
+}
+
+
 // encapsulation
 
 char Ghost::GetPreviousSqaureContent()
@@ -88,6 +115,11 @@ char Ghost::GetContentCurrent()
 void Ghost::SetContentCurrent(char content)
 {
     square_content_now = content;
+}
+
+void Ghost::SetContentCurrent(bool same)
+{
+    square_content_now = square_content_now;
 }
 
 Mode Ghost::GetMode()
@@ -197,7 +229,6 @@ void Ghost::SpawnGhost(bool player_died)
     run_first_move = true;
     is_edible = false;
     color_on = false;
-    wait = 15;
     skip_turn = false;
 }
 

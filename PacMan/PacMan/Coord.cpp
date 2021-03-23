@@ -1,5 +1,4 @@
 #include "Coord.h"
-#include <algorithm> // string transforms
 
 // constructors
 Coord::Coord()
@@ -37,12 +36,6 @@ Coord::Coord(Coord coord, Direction direction)
 	}
 }
 
-// destructors
-Coord::~Coord()
-{
-
-}
-
 // methods
 bool Coord::IsSame(Coord coord)
 {
@@ -76,16 +69,4 @@ void Coord::SetTo(Coord coord, Direction direction)
 	case Direction::NONE:
 		break;
 	}
-}
-
-int Coord::DistanceTo(Coord coord)
-{
-	// return distance from one coord to another
-	return (abs(col - coord.col) + abs(row - coord.row));
-}
-
-int Coord::DistanceTo(Coord coord, Coord modifier)
-{
-	// overload to return the distance to a coord with a specified modifier
-	return (abs(col - (coord.col + modifier.col)) + abs(row - (coord.row + modifier.row)));
 }

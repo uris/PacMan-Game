@@ -7,9 +7,6 @@ using namespace std;
 //constructors
 Utility::Utility() {};
 
-//destructors
-Utility::~Utility() {};
-
 //methods
 string Utility::TransformString(string text, int operation)
 {
@@ -25,24 +22,7 @@ string Utility::TransformString(string text, int operation)
     }
     return "";
 }
-string Utility::GhostMode(Ghost& ghost)
-{
-    switch (ghost.GetMode())
-    {
-    case Mode::CHASE:
-        return "CHASE";
-    case Mode::ROAM:
-        return "ROAM";
-    case Mode::RUN:
-        return "RUN";
-    case Mode::SPAWN:
-        return "SPAWN";
-    default:
-        return "NONE";
-    }
-    return "NONE";
-}
-void Utility::ReplaceString(string& text, const string from, const char to)
+void Utility::ReplaceString(string& text, string from, char to)
 {
     size_t start_pos = 0;
     string to_string = { to };
@@ -51,13 +31,14 @@ void Utility::ReplaceString(string& text, const string from, const char to)
         start_pos += to_string.length(); // ...
     }
 }
-string Utility::Spacer(string format, const int block_width)
+string Utility::Spacer(string format, int block_width)
 {
+    // used to center the "format" string -> cout the return on either side of the string to print
     int spacer = ((block_width - (int)format.size()) / 2);
-    format = "";
+    string spaces = "";
     for (int i = 0; i < spacer; i++)
     {
-        format = format + " ";
+        spaces = spaces + " ";
     }
-    return format;
+    return spaces;
 }

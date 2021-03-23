@@ -1,30 +1,23 @@
-﻿#include "Character.h"
-#include "Player.h"
+﻿#include "Player.h"
 #include "Ghost.h"
 #include "Game.h"
 #include "Level.h"
 
-using namespace std;
-using namespace std::chrono;
-
 
 int main()
 {
-    // create game objects
+    // create objects
     Game game;
     Level level;
     Player player;
-    Ghost redGhost(Ghosts::RED);
-    Ghost yellowGhost(Ghosts::YELLOW);
-    Ghost blueGhost(Ghosts::BLUE);
-    Ghost pinkGhost(Ghosts::PINK);
+    Ghost red(Ghosts::RED), yellow(Ghosts::YELLOW), blue(Ghosts::BLUE), pink(Ghosts::PINK);
 
-    // add objects to game
+    // add level, player and the four ghost objects to the game object
     game.Add(level);
     game.Add(player);
-    game.Add(redGhost, yellowGhost, blueGhost, pinkGhost);
+    game.Add(red, yellow, blue, pink);
 
-    // start and run the game
+    // run the game
     game.RunGame();
     
     // clean exit
