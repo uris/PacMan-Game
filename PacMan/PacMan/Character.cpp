@@ -11,16 +11,12 @@ bool Character::IsReverseDirection(Direction new_direction)
 	{
 	case Direction::UP:
 		return (current_direction == Direction::DOWN ? true : false);
-		break;
 	case Direction::RIGHT:
 		return (current_direction == Direction::LEFT ? true : false);
-		break;
 	case Direction::DOWN:
 		return (current_direction == Direction::UP ? true : false);
-		break;
 	case Direction::LEFT:
 		return (current_direction == Direction::RIGHT ? true : false);
-		break;
 	}
 	return false;
 }
@@ -66,10 +62,8 @@ bool Character::NotWall(const char map_char_content, const Direction direction)
 	case Globals::pink_ghost:
 	case Globals::player:
 		return true;
-		break;
 	case Globals::one_way: // one way move to exit ghost spawn area
 		return (direction != Direction::DOWN ? true : false);
-		break;
 	}
 	return false;
 }

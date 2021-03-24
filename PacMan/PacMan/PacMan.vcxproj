@@ -147,7 +147,7 @@
     <ClCompile Include="Draw.cpp" />
     <ClCompile Include="Ghost.cpp" />
     <ClCompile Include="Level.cpp" />
-    <ClCompile Include="PacMan_v2.cpp" />
+    <ClCompile Include="PacMan.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Utility.cpp" />
