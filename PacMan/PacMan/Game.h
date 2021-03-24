@@ -15,13 +15,13 @@ class Game
     Utility utility;
     Draw draw;
     
-    // level pointer
+    // level
     Level* p_level = nullptr;
     
-    // player pointer
+    // player
     Player* p_player = nullptr;
 
-    // array of ghost pointers
+    // ghosts
     Ghost** p_ghosts = nullptr;
     
     // Game States
@@ -30,7 +30,6 @@ class Game
     bool player_beat_pause = false;
 
     // Game level
-    int total_scenes = 2;
     int current_scene = 1;
     char map_contents[4]{};
 

@@ -215,6 +215,8 @@ void Game::MovePlayer()
 
 int Game::MoveGhosts()
 {
+    //p_ghosts[0]->GetGhostMove(game_over, p_player, p_level->p_map, p_level->level_mode, p_ghosts);
+    
     Direction best_move = Direction::NONE; // will store the next move
     char map_content = ' '; // will store the content of the map at the move position
 
@@ -312,14 +314,14 @@ char Game::GhostContentNow(char map_content)
 
 void Game::PrintStatusBar()
 {
-    Draw draw;
-    Utility utility;
+    //Draw draw;
+    //Utility utility;
     // get number of lives
     string format = utility.Spacer("LIVES:CCC    SCORE:00000000", p_level->cols);
     string lives;
-    for (int i = 0; i < p_player->Lives(); i++)
+    for (int i = 0; i < 6; i++)
     {
-        lives = lives + Globals::player;
+        i < p_player->Lives() ? lives = lives + Globals::player : lives = lives +  " ";
     }
     p_player->SetScore(((p_level->eaten_pellets + 1) * p_level->points_pellet) + (p_level->eaten_ghosts * p_level->points_ghost) + (p_level->eaten_ghosts >= 4 ? p_level->all_ghost_bonus : 0));
     cout << endl;

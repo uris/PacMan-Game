@@ -1,5 +1,7 @@
 #pragma once
 #include "Character.h"
+#include "Player.h"
+#include "Coord.h"
 #include "EnumsAndStatics.h"
 
 class Ghost: public Character
@@ -38,6 +40,12 @@ public:
     bool PlayerCollision(Coord player_coord);
     void DecreaseWait();
     void MoveGhost(const Coord player_coord, const Direction direction, const char map_content);
+    int GetGhostMove(const bool game_over, Player* p_player, char** p_map, Mode level_mode, Ghost** p_ghosts);
+    int GetBestMove(char** p_map, Player* p_player, Coord current_position, Direction current_direction, Mode level_mode, int depth);
+    Direction RandomGhostMove(char** p_map);
+    char GhostContentNow(Ghost** p_ghosts, Player* p_player, char map_content);
+    char GetMapContent(char** p_map, Coord map_coord, Direction direction);
+    bool IsTeleport(char** p_map);
 
     // Getters
     Coord GetChaseModifier();

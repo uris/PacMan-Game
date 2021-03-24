@@ -69,6 +69,7 @@ struct Globals
     static constexpr char blue_ghost = 'B'; // pellet ascii
     static constexpr char pink_ghost = 'P'; // pellet ascii
     static constexpr char player = 'C'; // pellet ascii
+    static constexpr int fruit = 245; // pellet ascii
 
     // Movement and input keys
     static constexpr char kLEFT = 97; // 'a';
@@ -86,5 +87,5 @@ struct Globals
     // Game delay / speed defaults
     static constexpr int gobble_delay = 750; // wait in milliseconds
     static constexpr int player_beat_delay = 1000; // wait in milliseconds
-    static constexpr int refresh_delay = 65; //milliseconds
+    static constexpr int refresh_delay = 30; //milliseconds
 };
