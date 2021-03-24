@@ -12,7 +12,7 @@ int main()
     Player player;
     Ghost red(Ghosts::RED), yellow(Ghosts::YELLOW), blue(Ghosts::BLUE), pink(Ghosts::PINK);
 
-    // add level, player and the four ghost objects to the game object
+    // add level, player and the four ghost objects to the game
     game.Add(level);
     game.Add(player);
     game.Add(red, yellow, blue, pink);
