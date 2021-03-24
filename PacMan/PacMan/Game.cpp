@@ -265,6 +265,8 @@ int Game::MoveGhosts()
             }
 
             map_content = GetMapContent(p_ghosts[g].GetCurrentPosition(), best_move); // get map content at the move position
+            map_content = GhostContentNow(map_content); // if the content is a ghosts set the contnet value of the gohst to the other ghosts content
+            
             p_ghosts[g].MoveGhost(p_player->GetCurrentPosition(), best_move, map_content); // do the move
 
             continue; // next ghost
@@ -272,6 +274,31 @@ int Game::MoveGhosts()
     }
 
     return 0; // clean exit
+}
+
+char Game::GhostContentNow(char map_content)
+{
+    switch (map_content)
+    {
+    case Globals::red_ghost:
+        return p_ghosts[0].GetContentCurrent();
+        break;
+    case Globals::yellow_ghost:
+        return p_ghosts[1].GetContentCurrent();
+        break;
+    case Globals::blue_ghost:
+        return p_ghosts[2].GetContentCurrent();
+        break;
+    case Globals::pink_ghost:
+        return p_ghosts[3].GetContentCurrent();
+        break;
+    case Globals::player:
+        return p_player->GetMovedIntoSquareContents();
+        break;
+    default:
+        return map_content;
+        break;
+    }
 }
 
 void Game::PrintStatusBar()
@@ -729,12 +756,12 @@ int Game::GetBestMove(int g, Coord current_position, Direction current_direction
         if (p_ghosts[g].DistanceToPlayer(p_player->GetCurrentPosition()) == 0) { // if player and ghost collide return 0 + depth as score
             return 0 + depth; // add depth to get fastest path
         }
-        if (depth == p_ghosts[g].GetLookAhead()) { // if depth X return the distance score, increase this to make the ghost look forward more
+        if (depth == Globals::look_ahead) { // if depth X return the distance score, increase this to make the ghost look forward more
             return (p_ghosts[g].DistanceToPlayer(p_player->GetCurrentPosition()) + depth); // add depth to get fastest path
         }
         break;
     case Mode::ROAM: // reduce distance to the ghost's roam target
-        if (depth == p_ghosts[g].GetLookAhead()) {
+        if (depth == Globals::look_ahead) {
             return p_ghosts[g].DistanceToRoamTarget();
         }
         break;

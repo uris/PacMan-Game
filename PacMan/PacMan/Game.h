@@ -47,9 +47,6 @@ class Game
         ~Game();
 
         // game flow
-       
-
-        // game flow
         void RunGame();
         void GameCredits();
         void SetupGame();
@@ -64,6 +61,7 @@ class Game
         void DrawLevel();
         
         // game orchestration methods
+        char GhostContentNow(char ghost_char);
         Direction RandomGhostMove(int g);
         void PlayerMonsterCollision();
         void CheckLevelComplete();

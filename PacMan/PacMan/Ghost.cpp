@@ -121,7 +121,7 @@ void Ghost::MoveGhost(const Coord player_coord, const Direction direction, const
     }
 
     // if the sqaure the ghost moved into is the player
-    square_content_prior == Globals::player ? square_content_now = ' ' : square_content_now;
+    square_content_prior == Globals::player ? square_content_prior = ' ' : square_content_prior;
 
     // if the mosnter is over the player save a blank space to buffer
     PlayerCollision(player_coord) ? square_content_now = ' ' : square_content_now;
@@ -217,16 +217,6 @@ void Ghost::SetSkipTurn(bool skip_turn)
 bool Ghost::SkipTurn()
 {
     return skip_turn;
-}
-
-void Ghost::SetLookAhead(int moves)
-{
-    look_ahead = moves;
-}
-
-int Ghost::GetLookAhead()
-{
-    return look_ahead;
 }
 
 void Ghost::SpawnGhost(bool player_died)

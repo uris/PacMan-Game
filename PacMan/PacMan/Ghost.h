@@ -25,7 +25,6 @@ private:
     bool is_edible = false;
     bool color_on = false;
     bool skip_turn = false; // use this to slow down moster if edible
-    int look_ahead = 1; // how far ahead the IA looks for player
 
 public:
     // constructors
@@ -52,7 +51,6 @@ public:
     int GetColor();
     int GetWait();
     bool SkipTurn();
-    int GetLookAhead();
     Coord GetSpawnTarget();
     char GhostChar();
     bool ReverseMove();
@@ -67,7 +65,6 @@ public:
     void SetColor(int color);
     void SetWait(int wait);
     void SetSkipTurn(bool skip_turn);
-    void SetLookAhead(int moves);
     void SpawnGhost(bool player_died);
     void SetSpawnTarget(Coord spawn_target);
     void SetSpawnTarget(int row, int col);

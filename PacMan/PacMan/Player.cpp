@@ -19,8 +19,8 @@ void Player::ReSpawn()
 	//previous_position = current_position;
 	current_position = spawn_position;
 	bool is_super = false;
-	Direction current_direction = Direction::LEFT;
-	Direction previous_direction = Direction::LEFT;
+	current_direction = Direction::LEFT;
+	previous_direction = Direction::LEFT;
 }
 
 void Player::EatGhost(int ghost_index)
