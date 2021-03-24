@@ -13,7 +13,7 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Backup">
+    <Filter Include="Rulesets">
       <UniqueIdentifier>{3019ed12-2796-43f7-be1c-659cc81f6a05}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -47,9 +47,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\..\Desktop\PacMan.bak">
-      <Filter>Backup</Filter>
-    </None>
     <None Include="PacMan.scenes">
       <Filter>Source Files</Filter>
     </None>
@@ -96,7 +93,7 @@
     <ClInclude Include="Coord.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Enums.h">
+    <ClInclude Include="EnumsAndStatics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Draw.h">

@@ -1,6 +1,5 @@
 #pragma once
 #include "Character.h"
-#include "Ghost.h"
 
 class Player : public Character
 {
@@ -13,31 +12,30 @@ private:
     char player_move_content = '.';
 
 public:
-    // variables
-    static constexpr char character = 67; // 'C'
-
     //constructors
     Player();
 
-    // destructors
-    ~Player();
-
     // methods
-    void SetLives();
-    void SetLives(int number);
-    int Lives();
+    void MovePlayer(char map_contents[]);
     void AddLives(int number);
     void TakeLives(int number);
-    void PowerUp(bool powerup);
-    void SetScore(int score);
-    int GetScore();
     void ReSpawn();
     void EatGhost(int ghost_index);
     void EatGhost(char character);
     void ClearEatenGohsts();
-    bool AllGhostsEaten();
     bool HasNoLives();
-    void SetMovedIntoSquareContents(char ascii);
+    bool AllGhostsEaten();
+
+    // getters
     char GetMovedIntoSquareContents();
-    bool HasCollided(Ghost& ghost);
+    int Lives();
+    void PowerUp(bool powerup);
+    int GetScore();
+
+    // setters
+    void SetLives();
+    void SetLives(int number);
+    void SetScore(int score);
+    void SetMovedIntoSquareContents(char ascii);
+
 };

@@ -6,12 +6,9 @@ public:
     //constructors
     Draw();
 
-    // destructors
-    ~Draw();
-
 	//methods
-    void SetColor(int color);
-    void ShowColors(int colors);
-    void CursorTopLeft(int rows);
-    void ShowConsoleCursor(bool showFlag);
+    void SetColor(const int color);
+    void ShowColors(const int colors);
+    void CursorTopLeft(const int rows);
+    void ShowConsoleCursor(const bool showFlag);
 };

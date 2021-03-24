@@ -81,6 +81,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -152,7 +153,6 @@
     <ClCompile Include="Utility.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\..\Desktop\PacMan.bak" />
     <None Include="PacMan.scenes" />
   </ItemGroup>
   <ItemGroup>
@@ -173,7 +173,7 @@
     <ClInclude Include="Character.h" />
     <ClInclude Include="Coord.h" />
     <ClInclude Include="Draw.h" />
-    <ClInclude Include="Enums.h" />
+    <ClInclude Include="EnumsAndStatics.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Ghost.h" />
     <ClInclude Include="Level.h" />

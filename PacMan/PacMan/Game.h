@@ -1,5 +1,5 @@
 #pragma once
-#include "Enums.h"
+#include "EnumsAndStatics.h"
 #include "Player.h"
 #include "Ghost.h"
 #include "Level.h"
@@ -11,7 +11,7 @@ using namespace std::chrono;
 
 class Game
 {
-    // helper
+    // helper objects for utility / qol
     Utility utility;
     Draw draw;
     
@@ -33,31 +33,13 @@ class Game
     // Game level
     int total_scenes = 2;
     int current_scene = 1;
+    char map_contents[4]{};
 
     //SFX
     Play sfx = Play::NONE;
     high_resolution_clock::time_point sfx_start = std::chrono::high_resolution_clock::now();
 
     public:
-
-        // game player movement and input keys
-        static constexpr char kLEFT = 97; // 'a';
-        static constexpr char kUP = 119; // 'w';
-        static constexpr char kDOWN = 115; // 's';
-        static constexpr char kRIGHT = 100; // 'd';
-        static constexpr char kARROW_UP = 72;
-        static constexpr char kARROW_DOWN = 80;
-        static constexpr char kARROW_LEFT = 75;
-        static constexpr char kARROW_RIGHT = 77;
-        static constexpr char kESCAPE = 27;
-        static constexpr char kYES = 121; // 'y'
-        static constexpr char kNO = 110; // 'n'
-
-        // game delay defaults
-        static constexpr int gobble_delay = 750; // wait in milliseconds
-        static constexpr int player_beat_delay = 1000; // wait in milliseconds
-        static constexpr int refresh_delay = 300; //milliseconds
-
         // game constructors
         Game();
 
@@ -65,33 +47,50 @@ class Game
         ~Game();
 
         // game flow
-        void RunGame();
+       
 
-        // game functions
+        // game flow
+        void RunGame();
         void GameCredits();
         void SetupGame();
         void MovePlayer();
         int MoveGhosts();
-        int GetBestMove(int g, Coord move, Direction curr_direction, int depth, bool isGhost);
-        void DoGhostMove(int g, Direction direction);
-        char GetSquareContentNow(int g, Direction direction);
-        Direction RandomGhostMove(int g);
-        void SetPlayerState();
-        void PlayerMonsterCollision();
-        void SetGhostMode();
-        void RefreshDelay();
-        void PlayerMonsterCollisionDelay();
-        void CheckLevelComplete();
+        int GetBestMove(int g, Coord new_position, Direction current_direction, int depth);
+        char GetMapContent(Coord map_coord, Direction direction);
+        void SetMapContents(Coord map_coord);
+        bool PlayerGhostCollision(const int g);
         bool NextLevelRestartGame();
-        void StatusBar();
+        void PrintStatusBar();
+        void DrawLevel();
+        
+        // game orchestration methods
+        Direction RandomGhostMove(int g);
+        void PlayerMonsterCollision();
+        void CheckLevelComplete();
         void NextScene();
         void GetKeyboardInput();
-        void Add(Player& player);
-        void Add(Ghost& red, Ghost& yellow, Ghost& blue, Ghost& pink);
-        void Add(Level& level);
         void SpawnThisGhost(Ghosts name, bool player_died);
         void SpawnAllGhosts();
         int SFX(Play playSFX);
-        void DrawLevel();
+        void Add(Player& player);
+        void Add(Ghost& red, Ghost& yellow, Ghost& blue, Ghost& pink);
+        void Add(Level& level);
+        void SetPlayerState();
+        void SetGhostMode();
+        void SetCollisionDelay();
+        void SetRefreshDelay();
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
 };

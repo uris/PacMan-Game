@@ -3,7 +3,7 @@
 #include <iostream> // print to console
 #include <stdlib.h> // exit
 #include <conio.h> // used to get input without requiring return
-#include "Enums.h"
+#include "EnumsAndStatics.h"
 #include "Utility.h"
 #include "Draw.h"
 #include "Level.h"
@@ -17,10 +17,15 @@ Level::Level()
 	// do nothing for now
 }
 
-// destructors
+//destructors
 Level::~Level()
 {
-	// do nothting for now
+    // deallocate the dynamic level array
+    for (int i = 0; i < rows; i++) {
+        delete[] p_map[i];
+    }
+    delete[] p_map;
+    p_map = nullptr;
 }
 
 // Public Methods
@@ -59,8 +64,8 @@ void Level::CreateLevelScene(Player* p_player, Ghost* p_ghosts, int& current_sce
     }
 
     // parse through string to replace pellt and powerup markers to their ascii code
-    utility.ReplaceString(map, ".", char(Level::pellet));
-    utility.ReplaceString(map, "o", char(Level::powerup));
+    utility.ReplaceString(map, ".", char(Globals::pellet));
+    utility.ReplaceString(map, "o", char(Globals::powerup));
 
     // create dynamic two dimension pointer array to hold map
     Coord size = MapSize(map); // get width and height of the map
@@ -86,21 +91,21 @@ void Level::CreateLevelScene(Player* p_player, Ghost* p_ghosts, int& current_sce
         p_mapArray[row][col] = map[i];
 
         // count pellets that determine end game condition
-        if (map[i] == (char)Level::pellet || map[i] == (char)Level::powerup)
+        if (map[i] == (char)Globals::pellet || map[i] == (char)Globals::powerup)
             total_pellets++;
 
         // Set player start to position 'S'
-        if (map[i] == Level::player_start)
+        if (map[i] == Globals::player_start)
         {
             p_player->SetPositions(row, col);
         }
 
         // Set ghost spawn target location
-        if (map[i] == Level::ghost_spawn_target)
+        if (map[i] == Globals::ghost_spawn_target)
         {
             ghost_spawn.row = row;
             ghost_spawn.col = col;
-            p_mapArray[row][col] = (char)Level::pellet;
+            p_mapArray[row][col] = (char)Globals::pellet;
             total_pellets++;
 
             // set ghosts spawn target
@@ -114,16 +119,16 @@ void Level::CreateLevelScene(Player* p_player, Ghost* p_ghosts, int& current_sce
         int index = -1;
         switch (map[i])
         {
-        case Level::red_ghost:
+        case Globals::red_ghost:
             index = 0;
             break;
-        case Level::yellow_ghost:
+        case Globals::yellow_ghost:
             index = 1;
             break;
-        case Level::blue_ghost:
+        case Globals::blue_ghost:
             index = 2;
             break;
-        case Level::pink_ghost:
+        case Globals::pink_ghost:
             index = 3;
             break;
         }
@@ -135,7 +140,7 @@ void Level::CreateLevelScene(Player* p_player, Ghost* p_ghosts, int& current_sce
 
 
         // Set teleport coords for T1 and T2
-        if (map[i] == Level::teleport) {
+        if (map[i] == Globals::teleport) {
             if (row == 0 || col == 0) {
                 tp_1 = { row, col };
             }
@@ -309,13 +314,13 @@ void Level::DrawLevel(Player* p_player, Ghost* p_ghosts)
         {
             switch (p_map[r][c])
             {
-            case Level::red_ghost:
+            case Globals::red_ghost:
                 p_map[r][c] = p_ghosts[0].GetPreviousSqaureContent();
-            case Level::yellow_ghost:
+            case Globals::yellow_ghost:
                 p_map[r][c] = p_ghosts[1].GetPreviousSqaureContent();
-            case Level::blue_ghost:
+            case Globals::blue_ghost:
                 p_map[r][c] = p_ghosts[2].GetPreviousSqaureContent();
-            case Level::pink_ghost:
+            case Globals::pink_ghost:
                 p_map[r][c] = p_ghosts[3].GetPreviousSqaureContent();
             }
         }
@@ -326,15 +331,15 @@ void Level::DrawLevel(Player* p_player, Ghost* p_ghosts)
 
     // remove player from map at last position if they are different
     if (!p_player->GetPreviousPosition().IsSame(p_player->GetCurrentPosition()))
-        p_map[p_player->GetPreviousRow()][p_player->GetPreviousCol()] = Level::space;
+        p_map[p_player->GetPreviousRow()][p_player->GetPreviousCol()] = Globals::space;
 
     // player in tunnel
     if (p_player->GetCurrentPosition().IsSame(tp_1)) {
-        p_map[p_player->GetCurrentRow()][p_player->GetCurrentCol()] = Level::teleport;
+        p_map[p_player->GetCurrentRow()][p_player->GetCurrentCol()] = Globals::teleport;
         p_player->SetCurrentPosition(tp_2);
     }
     else if (p_player->GetCurrentPosition().IsSame(tp_2)) {
-        p_map[p_player->GetCurrentRow()][p_player->GetCurrentCol()] = Level::teleport;
+        p_map[p_player->GetCurrentRow()][p_player->GetCurrentCol()] = Globals::teleport;
         p_player->SetCurrentPosition(tp_1);
     }
 
@@ -342,17 +347,17 @@ void Level::DrawLevel(Player* p_player, Ghost* p_ghosts)
     {
         // remove ghosts from map at last position if they are different
         if (p_ghosts[g].GetPreviousPosition().IsSame(p_ghosts[g].GetCurrentPosition()))
-            p_map[p_ghosts[g].GetPreviousRow()][p_ghosts[g].GetPreviousCol()] = Level::space;
+            p_map[p_ghosts[g].GetPreviousRow()][p_ghosts[g].GetPreviousCol()] = Globals::space;
 
         // ghost in tunnel
         if (!p_ghosts[g].SkipTurn())
         {
             if (p_ghosts[g].GetCurrentPosition().IsSame(tp_1)) {
-                p_map[p_ghosts[g].GetCurrentRow()][p_ghosts[g].GetCurrentCol()] = Level::teleport;
+                p_map[p_ghosts[g].GetCurrentRow()][p_ghosts[g].GetCurrentCol()] = Globals::teleport;
                 p_ghosts[g].SetCurrentPosition(tp_2);
             }
             else if (p_ghosts[g].GetCurrentPosition().IsSame(tp_2)) {
-                p_map[p_ghosts[g].GetCurrentRow()][p_ghosts[g].GetCurrentCol()] = Level::teleport;
+                p_map[p_ghosts[g].GetCurrentRow()][p_ghosts[g].GetCurrentCol()] = Globals::teleport;
                 p_ghosts[g].SetCurrentPosition(tp_1);
             }
         }
@@ -361,7 +366,7 @@ void Level::DrawLevel(Player* p_player, Ghost* p_ghosts)
 
     // Level Title
     string format = utility.Spacer(" PACMAN: " + utility.TransformString(title, 0), cols);
-    draw.SetColor(Level::cWHITE);
+    draw.SetColor(Globals::cWHITE);
     cout << endl;
     cout << format;
     cout << "PACMAN: " << utility.TransformString(title, 0);
@@ -375,7 +380,7 @@ void Level::DrawLevel(Player* p_player, Ghost* p_ghosts)
         {
             // position player
             if (p_player->GetCurrentPosition().IsSame(Coord(r, c)))
-                p_map[r][c] = Player::character;
+                p_map[r][c] = Globals::player;
 
             for (int g = 0; g < 4; g++) // loop through ghots
             {
@@ -395,61 +400,61 @@ void Level::DrawLevel(Player* p_player, Ghost* p_ghosts)
             // set color of map content at this position
             switch (p_map[r][c])
             {
-            case Level::invisible_wall: // % = invisible wall
-            case Level::teleport: // T = portal
-            case Level::space: // ' ' = empty space
-            case Level::one_way: // $ = one way door for ghost spawn area
-                draw.SetColor(Level::cINVISIBLE); // black on black = not visible
+            case Globals::invisible_wall: // % = invisible wall
+            case Globals::teleport: // T = portal
+            case Globals::space: // ' ' = empty space
+            case Globals::one_way: // $ = one way door for ghost spawn area
+                draw.SetColor(Globals::cINVISIBLE); // black on black = not visible
                 break;
-            case (char)Level::pellet: // . = pellet
+            case (char)Globals::pellet: // . = pellet
                 current_pellets++;
-                draw.SetColor(Level::cWHITE); // gray for bullets
+                draw.SetColor(Globals::cWHITE); // gray for bullets
                 break;
-            case (char)Level::powerup: // o = power up
+            case (char)Globals::powerup: // o = power up
                 current_pellets++;
-                draw.SetColor(Level::cWHITE); // white for power ups
+                draw.SetColor(Globals::cWHITE); // white for power ups
                 break;
-            case Level::pink_ghost: // blue ghost
+            case Globals::pink_ghost: // blue ghost
                 if (p_ghosts[3].IsEdible()) { // flashing effect - signals edible sate of ghost
-                    p_ghosts[3].FlashBlue() ? draw.SetColor(Level::cGHOST_ON) : draw.SetColor(Level::cGHOST_OFF);
+                    p_ghosts[3].FlashBlue() ? draw.SetColor(Globals::cGHOST_ON) : draw.SetColor(Globals::cGHOST_OFF);
                     p_ghosts[3].SetFlashBlue(!p_ghosts[0].FlashBlue());
                 }
                 else { // solid color
                     draw.SetColor(p_ghosts[3].GetColor());
                 }
                 break;
-            case Level::yellow_ghost: // yellow ghost
+            case Globals::yellow_ghost: // yellow ghost
                 if (p_ghosts[1].IsEdible()) { // flashing effect - signals edible sate of ghost
-                    p_ghosts[1].FlashBlue() ? draw.SetColor(Level::cGHOST_ON) : draw.SetColor(Level::cGHOST_OFF);
+                    p_ghosts[1].FlashBlue() ? draw.SetColor(Globals::cGHOST_ON) : draw.SetColor(Globals::cGHOST_OFF);
                     p_ghosts[1].SetFlashBlue(!p_ghosts[0].FlashBlue());
                 }
                 else { // solid color
                     draw.SetColor(p_ghosts[1].GetColor());
                 }
                 break;
-            case Level::blue_ghost: // green ghost
+            case Globals::blue_ghost: // green ghost
                 if (p_ghosts[2].IsEdible()) { // flashing effect - signals edible sate of ghost
-                    p_ghosts[2].FlashBlue() ? draw.SetColor(Level::cGHOST_ON) : draw.SetColor(Level::cGHOST_OFF);
+                    p_ghosts[2].FlashBlue() ? draw.SetColor(Globals::cGHOST_ON) : draw.SetColor(Globals::cGHOST_OFF);
                     p_ghosts[2].SetFlashBlue(!p_ghosts[0].FlashBlue());
                 }
                 else { // solid color
                     draw.SetColor(p_ghosts[2].GetColor());
                 }
                 break;
-            case Level::red_ghost: // red ghost
+            case Globals::red_ghost: // red ghost
                 if (p_ghosts[0].IsEdible()) { // flashing effect - signals edible sate of ghost
-                    p_ghosts[0].FlashBlue() ? draw.SetColor(Level::cGHOST_ON) : draw.SetColor(Level::cGHOST_OFF);
+                    p_ghosts[0].FlashBlue() ? draw.SetColor(Globals::cGHOST_ON) : draw.SetColor(Globals::cGHOST_OFF);
                     p_ghosts[0].SetFlashBlue(!p_ghosts[0].FlashBlue());
                 }
                 else { // solid color
                     draw.SetColor(p_ghosts[0].GetColor());
                 }
                 break;
-            case Player::character: // player
-                draw.SetColor(Level::cPLAYER);
+            case Globals::player: // player
+                draw.SetColor(Globals::cPLAYER);
                 break;
             default:
-                draw.SetColor(Level::cWALLS); // gray bg on gray text for all other chars making them walls essentially
+                draw.SetColor(Globals::cWALLS); // gray bg on gray text for all other chars making them walls essentially
                 break;
             }
 
@@ -457,7 +462,7 @@ void Level::DrawLevel(Player* p_player, Ghost* p_ghosts)
             cout << p_map[r][c];
 
             // set color back to default
-            draw.SetColor(Level::cWHITE);
+            draw.SetColor(Globals::cWHITE);
         }
         // end of row ad line feed
         cout << endl;
@@ -473,18 +478,18 @@ bool Level::NotWall(const Player* player, const Coord& move, const Direction& di
 {
     switch (p_map[move.row][move.col])
     {
-    case Level::space:
-    case Level::teleport:
-    case (char)Level::pellet:
-    case (char)Level::powerup:
-    case Level::red_ghost:
-    case Level::yellow_ghost:
-    case Level::blue_ghost:
-    case Level::pink_ghost:
-    case Player::character:
+    case Globals::space:
+    case Globals::teleport:
+    case (char)Globals::pellet:
+    case (char)Globals::powerup:
+    case Globals::red_ghost:
+    case Globals::yellow_ghost:
+    case Globals::blue_ghost:
+    case Globals::pink_ghost:
+    case Globals::player:
         return true;
         break;
-    case Level::one_way: // one way move to exit ghost spawn area
+    case Globals::one_way: // one way move to exit ghost spawn area
         return (direction != Direction::DOWN ? true : false);
         break;
     }

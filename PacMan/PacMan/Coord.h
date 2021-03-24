@@ -1,5 +1,5 @@
 #pragma once
-#include "Enums.h"
+#include "EnumsAndStatics.h"
 
 class Coord
 {
@@ -13,7 +13,7 @@ public:
 	Coord(Coord coord, Direction direction);
 
 	// methods
-	bool IsSame(Coord coord);
-	void SetTo(Coord coord);
-	void SetTo(Coord coord, Direction direction);
+	bool IsSame(const Coord& coord);
+	void SetTo(const Coord& coord);
+	void SetTo(const Coord& coord, const Direction direction);
 };

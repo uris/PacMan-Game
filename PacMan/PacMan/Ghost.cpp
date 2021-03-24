@@ -1,6 +1,6 @@
 #include "Ghost.h"
 #include "Coord.h"
-#include "Enums.h"
+#include "EnumsAndStatics.h"
 #include <iomanip> // abs function
 
 using namespace std;
@@ -66,8 +66,6 @@ Ghost::Ghost(Ghosts ghost)
     }
 }
 
-// destructors
-Ghost::~Ghost() {};
 
 // methods
 int Ghost::DistanceToPlayer(Coord player_current_position)
@@ -94,9 +92,43 @@ bool Ghost::PlayerCollision(Coord player_coord)
         
 }
 
+void Ghost::MoveGhost(const Coord player_coord, const Direction direction, const char map_content)
+{
+    previous_position = current_position;
+    square_content_prior = square_content_now;
+    square_content_now = map_content;
+    
+    switch (direction)
+    {
+    case Direction::UP: //up
+        current_position.row--;
+        current_direction = Direction::UP;
+        break;
+    case Direction::RIGHT: // right
+        current_position.col++;
+        current_direction = Direction::RIGHT;
+        break;
+    case Direction::DOWN: // down
+        current_position.row++;
+        current_direction = Direction::DOWN;
+        break;
+    case Direction::LEFT: // left
+        current_position.col--;
+        current_direction = Direction::LEFT;
+        break;
+    default:
+        break;
+    }
+
+    // if the sqaure the ghost moved into is the player
+    square_content_prior == Globals::player ? square_content_now = ' ' : square_content_now;
+
+    // if the mosnter is over the player save a blank space to buffer
+    PlayerCollision(player_coord) ? square_content_now = ' ' : square_content_now;
+
+}
 
 // encapsulation
-
 char Ghost::GetPreviousSqaureContent()
 {
     return square_content_prior;

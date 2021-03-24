@@ -1,6 +1,6 @@
 #pragma once
 #include "Character.h"
-#include "Enums.h"
+#include "EnumsAndStatics.h"
 
 class Ghost: public Character
 {
@@ -32,45 +32,44 @@ public:
     Ghost();
     Ghost(Ghosts ghost);
 
-    // destructors
-    ~Ghost();
-
     // methods
     int DistanceToPlayer(Coord player_current_position);
     int DistanceToRoamTarget();
     int DistanceToSpawnTarget();
     bool PlayerCollision(Coord player_coord);
-
-    //encapsulation
-    char GetPreviousSqaureContent();
-    void SetPreviousSqaureContent(char content);
-    char GetContentCurrent();
-    void SetContentCurrent(char content);
-    void SetContentCurrent(bool same);
-    Mode GetMode();
-    void SetMode(Mode mode);
-    bool IsEdible();
-    void SetEdible(bool edible);
-    bool FlashBlue();
-    void SetFlashBlue(bool flash);
-    int GetColor();
-    void SetColor(int color);
-    int GetWait();
-    void SetWait(int wait);
     void DecreaseWait();
-    void SetSkipTurn(bool skip_turn);
-    bool SkipTurn();
-    void SetLookAhead(int moves);
-    int GetLookAhead();
-    void SpawnGhost(bool player_died);
-    void SetSpawnTarget(Coord spawn_target);
-    void SetSpawnTarget(int row, int col);
-    Coord GetSpawnTarget();
-    char GhostChar();
-    void SetReverseMove(bool reverse);
-    bool ReverseMove();
+    void MoveGhost(const Coord player_coord, const Direction direction, const char map_content);
+
+    // Getters
     Coord GetChaseModifier();
     Coord GetRoamTarget();
     Ghosts Name();
-    
+    char GetPreviousSqaureContent();
+    char GetContentCurrent();
+    Mode GetMode();
+    bool IsEdible();
+    bool FlashBlue();
+    int GetColor();
+    int GetWait();
+    bool SkipTurn();
+    int GetLookAhead();
+    Coord GetSpawnTarget();
+    char GhostChar();
+    bool ReverseMove();
+
+    // Setters
+    void SetPreviousSqaureContent(char content);
+    void SetContentCurrent(char content);
+    void SetContentCurrent(bool same);
+    void SetMode(Mode mode);
+    void SetEdible(bool edible);
+    void SetFlashBlue(bool flash);
+    void SetColor(int color);
+    void SetWait(int wait);
+    void SetSkipTurn(bool skip_turn);
+    void SetLookAhead(int moves);
+    void SpawnGhost(bool player_died);
+    void SetSpawnTarget(Coord spawn_target);
+    void SetSpawnTarget(int row, int col);
+    void SetReverseMove(bool reverse);
 };

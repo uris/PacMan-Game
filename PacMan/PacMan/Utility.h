@@ -10,7 +10,7 @@ public:
     Utility();
 
 	//methods
-    string TransformString(string text, int operation);
-    void ReplaceString(string& text, string from, char to);
-    string Spacer(string format, int block_width);
+    string TransformString(const string& text, const int operation);
+    void ReplaceString(string& text, const string from, const char to);
+    string Spacer(const string& format, const int block_width);
 };

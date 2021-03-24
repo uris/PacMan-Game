@@ -7,16 +7,13 @@ using namespace std;
 //constructors
 Draw::Draw(){}
 
-// destructors
-Draw::~Draw(){}
-
 //methods
-void Draw::SetColor(int color)
+void Draw::SetColor(const int color)
 {
     // windows only - sets text color for command line
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
 }
-void Draw::ShowColors(int colors)
+void Draw::ShowColors(const int colors)
 {
     for (int i = 0; i < colors; i++)
     {
@@ -24,7 +21,7 @@ void Draw::ShowColors(int colors)
         cout << "This is color " << i << endl;
     }
 }
-void Draw::CursorTopLeft(int rows)
+void Draw::CursorTopLeft(const int rows)
 {
     for (int i = 0; i < rows; i++) // up one line
     {
@@ -32,7 +29,7 @@ void Draw::CursorTopLeft(int rows)
     }
     cout << "\r";
 }
-void Draw::ShowConsoleCursor(bool showFlag)
+void Draw::ShowConsoleCursor(const bool showFlag)
 {
     HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
 

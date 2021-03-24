@@ -37,18 +37,18 @@ Coord::Coord(Coord coord, Direction direction)
 }
 
 // methods
-bool Coord::IsSame(Coord coord)
+bool Coord::IsSame(const Coord& coord)
 {
 	return(coord.row == row && coord.col == col ? true : false);
 }
 
-void Coord::SetTo(Coord coord)
+void Coord::SetTo(const Coord& coord)
 {
 	row = coord.row;
 	col = coord.col;
 }
 
-void Coord::SetTo(Coord coord, Direction direction)
+void Coord::SetTo(const Coord& coord, const Direction direction)
 {
 	row = coord.row;
 	col = coord.col;

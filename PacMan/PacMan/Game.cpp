@@ -13,6 +13,7 @@ using namespace std;
 //constructors
 Game::Game() {};
 
+
 //destructors
 Game::~Game()
 {
@@ -28,11 +29,12 @@ Game::~Game()
     
 };
 
-// methods
+
+//game flow
 void Game::RunGame()
 {
     GameCredits(); // show game credits
-    
+
     do
     {
         // Set up game and initialize data
@@ -62,7 +64,7 @@ void Game::RunGame()
             PlayerMonsterCollision();
 
             // delay render if there's a collision
-            PlayerMonsterCollisionDelay();
+            SetCollisionDelay();
 
             // Draw the level current state
             DrawLevel();
@@ -71,10 +73,10 @@ void Game::RunGame()
             CheckLevelComplete();
 
             // display stats and number lives
-            StatusBar();
+            PrintStatusBar();
 
             // introduce a wait for fast PC
-            RefreshDelay();
+            SetRefreshDelay();
 
         } while (!p_level->is_complete && !game_over);
 
@@ -133,207 +135,18 @@ void Game::GameCredits()
     system("cls");
 }
 
-void Game::Add(Ghost& red, Ghost& yellow, Ghost& blue, Ghost& pink)
-{
-    p_ghosts = new Ghost[4]{ red, yellow, blue, pink };
-
-}
-
-void Game::Add(Player& player)
-{
-    p_player = &player;
-}
-
-void Game::Add(Level& level)
-{
-    p_level = &level;
-}
-
-void Game::SpawnThisGhost(Ghosts name, bool player_died)
-{
-    if (p_ghosts)
-    {
-        switch (name)
-        {
-        case Ghosts::RED:
-            p_ghosts[0].SpawnGhost(player_died);
-            break;
-        case Ghosts::YELLOW:
-            p_ghosts[1].SpawnGhost(player_died);
-            break;
-        case Ghosts::BLUE:
-            p_ghosts[2].SpawnGhost(player_died);
-            break;
-        case Ghosts::PINK:
-            p_ghosts[3].SpawnGhost(player_died);
-            break;
-        default:
-            break;
-        }
-    }
-
-}
-
-void Game::SpawnAllGhosts()
-{
-    if (p_ghosts)
-    {
-        for (int i = 0; i < total_ghosts; i++)
-        {
-            p_ghosts[i].SpawnGhost(true);
-        }
-    }
-
-}
-
-void Game::GetKeyboardInput()
-{
-    int input;
-
-    do
-    {
-        input = _getch();
-
-        //if special character then get special key into input
-        (input && input == 224) ? input = _getch() : input;
-
-         switch (input)
-        {
-        case Game::kARROW_LEFT:
-        case Game::kLEFT:
-            p_player->SetDirection(Direction::LEFT);
-            break;
-        case Game::kARROW_RIGHT:
-        case Game::kRIGHT:
-            p_player->SetDirection(Direction::RIGHT);
-            break;
-        case Game::kARROW_UP:
-        case Game::kUP:
-            p_player->SetDirection(Direction::UP);
-            break;
-        case Game::kARROW_DOWN:
-        case Game::kDOWN:
-            p_player->SetDirection(Direction::DOWN);
-            break;
-        default:
-            break;
-        }
-    } while (!p_level->is_complete && !game_over);
-}
-
 void Game::SetupGame()
 {
     // if restarting the game then reset player lives and game over state
     game_over ? p_player->SetLives(3) : p_player->SetLives();
     p_player->ClearEatenGohsts(); // clear the ghosts eaten in a row
     game_over = false;
-   
+
     // reset ghosts to spawn state
     SpawnAllGhosts();
 
     // reset level, create scene and update player / level as needed
     p_level->SetupLevel(p_player, p_ghosts, current_scene);
-}
-
-void Game::NextScene()
-{
-    current_scene++;
-}
-
-int Game::SFX(Play playSFX)
-{
-    LPCTSTR t_sfx = NULL;
-    bool played = false;
-    bool timerOn = false;
-    DWORD params = SND_FILENAME | SND_ASYNC;
-    float duration = 0.0f;
-
-    switch (playSFX)
-    {
-    case Play::INTRO:
-        t_sfx = TEXT("sfx_intro.wav");
-        params = SND_FILENAME | SND_SYNC;
-        break;
-    case Play::INTERMISSION:
-        t_sfx = TEXT("sfx_intermission.wav");
-        params = SND_FILENAME | SND_SYNC;
-        break;
-    case Play::MUNCH:
-        if (sfx == Play::MUNCH)
-            return 0;
-        t_sfx = TEXT("sfx_munch_lg.wav");
-        params = SND_LOOP | SND_FILENAME | SND_ASYNC;
-        break;
-    case Play::DEATH:
-        t_sfx = TEXT("sfx_death.wav");
-        params = SND_FILENAME | SND_SYNC;
-        break;
-    case Play::CREDIT:
-        t_sfx = TEXT("sfx_bonus.wav");
-        break;
-    case Play::POWER_UP:
-        t_sfx = TEXT("sfx_powerup.wav");
-        params = SND_LOOP | SND_FILENAME | SND_ASYNC;
-        break;
-    case Play::SIREN:
-        if (sfx == Play::SIREN)
-            return 0;
-        t_sfx = TEXT("sfx_siren.wav");
-        params = SND_LOOP | SND_FILENAME | SND_ASYNC;
-        break;
-    case Play::LIFE:
-        t_sfx = TEXT("sfx_xlife.wav");
-        params = SND_FILENAME | SND_SYNC;
-        break;
-    case Play::EAT_GHOST:
-        t_sfx = TEXT("sfx_eatghost.wav");
-        params = SND_FILENAME | SND_SYNC;
-        break;
-    case Play::EAT_FRUIT:
-        t_sfx = TEXT("sfx_eatfruit.wav");
-        break;
-    default:
-        t_sfx = NULL;
-        break;
-    }
-
-    // immediately cancel all audio sfx is trying to play none
-    if (playSFX == Play::NONE)
-    {
-        played = PlaySound(NULL, NULL, params);
-        sfx = Play::NONE;
-        return 0;
-    }
-
-    // if mode is RUN and not ghost eat or death, then play power up
-    if (p_level->level_mode == Mode::RUN)
-    {
-        if (sfx != Play::POWER_UP)
-        {
-            played = PlaySound(TEXT("sfx_powerup.wav"), NULL, SND_LOOP | SND_FILENAME | SND_ASYNC);
-            sfx = Play::POWER_UP;
-            return 0;
-        }
-    }
-
-    if (playSFX != sfx)
-    {
-        if (playSFX == Play::DEATH || playSFX == Play::EAT_GHOST || playSFX == Play::LIFE)
-        {
-            played = PlaySound(t_sfx, NULL, params);
-            sfx = playSFX;
-            return 0;
-        }
-        else if (p_level->level_mode != Mode::RUN)
-        {
-            played = PlaySound(t_sfx, NULL, params);
-            sfx = playSFX;
-            return 0;
-        }
-    }
-
-    return 0;
-
 }
 
 void Game::DrawLevel()
@@ -357,14 +170,14 @@ void Game::DrawLevel()
         // level is playing and we can play the appropriate game sound
         switch (p_player->GetMovedIntoSquareContents())
         {
-        case (char)Level::pellet:
+        case (char)Globals::pellet:
             SFX(Play::MUNCH);
             break;
-        case (char)Level::powerup:
+        case (char)Globals::powerup:
             SFX(Play::POWER_UP);
             break;
-        case Level::space:
-        case Player::character:
+        case Globals::space:
+        case Globals::player:
             SFX(Play::SIREN);
             break;
         }
@@ -373,45 +186,11 @@ void Game::DrawLevel()
 
 void Game::MovePlayer()
 {
-    p_player->SetPreviousPosition(p_player->GetCurrentPosition());
+    // scan content one sqaure around the player and store chars in an array
+    SetMapContents(p_player->GetCurrentPosition());
 
-    Coord currentPos = p_player->GetCurrentPosition();
-    Coord nextPos(currentPos, p_player->GetPreviousDirection());
-
-    switch (p_player->GetDirection())
-    {
-    case Direction::UP: //up
-        if (p_level->NotWall(p_player, Coord(currentPos, Direction::UP), Direction::UP)) {
-            nextPos.SetTo(currentPos, Direction::UP);
-            p_player->SetPreviousDirection(Direction::UP);
-        }
-        break;
-    case Direction::RIGHT: // right
-        if (p_level->NotWall(p_player, Coord(currentPos, Direction::RIGHT), Direction::RIGHT)) {
-            nextPos.SetTo(currentPos, Direction::RIGHT);
-            p_player->SetPreviousDirection(Direction::RIGHT);
-        }
-        break;
-    case Direction::DOWN: // down
-        if (p_level->NotWall(p_player, Coord(currentPos, Direction::DOWN), Direction::DOWN)) {
-            nextPos.SetTo(currentPos, Direction::DOWN);
-            p_player->SetPreviousDirection(Direction::DOWN);
-        }
-        break;
-    case Direction::LEFT: // left
-        if (p_level->NotWall(p_player, Coord(currentPos, Direction::LEFT), Direction::LEFT)) {
-            nextPos.SetTo(currentPos, Direction::LEFT);
-            p_player->SetPreviousDirection(Direction::LEFT);
-        }
-        break;
-    }
-
-    if (!p_level->NotWall(p_player, nextPos, p_player->GetPreviousDirection())) {
-        nextPos = currentPos;
-    }
-
-    // move the player
-    p_player->SetCurrentPosition(nextPos);
+    // move the player based on the content of the move to sqaure
+    p_player->MovePlayer(map_contents);
 
     // set any statuses that need setting
     SetPlayerState();
@@ -419,7 +198,7 @@ void Game::MovePlayer()
     // check collision with a ghost and set the ghosts previous row to the new player position
     for (int g = 0; g < 4; g++)
     {
-        if (p_player->HasCollided(p_ghosts[g])) {
+        if (PlayerGhostCollision(g)) {
             p_ghosts[g].GetPreviousPosition().SetTo(p_player->GetCurrentPosition());
         }
     }
@@ -427,60 +206,67 @@ void Game::MovePlayer()
 
 int Game::MoveGhosts()
 {
-    Direction bestMove = Direction::NONE; // will store the next move
+    Direction best_move = Direction::NONE; // will store the next move
+    char map_content = ' '; // will store the content of the map at the move position
 
     for (int g = 0; g < 4; g++)
     {
-        if (p_ghosts[g].SkipTurn() || game_over || p_player->HasCollided(p_ghosts[g]))
+        if (p_ghosts[g].SkipTurn() || game_over || PlayerGhostCollision(g))
         {
             continue; // next ghost (no move)
         }
 
         if (p_ghosts[g].GetWait() > 0)
         {
-            p_ghosts[g].DecreaseWait(); // ghost has respawned and we are counting dowm the tics to let it move
+            p_ghosts[g].DecreaseWait(); // ghost is waiting to leave spawn area
             continue; // next ghost (no move)
         }
 
         if (p_ghosts[g].GetMode() == Mode::RUN) // make random moves truning opposite direction on first move
         {
-            bestMove = RandomGhostMove(g);
-            DoGhostMove(g, bestMove);
+            best_move = RandomGhostMove(g); // get the random move
+            map_content = GetMapContent(p_ghosts[g].GetCurrentPosition(), best_move); // get map content at the move position
+            p_ghosts[g].MoveGhost(p_player->GetCurrentPosition(), best_move, map_content); // make the move
             continue; // next ghost
         }
 
         if (p_ghosts[g].GetMode() != Mode::RUN)  // run recursive AI for chase, roam and spawn modes 
         {
-            int score = 0, bestScore = 1000;
-            Coord nextMove;
-            Coord move = p_ghosts[g].GetCurrentPosition();
+            int score = 0, best_score = 1000;
+            Coord next_move;
+            Coord current_posiiton = p_ghosts[g].GetCurrentPosition();
             Direction new_direction = Direction::NONE;
 
             for (int i = 0; i <= 3; i++) // cycle through up,down,left,right to find the valid best next move
             {
-                new_direction = static_cast<Direction>(i);
-                if (p_level->NotWall(p_player, Coord(move, new_direction), new_direction) && !p_ghosts[g].IsReverseDirection(new_direction)) // check for next available square
+
+                new_direction = static_cast<Direction>(i); // set the direction we will get best move for
+                map_content = GetMapContent(current_posiiton, new_direction); // get the content on the map pos we are moving to 
+
+                if (p_ghosts[g].NotWall(map_content, new_direction) && !p_ghosts[g].IsReverseDirection(new_direction)) // check for next available square
                 {
-                    // set new coords of ghost
-                    nextMove.SetTo(move, new_direction);
-                    p_ghosts[g].SetCurrentPosition(nextMove);
+                    // it's a viable move to position so set new coords of ghost
+                    next_move.SetTo(current_posiiton, new_direction);
+                    p_ghosts[g].SetCurrentPosition(next_move);
 
                     // calculate distance score based on new coords
-                    int score = GetBestMove(g, nextMove, new_direction, 1, true); // get the minimax score for the move (recurssive)
+                    int score = GetBestMove(g, next_move, new_direction, 1); // get the minimax score for the move (recurssive)
 
                     // revert ghost coords back
-                    p_ghosts[g].SetCurrentPosition(move);
+                    p_ghosts[g].SetCurrentPosition(current_posiiton);
 
                     // if the new move score gets the ghost closer to the target coord
-                    if (score < bestScore)
+                    if (score < best_score)
                     {
-                        bestScore = score; // set new best score
-                        bestMove = new_direction; // set new best move direction
+                        best_score = score; // set new best score
+                        best_move = new_direction; // set new best move direction
                     }
-
                 }
             }
-            DoGhostMove(g, bestMove);
+
+            map_content = GetMapContent(p_ghosts[g].GetCurrentPosition(), best_move); // get map content at the move position
+            p_ghosts[g].MoveGhost(p_player->GetCurrentPosition(), best_move, map_content); // do the move
+
             continue; // next ghost
         }
     }
@@ -488,299 +274,7 @@ int Game::MoveGhosts()
     return 0; // clean exit
 }
 
-int Game::GetBestMove(int g, Coord move, Direction curr_direction, int depth, bool isGhost)
-{
-    // and on the target the ghost chases: red chases player pos, yellow player pos + 2 cols (to the right of player)
-    switch (p_ghosts[g].GetMode())
-    {
-    case Mode::CHASE: // redude distance to player
-        if (p_ghosts[g].DistanceToPlayer(p_player->GetCurrentPosition()) == 0) { // if player and ghost collide return 0 + depth as score
-            return 0 + depth; // add depth to get fastest path
-        }
-        if (depth == p_ghosts[g].GetLookAhead()) { // if depth X return the distance score, increase this to make the ghost look forward more
-            return (p_ghosts[g].DistanceToPlayer(p_player->GetCurrentPosition()) + depth); // add depth to get fastest path
-        }
-        break;
-    case Mode::ROAM: // reduce distance to the ghost's roam target
-        if (depth == p_ghosts[g].GetLookAhead()) {
-            return p_ghosts[g].DistanceToRoamTarget();
-        }
-        break;
-    case Mode::SPAWN: // target is above the exit area
-        if(p_ghosts[g].DistanceToSpawnTarget() == 0)
-            p_ghosts[g].SetMode(p_level->level_mode == Mode::RUN ? Mode::CHASE : p_level->level_mode);
-        return p_ghosts[g].DistanceToSpawnTarget();
-        break;
-    }
-
-    if (isGhost) {
-        // if its the ghost move we want the lowest possible distance to player
-        int score = 1000, bestScore = 1000;
-        Coord nextMove;
-        Direction new_direction = Direction::NONE;
-
-        for (int i = 0; i <= 3; i++) // cycle through each next possible move up, down, left, right
-        {
-            new_direction = static_cast<Direction>(i); // cast index to direction up, down, left, right
-            if (p_level->NotWall(p_player, Coord(move, new_direction), new_direction) && !p_ghosts[g].IsReverseDirection(new_direction)) // check if the direction is valid i.e not wall or reverse
-            {
-                // set new coords of ghost
-                nextMove.SetTo(move, new_direction);
-                p_ghosts[g].SetCurrentPosition(nextMove);
-
-                // calculate distance score based on new coords
-                int score = GetBestMove(g, nextMove, new_direction, depth + 1, true); // get the minimax score for the move (recurssive)
-
-                // revert ghost coords back
-                p_ghosts[g].SetCurrentPosition(move);
-
-                // if the score of is better than the current bestscore set the score to be the new best score (min to get closer, max when running away)
-                bestScore = min(score, bestScore);
-            }
-        }
-        return bestScore;
-    }
-    else
-    {
-        // can add player move logic here if we want to take into account player moving optimally
-        return 0;
-    }
-
-}
-
-void Game::DoGhostMove(int g, Direction direction)
-{
-    p_ghosts[g].SetPreviousPosition(p_ghosts[g].GetCurrentPosition());
-    p_ghosts[g].SetPreviousSqaureContent(p_ghosts[g].GetContentCurrent());
-    
-    switch (direction)
-    {
-    case Direction::UP: //up
-        p_ghosts[g].SetPreviousSqaureContent(GetSquareContentNow(g, Direction::UP));
-        p_ghosts[g].MoveTo(p_ghosts[g].GetCurrentPosition(), Direction::UP);
-        p_ghosts[g].SetDirection(Direction::UP);
-        break;
-    case Direction::RIGHT: // right
-        p_ghosts[g].SetPreviousSqaureContent(GetSquareContentNow(g, Direction::RIGHT));
-        p_ghosts[g].MoveTo(p_ghosts[g].GetCurrentPosition(), Direction::RIGHT);
-        p_ghosts[g].SetDirection(Direction::RIGHT);
-        break;
-    case Direction::DOWN: // down
-        p_ghosts[g].SetPreviousSqaureContent(GetSquareContentNow(g, Direction::DOWN));
-        p_ghosts[g].MoveTo(p_ghosts[g].GetCurrentPosition(), Direction::DOWN);
-        p_ghosts[g].SetDirection(Direction::DOWN);
-        break;
-    case Direction::LEFT: // left
-        p_ghosts[g].SetPreviousSqaureContent(GetSquareContentNow(g, Direction::LEFT));
-        p_ghosts[g].MoveTo(p_ghosts[g].GetCurrentPosition(), Direction::LEFT);
-        p_ghosts[g].SetDirection(Direction::LEFT);
-        break;
-    default:
-        break;
-    }
-    // if the sqaure the ghost moved into is the player
-    p_ghosts[g].GetPreviousSqaureContent() == Player::character ? p_ghosts[g].SetContentCurrent(Level::space) : p_ghosts[g].SetContentCurrent(true);
-
-    // if the mosnter is over the player save a blank space to buffer
-    p_ghosts[g].PlayerCollision(p_player->GetCurrentPosition()) ? p_ghosts[g].SetContentCurrent(Level::space) : p_ghosts[g].SetContentCurrent(true);
-
-}
-
-char Game::GetSquareContentNow(int g, Direction direction)
-{
-    int row = p_ghosts[g].GetCurrentRow();
-    int col = p_ghosts[g].GetCurrentCol();
-    switch (direction)
-    {
-    case Direction::UP:
-        row--;
-        break;
-    case Direction::RIGHT:
-        col++;
-        break;
-    case Direction::DOWN:
-        row++;
-        break;
-    case Direction::LEFT:
-        col--;
-        break;
-    }
-    
-    switch (p_level->p_map[row][col])
-    {
-    case (char)Level::pellet:
-    case (char)Level::powerup:
-    case ' ':
-        return(p_level->p_map[row][col]);
-    case Level::red_ghost:
-        return p_ghosts[0].GetContentCurrent();
-    case Level::yellow_ghost:
-        return p_ghosts[1].GetContentCurrent();
-    case Level::blue_ghost:
-        return p_ghosts[2].GetContentCurrent();
-    case Level::pink_ghost:
-        return p_ghosts[3].GetContentCurrent();
-    default:
-        return(p_level->p_map[row][col]);
-    }
-}
-
-Direction Game::RandomGhostMove(int g)
-{
-    Direction newDirection = Direction::NONE;
-
-    // first move when on the run is ALWAYS to reverse direction which is ALWAYS a valid move
-    if (p_ghosts[g].ReverseMove()) {
-        switch (p_ghosts[g].GetDirection())
-        {
-        case Direction::UP:
-            newDirection = Direction::DOWN;
-            break;
-        case Direction::RIGHT:
-            newDirection = Direction::LEFT;
-            break;
-        case Direction::DOWN:
-            newDirection = Direction::UP;
-            break;
-        case Direction::LEFT:
-            newDirection = Direction::RIGHT;
-            break;
-        }
-        p_ghosts[g].SetReverseMove(false);
-        return newDirection;
-    }
-
-    Coord move(p_ghosts[g].GetCurrentPosition());
-    int unsigned seed = (int)(std::chrono::system_clock::now().time_since_epoch().count());
-    srand(seed);
-
-    if (p_level->IsTeleport(move)) // if on teleportkeep the same direction
-        p_ghosts[g].GetDirection() == Direction::LEFT ? newDirection = Direction::LEFT : newDirection = Direction::RIGHT;
-    else // else choose a valid random direction
-    {
-        do
-        {
-            int randomNumber = rand() % 4; //generate random number to select from the 4 possible options
-            newDirection = static_cast<Direction>(randomNumber);
-        } while (!p_level->NotWall(p_player, Coord(move, newDirection), newDirection) || p_ghosts[g].IsReverseDirection(newDirection));
-    }
-    return newDirection;
-}
-
-void Game::SetPlayerState()
-{
-    char levelObj = p_level->p_map[p_player->GetCurrentRow()][p_player->GetCurrentCol()];
-    switch (levelObj)
-    {
-    case (char)Level::pellet: // eat pellet
-        p_level->eaten_pellets++;
-        break;
-    case (char)Level::powerup: // eat power up
-        for (int g = 0; g < 4; g++) // loop ghosts
-        {
-            p_ghosts[g].GetMode() != Mode::SPAWN ? p_ghosts[g].SetEdible(true) : p_ghosts[g].SetEdible(false); // ghost only edible on power up if out of spwan area
-            p_ghosts[g].IsEdible() ? p_ghosts[g].SetMode(Mode::RUN) : p_ghosts[g].SetMode(p_ghosts[g].GetMode());
-            p_ghosts[g].GetMode() == Mode::RUN ? p_ghosts[g].SetReverseMove(true) : p_ghosts[g].SetReverseMove(false);
-        }
-        if (p_level->level_mode != Mode::RUN)
-            p_player->ClearEatenGohsts();
-        p_level->level_mode = Mode::RUN;
-        p_level->run_time_start = chrono::high_resolution_clock::now();
-        p_level->eaten_pellets++;
-        break;
-    }
-}
-
-void Game::PlayerMonsterCollision()
-{
-    bool player_died = false;
-
-    for (int g = 0; g < 4; g++) // loop ghosts
-    {
-        if (p_player->GetCurrentPosition().IsSame(p_ghosts[g].GetCurrentPosition()))
-        {
-            DrawLevel(); // print the move immediately
-            if (p_ghosts[g].IsEdible()) // ghost dies
-            {
-                // if the ghost was on a pellet/powerup sqaure need to count it up
-                if (p_ghosts[g].GetContentCurrent() == (char)Level::pellet || p_ghosts[g].GetContentCurrent() == (char)Level::powerup)
-                    p_level->eaten_pellets++;
-                p_level->eaten_ghosts++; // increment ghosts eaten
-                gobble_pause = true; // set small pause after eating ghost
-                SpawnThisGhost(p_ghosts[g].Name(), false);
-                p_player->EatGhost(g);
-                if (p_player->AllGhostsEaten()) {
-                    p_level->all_eaten_ghosts += 1;
-                    SFX(Play::LIFE);
-                    p_player->ClearEatenGohsts();
-                    p_level->level_mode = Mode::CHASE;
-                    p_level->chase_time_start = chrono::high_resolution_clock::now();
-                }
-                else {
-                    SFX(Play::EAT_GHOST);
-                }
-
-            }
-            else
-            {
-                // player dies
-                player_died = true;
-            }
-        }
-    }
-
-    if (player_died) {
-
-        // rest the roam count by adding one back to the count
-        p_level->level_mode == Mode::ROAM ? p_level->roam_count++ : p_level->roam_count;
-
-        // set the level mode to chase
-        p_level->level_mode = Mode::CHASE;
-        p_level->chase_time_start = chrono::high_resolution_clock::now();
-
-        // end game or respawn player if no lives left
-        p_player->TakeLives(1);
-        if (!p_player->HasNoLives())
-        {
-            player_beat_pause = true; // give player time to get ready
-            p_player->ReSpawn();
-            for (int g = 0; g < 4; g++) {
-                // replace ghost with empty sqaure since the player was there an any pellet got eaten
-                p_level->p_map[p_ghosts[g].GetCurrentRow()][p_ghosts[g].GetCurrentCol()] = ' ';
-                // respawn ghost
-                SpawnAllGhosts();
-            }
-            SFX(Play::DEATH);
-        }
-        else
-        {
-            game_over = true;
-            SFX(Play::DEATH);
-        }
-    }
-
-}
-
-void Game::PlayerMonsterCollisionDelay()
-{
-    if (gobble_pause)
-    {
-        gobble_pause = false;
-        std::this_thread::sleep_for(std::chrono::milliseconds(Game::gobble_delay)); // pause for ghost gobble
-    }
-    else if (player_beat_pause)
-    {
-        player_beat_pause = false;
-        std::this_thread::sleep_for(std::chrono::milliseconds(Game::player_beat_delay)); // pause for player gobble
-    }
-}
-
-void Game::CheckLevelComplete()
-{
-    p_level->CheckLevelComplete();
-}
-
-void Game::StatusBar()
+void Game::PrintStatusBar()
 {
     Draw draw;
     Utility utility;
@@ -789,7 +283,7 @@ void Game::StatusBar()
     string lives;
     for (int i = 0; i < p_player->Lives(); i++)
     {
-        lives = lives + Player::character;
+        lives = lives + Globals::player;
     }
     p_player->SetScore(((p_level->eaten_pellets + 1) * p_level->points_pellet) + (p_level->eaten_ghosts * p_level->points_ghost) + (p_level->eaten_ghosts >= 4 ? p_level->all_ghost_bonus : 0));
     cout << endl;
@@ -930,11 +424,420 @@ void Game::SetGhostMode()
 
 }
 
-void Game::RefreshDelay()
+
+// game orchestration methods
+void Game::Add(Ghost& red, Ghost& yellow, Ghost& blue, Ghost& pink)
 {
-    if (!p_level->is_complete && !game_over)
+    p_ghosts = new Ghost[4]{ red, yellow, blue, pink };
+
+}
+
+void Game::Add(Player& player)
+{
+    p_player = &player;
+}
+
+void Game::Add(Level& level)
+{
+    p_level = &level;
+}
+
+void Game::SpawnThisGhost(Ghosts name, bool player_died)
+{
+    if (p_ghosts)
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(Game::refresh_delay)); // pause to slow game
+        switch (name)
+        {
+        case Ghosts::RED:
+            p_ghosts[0].SpawnGhost(player_died);
+            break;
+        case Ghosts::YELLOW:
+            p_ghosts[1].SpawnGhost(player_died);
+            break;
+        case Ghosts::BLUE:
+            p_ghosts[2].SpawnGhost(player_died);
+            break;
+        case Ghosts::PINK:
+            p_ghosts[3].SpawnGhost(player_died);
+            break;
+        default:
+            break;
+        }
+    }
+
+}
+
+void Game::SpawnAllGhosts()
+{
+    if (p_ghosts)
+    {
+        for (int i = 0; i < total_ghosts; i++)
+        {
+            p_ghosts[i].SpawnGhost(true);
+        }
+    }
+
+}
+
+void Game::GetKeyboardInput()
+{
+    int input;
+
+    do
+    {
+        input = _getch();
+
+        //if special character then get special key into input
+        (input && input == 224) ? input = _getch() : input;
+
+        switch (input)
+        {
+        case Globals::kARROW_LEFT:
+        case Globals::kLEFT:
+            p_player->SetDirection(Direction::LEFT);
+            break;
+        case Globals::kARROW_RIGHT:
+        case Globals::kRIGHT:
+            p_player->SetDirection(Direction::RIGHT);
+            break;
+        case Globals::kARROW_UP:
+        case Globals::kUP:
+            p_player->SetDirection(Direction::UP);
+            break;
+        case Globals::kARROW_DOWN:
+        case Globals::kDOWN:
+            p_player->SetDirection(Direction::DOWN);
+            break;
+        default:
+            break;
+        }
+    } while (!p_level->is_complete && !game_over);
+}
+
+void Game::NextScene()
+{
+    current_scene++;
+}
+
+int Game::SFX(Play playSFX)
+{
+    LPCTSTR t_sfx = NULL;
+    bool played = false;
+    bool timerOn = false;
+    DWORD params = SND_FILENAME | SND_ASYNC;
+    float duration = 0.0f;
+
+    switch (playSFX)
+    {
+    case Play::INTRO:
+        t_sfx = TEXT("sfx_intro.wav");
+        params = SND_FILENAME | SND_SYNC;
+        break;
+    case Play::INTERMISSION:
+        t_sfx = TEXT("sfx_intermission.wav");
+        params = SND_FILENAME | SND_SYNC;
+        break;
+    case Play::MUNCH:
+        if (sfx == Play::MUNCH)
+            return 0;
+        t_sfx = TEXT("sfx_munch_lg.wav");
+        params = SND_LOOP | SND_FILENAME | SND_ASYNC;
+        break;
+    case Play::DEATH:
+        t_sfx = TEXT("sfx_death.wav");
+        params = SND_FILENAME | SND_SYNC;
+        break;
+    case Play::CREDIT:
+        t_sfx = TEXT("sfx_bonus.wav");
+        break;
+    case Play::POWER_UP:
+        t_sfx = TEXT("sfx_powerup.wav");
+        params = SND_LOOP | SND_FILENAME | SND_ASYNC;
+        break;
+    case Play::SIREN:
+        if (sfx == Play::SIREN)
+            return 0;
+        t_sfx = TEXT("sfx_siren.wav");
+        params = SND_LOOP | SND_FILENAME | SND_ASYNC;
+        break;
+    case Play::LIFE:
+        t_sfx = TEXT("sfx_xlife.wav");
+        params = SND_FILENAME | SND_SYNC;
+        break;
+    case Play::EAT_GHOST:
+        t_sfx = TEXT("sfx_eatghost.wav");
+        params = SND_FILENAME | SND_SYNC;
+        break;
+    case Play::EAT_FRUIT:
+        t_sfx = TEXT("sfx_eatfruit.wav");
+        break;
+    default:
+        t_sfx = NULL;
+        break;
+    }
+
+    // immediately cancel all audio sfx is trying to play none
+    if (playSFX == Play::NONE)
+    {
+        played = PlaySound(NULL, NULL, params);
+        sfx = Play::NONE;
+        return 0;
+    }
+
+    // if mode is RUN and not ghost eat or death, then play power up
+    if (p_level->level_mode == Mode::RUN)
+    {
+        if (sfx != Play::POWER_UP)
+        {
+            played = PlaySound(TEXT("sfx_powerup.wav"), NULL, SND_LOOP | SND_FILENAME | SND_ASYNC);
+            sfx = Play::POWER_UP;
+            return 0;
+        }
+    }
+
+    if (playSFX != sfx)
+    {
+        if (playSFX == Play::DEATH || playSFX == Play::EAT_GHOST || playSFX == Play::LIFE)
+        {
+            played = PlaySound(t_sfx, NULL, params);
+            sfx = playSFX;
+            return 0;
+        }
+        else if (p_level->level_mode != Mode::RUN)
+        {
+            played = PlaySound(t_sfx, NULL, params);
+            sfx = playSFX;
+            return 0;
+        }
+    }
+
+    return 0;
+
+}
+
+char Game::GetMapContent(Coord map_coord, Direction direction)
+{
+    switch (direction)
+    {
+    case Direction::UP:
+        return p_level->p_map[map_coord.row - 1][map_coord.col];
+        break;
+    case Direction::RIGHT:
+        return p_level->p_map[map_coord.row][map_coord.col + 1];
+        break;
+    case Direction::DOWN:
+        return p_level->p_map[map_coord.row + 1][map_coord.col];
+        break;
+    case Direction::LEFT:
+        return p_level->p_map[map_coord.row][map_coord.col - 1];
+        break;
+    default:
+        return ' ';
+        break;
+    }
+}
+
+void Game::SetMapContents(Coord map_coord)
+{
+    map_contents[0] = p_level->p_map[map_coord.row - 1][map_coord.col]; // up
+    map_contents[1] = p_level->p_map[map_coord.row][map_coord.col + 1]; // right
+    map_contents[2] = p_level->p_map[map_coord.row + 1][map_coord.col]; // down
+    map_contents[3] = p_level->p_map[map_coord.row][map_coord.col - 1]; // left
+}
+
+bool Game::PlayerGhostCollision(const int g)
+{
+    return p_player->GetCurrentPosition().IsSame(p_ghosts[g].GetCurrentPosition()) ? true : false;
+}
+
+void Game::PlayerMonsterCollision()
+{
+    bool player_died = false;
+
+    for (int g = 0; g < 4; g++) // loop ghosts
+    {
+        if (p_player->GetCurrentPosition().IsSame(p_ghosts[g].GetCurrentPosition()))
+        {
+            DrawLevel(); // print the move immediately
+            if (p_ghosts[g].IsEdible()) // ghost dies
+            {
+                // if the ghost was on a pellet/powerup sqaure need to count it up
+                if (p_ghosts[g].GetContentCurrent() == (char)Globals::pellet || p_ghosts[g].GetContentCurrent() == (char)Globals::powerup)
+                    p_level->eaten_pellets++;
+                p_level->eaten_ghosts++; // increment ghosts eaten
+                gobble_pause = true; // set small pause after eating ghost
+                SpawnThisGhost(p_ghosts[g].Name(), false);
+                p_player->EatGhost(g);
+                if (p_player->AllGhostsEaten()) {
+                    p_level->all_eaten_ghosts += 1;
+                    SFX(Play::LIFE);
+                    p_player->ClearEatenGohsts();
+                    p_level->level_mode = Mode::CHASE;
+                    p_level->chase_time_start = chrono::high_resolution_clock::now();
+                }
+                else {
+                    SFX(Play::EAT_GHOST);
+                }
+
+            }
+            else
+            {
+                // player dies
+                player_died = true;
+            }
+        }
+    }
+
+    if (player_died) {
+
+        // rest the roam count by adding one back to the count
+        p_level->level_mode == Mode::ROAM ? p_level->roam_count++ : p_level->roam_count;
+
+        // set the level mode to chase
+        p_level->level_mode = Mode::CHASE;
+        p_level->chase_time_start = chrono::high_resolution_clock::now();
+
+        // end game or respawn player if no lives left
+        p_player->TakeLives(1);
+        if (!p_player->HasNoLives())
+        {
+            player_beat_pause = true; // give player time to get ready
+            p_player->ReSpawn();
+            for (int g = 0; g < 4; g++) {
+                // replace ghost with empty sqaure since the player was there an any pellet got eaten
+                p_level->p_map[p_ghosts[g].GetCurrentRow()][p_ghosts[g].GetCurrentCol()] = ' ';
+                // respawn ghost
+                SpawnAllGhosts();
+            }
+            SFX(Play::DEATH);
+        }
+        else
+        {
+            game_over = true;
+            SFX(Play::DEATH);
+        }
+    }
+
+}
+
+int Game::GetBestMove(int g, Coord current_position, Direction current_direction, int depth)
+{
+    // and on the target the ghost chases: red chases player pos, yellow player pos + 2 cols (to the right of player)
+    switch (p_ghosts[g].GetMode())
+    {
+    case Mode::CHASE: // redude distance to player
+        if (p_ghosts[g].DistanceToPlayer(p_player->GetCurrentPosition()) == 0) { // if player and ghost collide return 0 + depth as score
+            return 0 + depth; // add depth to get fastest path
+        }
+        if (depth == p_ghosts[g].GetLookAhead()) { // if depth X return the distance score, increase this to make the ghost look forward more
+            return (p_ghosts[g].DistanceToPlayer(p_player->GetCurrentPosition()) + depth); // add depth to get fastest path
+        }
+        break;
+    case Mode::ROAM: // reduce distance to the ghost's roam target
+        if (depth == p_ghosts[g].GetLookAhead()) {
+            return p_ghosts[g].DistanceToRoamTarget();
+        }
+        break;
+    case Mode::SPAWN: // target is above the exit area
+        if (p_ghosts[g].DistanceToSpawnTarget() == 0)
+            p_ghosts[g].SetMode(p_level->level_mode == Mode::RUN ? Mode::CHASE : p_level->level_mode);
+        return p_ghosts[g].DistanceToSpawnTarget();
+        break;
+    }
+
+    // if its the ghost move we want the lowest possible distance to player
+    int score = 1000, best_score = 1000;
+    Coord next_move;
+    Direction new_direction = Direction::NONE;
+    char map_content = ' '; // will store the content of the map at the move position
+
+    for (int i = 0; i <= 3; i++) // cycle through each next possible move up, down, left, right
+    {
+        new_direction = static_cast<Direction>(i); // cast index to direction up, down, left, right
+        map_content = GetMapContent(current_position, new_direction); // get the content on the map pos we are moving to 
+
+        if (p_ghosts[g].NotWall(map_content, new_direction) && !p_ghosts[g].IsReverseDirection(new_direction)) // check if the direction is valid i.e not wall or reverse
+        {
+            // set new coords of ghost
+            next_move.SetTo(current_position, new_direction);
+            p_ghosts[g].SetCurrentPosition(next_move);
+
+            // calculate distance score based on new coords
+            int score = GetBestMove(g, next_move, new_direction, depth + 1); // get the minimax score for the move (recurssive)
+
+            // revert ghost coords back
+            p_ghosts[g].SetCurrentPosition(current_position);
+
+            // if the score of is better than the current bestscore set the score to be the new best score (min to get closer, max when running away)
+            best_score = min(score, best_score);
+        }
+    }
+    return best_score;
+}
+
+Direction Game::RandomGhostMove(int g)
+{
+    Direction newDirection = Direction::NONE;
+
+    // first move when on the run is ALWAYS to reverse direction which is ALWAYS a valid move
+    if (p_ghosts[g].ReverseMove()) {
+        switch (p_ghosts[g].GetDirection())
+        {
+        case Direction::UP:
+            newDirection = Direction::DOWN;
+            break;
+        case Direction::RIGHT:
+            newDirection = Direction::LEFT;
+            break;
+        case Direction::DOWN:
+            newDirection = Direction::UP;
+            break;
+        case Direction::LEFT:
+            newDirection = Direction::RIGHT;
+            break;
+        }
+        p_ghosts[g].SetReverseMove(false);
+        return newDirection;
+    }
+
+    Coord move(p_ghosts[g].GetCurrentPosition());
+    int unsigned seed = (int)(std::chrono::system_clock::now().time_since_epoch().count());
+    srand(seed);
+
+    if (p_level->IsTeleport(move)) // if on teleportkeep the same direction
+        p_ghosts[g].GetDirection() == Direction::LEFT ? newDirection = Direction::LEFT : newDirection = Direction::RIGHT;
+    else // else choose a valid random direction
+    {
+        do
+        {
+            int randomNumber = rand() % 4; //generate random number to select from the 4 possible options
+            newDirection = static_cast<Direction>(randomNumber);
+        } while (!p_level->NotWall(p_player, Coord(move, newDirection), newDirection) || p_ghosts[g].IsReverseDirection(newDirection));
+    }
+    return newDirection;
+}
+
+void Game::SetPlayerState()
+{
+    char levelObj = p_level->p_map[p_player->GetCurrentRow()][p_player->GetCurrentCol()];
+    switch (levelObj)
+    {
+    case (char)Globals::pellet: // eat pellet
+        p_level->eaten_pellets++;
+        break;
+    case (char)Globals::powerup: // eat power up
+        for (int g = 0; g < 4; g++) // loop ghosts
+        {
+            p_ghosts[g].GetMode() != Mode::SPAWN ? p_ghosts[g].SetEdible(true) : p_ghosts[g].SetEdible(false); // ghost only edible on power up if out of spwan area
+            p_ghosts[g].IsEdible() ? p_ghosts[g].SetMode(Mode::RUN) : p_ghosts[g].SetMode(p_ghosts[g].GetMode());
+            p_ghosts[g].GetMode() == Mode::RUN ? p_ghosts[g].SetReverseMove(true) : p_ghosts[g].SetReverseMove(false);
+        }
+        if (p_level->level_mode != Mode::RUN)
+            p_player->ClearEatenGohsts();
+        p_level->level_mode = Mode::RUN;
+        p_level->run_time_start = chrono::high_resolution_clock::now();
+        p_level->eaten_pellets++;
+        break;
     }
 }
 
@@ -949,7 +852,7 @@ bool Game::NextLevelRestartGame()
         cout << "play again? 'y' = yes, 'n' = no";
         cout << format;
         char input = _getch();
-        if (input == Game::kNO)
+        if (input == Globals::kNO)
         {
             draw.ShowConsoleCursor(false);
             return false;
@@ -963,4 +866,31 @@ bool Game::NextLevelRestartGame()
     }
     current_scene++;
     return true;
+}
+
+void Game::SetCollisionDelay()
+{
+    if (gobble_pause)
+    {
+        gobble_pause = false;
+        std::this_thread::sleep_for(std::chrono::milliseconds(Globals::gobble_delay)); // pause for ghost gobble
+    }
+    else if (player_beat_pause)
+    {
+        player_beat_pause = false;
+        std::this_thread::sleep_for(std::chrono::milliseconds(Globals::player_beat_delay)); // pause for player gobble
+    }
+}
+
+void Game::CheckLevelComplete()
+{
+    p_level->CheckLevelComplete();
+}
+
+void Game::SetRefreshDelay()
+{
+    if (!p_level->is_complete && !game_over)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(Globals::refresh_delay)); // pause to slow game
+    }
 }
