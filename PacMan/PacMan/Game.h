@@ -21,9 +21,8 @@ class Game
     // player pointer
     Player* p_player = nullptr;
 
-    // pointer to array of ghosts
-    Ghost* p_ghosts = nullptr;
-    int total_ghosts = 4;
+    // array of ghost pointers
+    Ghost** p_ghosts = nullptr;
     
     // Game States
     bool game_over = false;
@@ -70,25 +69,12 @@ class Game
         void SpawnThisGhost(Ghosts name, bool player_died);
         void SpawnAllGhosts();
         int SFX(Play playSFX);
-        void Add(Player& player);
-        void Add(Ghost& red, Ghost& yellow, Ghost& blue, Ghost& pink);
-        void Add(Level& level);
+        void Add(Player* player);
+        void Add(Ghost* red, Ghost* yellow, Ghost* blue, Ghost* pink);
+        void Add(Level* level);
         void SetPlayerState();
         void SetGhostMode();
         void SetCollisionDelay();
-        void SetRefreshDelay();
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+        void SetRefreshDelay();  
         
 };

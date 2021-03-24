@@ -8,11 +8,14 @@ int main()
 {
     // create objects
     Game game;
-    Level level;
-    Player player;
-    Ghost red(Ghosts::RED), yellow(Ghosts::YELLOW), blue(Ghosts::BLUE), pink(Ghosts::PINK);
+    Level* level = new Level;
+    Player* player = new Player;
+    Ghost* red = new Ghost(Ghosts::RED);
+    Ghost* yellow = new Ghost(Ghosts::YELLOW);
+    Ghost* blue = new Ghost(Ghosts::BLUE);
+    Ghost* pink = new Ghost(Ghosts::PINK);
 
-    // add level, player and the four ghost objects to the game
+    // add level, player and the four ghosts to the game
     game.Add(level);
     game.Add(player);
     game.Add(red, yellow, blue, pink);

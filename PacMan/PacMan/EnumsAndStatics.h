@@ -53,6 +53,7 @@ struct Globals
     static constexpr int gBLUE = 2;
     static constexpr int gPINK = 3;
     static constexpr int look_ahead = 4; // how far ahead the IA looks for player
+    static constexpr int total_ghosts = 4;
 
     // Level Map
     static constexpr int powerup = 254; //extended set of ascii 
@@ -85,5 +86,5 @@ struct Globals
     // Game delay / speed defaults
     static constexpr int gobble_delay = 750; // wait in milliseconds
     static constexpr int player_beat_delay = 1000; // wait in milliseconds
-    static constexpr int refresh_delay = 30; //milliseconds
+    static constexpr int refresh_delay = 65; //milliseconds
 };

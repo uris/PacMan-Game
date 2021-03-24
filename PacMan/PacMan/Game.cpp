@@ -13,23 +13,32 @@ using namespace std;
 //constructors
 Game::Game() {};
 
-
 //destructors
 Game::~Game()
 {
-    // level pointer to null
-    p_level = nullptr;
+    // delete ghosts array and set pointer to null
+    if (p_ghosts) {
+        for (int i = 0; i < Globals::total_ghosts; i++)
+        {
+            delete[] p_ghosts[i];
+        }
+        delete[] p_ghosts;
+        p_ghosts = nullptr;
+    }
     
     // player pointer to null
-    p_player = nullptr;
+    if (p_player) {
+        delete p_player;
+        p_player = nullptr;
+    }
 
-    // delete ghosts array and set pointer to null
-    delete[] p_ghosts;
-    p_ghosts = nullptr;
-    
+    // level pointer to null
+    if (p_level) {
+        delete p_level;
+        p_level = nullptr;
+    }
 };
-
-
+ 
 //game flow
 void Game::RunGame()
 {
@@ -196,10 +205,10 @@ void Game::MovePlayer()
     SetPlayerState();
 
     // check collision with a ghost and set the ghosts previous row to the new player position
-    for (int g = 0; g < 4; g++)
+    for (int g = 0; g < Globals::total_ghosts; g++)
     {
         if (PlayerGhostCollision(g)) {
-            p_ghosts[g].GetPreviousPosition().SetTo(p_player->GetCurrentPosition());
+            p_ghosts[g]->GetPreviousPosition().SetTo(p_player->GetCurrentPosition());
         }
     }
 }
@@ -209,32 +218,32 @@ int Game::MoveGhosts()
     Direction best_move = Direction::NONE; // will store the next move
     char map_content = ' '; // will store the content of the map at the move position
 
-    for (int g = 0; g < 4; g++)
+    for (int g = 0; g < Globals::total_ghosts; g++)
     {
-        if (p_ghosts[g].SkipTurn() || game_over || PlayerGhostCollision(g))
+        if (p_ghosts[g]->SkipTurn() || game_over || PlayerGhostCollision(g))
         {
             continue; // next ghost (no move)
         }
 
-        if (p_ghosts[g].GetWait() > 0)
+        if (p_ghosts[g]->GetWait() > 0)
         {
-            p_ghosts[g].DecreaseWait(); // ghost is waiting to leave spawn area
+            p_ghosts[g]->DecreaseWait(); // ghost is waiting to leave spawn area
             continue; // next ghost (no move)
         }
 
-        if (p_ghosts[g].GetMode() == Mode::RUN) // make random moves truning opposite direction on first move
+        if (p_ghosts[g]->GetMode() == Mode::RUN) // make random moves truning opposite direction on first move
         {
             best_move = RandomGhostMove(g); // get the random move
-            map_content = GetMapContent(p_ghosts[g].GetCurrentPosition(), best_move); // get map content at the move position
-            p_ghosts[g].MoveGhost(p_player->GetCurrentPosition(), best_move, map_content); // make the move
+            map_content = GetMapContent(p_ghosts[g]->GetCurrentPosition(), best_move); // get map content at the move position
+            p_ghosts[g]->MoveGhost(p_player->GetCurrentPosition(), best_move, map_content); // make the move
             continue; // next ghost
         }
 
-        if (p_ghosts[g].GetMode() != Mode::RUN)  // run recursive AI for chase, roam and spawn modes 
+        if (p_ghosts[g]->GetMode() != Mode::RUN)  // run recursive AI for chase, roam and spawn modes 
         {
             int score = 0, best_score = 1000;
             Coord next_move;
-            Coord current_posiiton = p_ghosts[g].GetCurrentPosition();
+            Coord current_posiiton = p_ghosts[g]->GetCurrentPosition();
             Direction new_direction = Direction::NONE;
 
             for (int i = 0; i <= 3; i++) // cycle through up,down,left,right to find the valid best next move
@@ -243,17 +252,17 @@ int Game::MoveGhosts()
                 new_direction = static_cast<Direction>(i); // set the direction we will get best move for
                 map_content = GetMapContent(current_posiiton, new_direction); // get the content on the map pos we are moving to 
 
-                if (p_ghosts[g].NotWall(map_content, new_direction) && !p_ghosts[g].IsReverseDirection(new_direction)) // check for next available square
+                if (p_ghosts[g]->NotWall(map_content, new_direction) && !p_ghosts[g]->IsReverseDirection(new_direction)) // check for next available square
                 {
                     // it's a viable move to position so set new coords of ghost
                     next_move.SetTo(current_posiiton, new_direction);
-                    p_ghosts[g].SetCurrentPosition(next_move);
+                    p_ghosts[g]->SetCurrentPosition(next_move);
 
                     // calculate distance score based on new coords
                     int score = GetBestMove(g, next_move, new_direction, 1); // get the minimax score for the move (recurssive)
 
                     // revert ghost coords back
-                    p_ghosts[g].SetCurrentPosition(current_posiiton);
+                    p_ghosts[g]->SetCurrentPosition(current_posiiton);
 
                     // if the new move score gets the ghost closer to the target coord
                     if (score < best_score)
@@ -264,10 +273,10 @@ int Game::MoveGhosts()
                 }
             }
 
-            map_content = GetMapContent(p_ghosts[g].GetCurrentPosition(), best_move); // get map content at the move position
+            map_content = GetMapContent(p_ghosts[g]->GetCurrentPosition(), best_move); // get map content at the move position
             map_content = GhostContentNow(map_content); // if the content is a ghosts set the contnet value of the gohst to the other ghosts content
             
-            p_ghosts[g].MoveGhost(p_player->GetCurrentPosition(), best_move, map_content); // do the move
+            p_ghosts[g]->MoveGhost(p_player->GetCurrentPosition(), best_move, map_content); // do the move
 
             continue; // next ghost
         }
@@ -281,16 +290,16 @@ char Game::GhostContentNow(char map_content)
     switch (map_content)
     {
     case Globals::red_ghost:
-        return p_ghosts[0].GetContentCurrent();
+        return p_ghosts[0]->GetContentCurrent();
         break;
     case Globals::yellow_ghost:
-        return p_ghosts[1].GetContentCurrent();
+        return p_ghosts[1]->GetContentCurrent();
         break;
     case Globals::blue_ghost:
-        return p_ghosts[2].GetContentCurrent();
+        return p_ghosts[2]->GetContentCurrent();
         break;
     case Globals::pink_ghost:
-        return p_ghosts[3].GetContentCurrent();
+        return p_ghosts[3]->GetContentCurrent();
         break;
     case Globals::player:
         return p_player->GetMovedIntoSquareContents();
@@ -330,9 +339,9 @@ void Game::PrintStatusBar()
     // message game over or level complete
     if (game_over)
     {
-        format = utility.Spacer("Game OVer! Press a key to continue.", p_level->cols);
+        format = utility.Spacer("Game Over! Press a key to continue.", p_level->cols);
         cout << format;
-        cout << "Game OVer! Press a key to continue.";
+        cout << "Game Over! Press a key to continue.";
         cout << format;
     }
     else if (p_level->is_complete)
@@ -359,17 +368,17 @@ void Game::SetGhostMode()
             p_level->roam_time_start = chrono::high_resolution_clock::now();
             p_level->roam_count--;
 
-            for (int g = 0; g < 4; g++) {
-                switch (p_ghosts[g].GetMode())
+            for (int g = 0; g < Globals::total_ghosts; g++) {
+                switch (p_ghosts[g]->GetMode())
                 {
                 case Mode::ROAM:
                 case Mode::CHASE:
-                    p_ghosts[g].SetMode(Mode::ROAM);
-                    p_ghosts[g].SetSkipTurn(false);
+                    p_ghosts[g]->SetMode(Mode::ROAM);
+                    p_ghosts[g]->SetSkipTurn(false);
                     break;
                 case Mode::RUN:
                 case Mode::SPAWN:
-                    p_ghosts[g].SetMode(p_ghosts[g].GetMode());
+                    p_ghosts[g]->SetMode(p_ghosts[g]->GetMode());
                     break;
                 }
             }
@@ -385,16 +394,16 @@ void Game::SetGhostMode()
             p_level->level_mode = Mode::CHASE;
             p_level->chase_time_start = chrono::high_resolution_clock::now();
 
-            for (int g = 0; g < 4; g++) {
-                switch (p_ghosts[g].GetMode())
+            for (int g = 0; g < Globals::total_ghosts; g++) {
+                switch (p_ghosts[g]->GetMode())
                 {
                 case Mode::ROAM:
-                    p_ghosts[g].SetMode(Mode::CHASE);
+                    p_ghosts[g]->SetMode(Mode::CHASE);
                     break;
                 case Mode::CHASE:
                 case Mode::RUN:
                 case Mode::SPAWN:
-                    p_ghosts[g].SetMode(p_ghosts[g].GetMode());
+                    p_ghosts[g]->SetMode(p_ghosts[g]->GetMode());
                 }
             }
         }
@@ -402,11 +411,11 @@ void Game::SetGhostMode()
 
         // set run mode stuff
     case Mode::SPAWN:
-        for (int g = 0; g < 4; g++)
+        for (int g = 0; g < Globals::total_ghosts; g++)
         {
-            if (p_ghosts[g].GetCurrentPosition().IsSame(p_level->ghost_spawn))
+            if (p_ghosts[g]->GetCurrentPosition().IsSame(p_level->ghost_spawn))
             {
-                p_ghosts[g].SetMode(Mode::CHASE);
+                p_ghosts[g]->SetMode(Mode::CHASE);
             }
         }
         break;
@@ -419,29 +428,29 @@ void Game::SetGhostMode()
             p_level->level_mode = Mode::CHASE;
             p_level->chase_time_start = chrono::high_resolution_clock::now();
 
-            for (int g = 0; g < 4; g++) {
-                switch (p_ghosts[g].GetMode())
+            for (int g = 0; g < Globals::total_ghosts; g++) {
+                switch (p_ghosts[g]->GetMode())
                 {
                 case Mode::RUN:
                 case Mode::ROAM:
-                    p_ghosts[g].SetMode(Mode::CHASE);
+                    p_ghosts[g]->SetMode(Mode::CHASE);
                     break;
                 case Mode::CHASE:
                 case Mode::SPAWN:
-                    p_ghosts[g].SetMode(p_ghosts[g].GetMode());
+                    p_ghosts[g]->SetMode(p_ghosts[g]->GetMode());
                 }
-                p_ghosts[g].SetSkipTurn(false); // when ghost is edible slow him down
-                p_ghosts[g].SetEdible(false);
-                p_ghosts[g].SetReverseMove(true);
+                p_ghosts[g]->SetSkipTurn(false); // when ghost is edible slow him down
+                p_ghosts[g]->SetEdible(false);
+                p_ghosts[g]->SetReverseMove(true);
             }
         }
         else // set the ghosts states while in run mode - some ghots can be in run mode and others in chase mode
         {
-            for (int g = 0; g < 4; g++) {
-                if (p_ghosts[g].GetMode() == Mode::RUN)
-                    p_ghosts[g].SetSkipTurn(!p_ghosts[g].SkipTurn()); // when ghost is edible slow him down
+            for (int g = 0; g < Globals::total_ghosts; g++) {
+                if (p_ghosts[g]->GetMode() == Mode::RUN)
+                    p_ghosts[g]->SetSkipTurn(!p_ghosts[g]->SkipTurn()); // when ghost is edible slow him down
                 else
-                    p_ghosts[g].SetReverseMove(false);
+                    p_ghosts[g]->SetReverseMove(false);
             }
 
         }
@@ -453,20 +462,20 @@ void Game::SetGhostMode()
 
 
 // game orchestration methods
-void Game::Add(Ghost& red, Ghost& yellow, Ghost& blue, Ghost& pink)
+void Game::Add(Ghost* red, Ghost* yellow, Ghost* blue, Ghost* pink)
 {
-    p_ghosts = new Ghost[4]{ red, yellow, blue, pink };
+    p_ghosts = new Ghost*[4]{ red, yellow, blue, pink };
 
 }
 
-void Game::Add(Player& player)
+void Game::Add(Player* player)
 {
-    p_player = &player;
+    p_player = player;
 }
 
-void Game::Add(Level& level)
+void Game::Add(Level* level)
 {
-    p_level = &level;
+    p_level = level;
 }
 
 void Game::SpawnThisGhost(Ghosts name, bool player_died)
@@ -476,16 +485,16 @@ void Game::SpawnThisGhost(Ghosts name, bool player_died)
         switch (name)
         {
         case Ghosts::RED:
-            p_ghosts[0].SpawnGhost(player_died);
+            p_ghosts[0]->SpawnGhost(player_died);
             break;
         case Ghosts::YELLOW:
-            p_ghosts[1].SpawnGhost(player_died);
+            p_ghosts[1]->SpawnGhost(player_died);
             break;
         case Ghosts::BLUE:
-            p_ghosts[2].SpawnGhost(player_died);
+            p_ghosts[2]->SpawnGhost(player_died);
             break;
         case Ghosts::PINK:
-            p_ghosts[3].SpawnGhost(player_died);
+            p_ghosts[3]->SpawnGhost(player_died);
             break;
         default:
             break;
@@ -498,9 +507,9 @@ void Game::SpawnAllGhosts()
 {
     if (p_ghosts)
     {
-        for (int i = 0; i < total_ghosts; i++)
+        for (int i = 0; i < Globals::total_ghosts; i++)
         {
-            p_ghosts[i].SpawnGhost(true);
+            p_ghosts[i]->SpawnGhost(true);
         }
     }
 
@@ -674,26 +683,26 @@ void Game::SetMapContents(Coord map_coord)
 
 bool Game::PlayerGhostCollision(const int g)
 {
-    return p_player->GetCurrentPosition().IsSame(p_ghosts[g].GetCurrentPosition()) ? true : false;
+    return p_player->GetCurrentPosition().IsSame(p_ghosts[g]->GetCurrentPosition()) ? true : false;
 }
 
 void Game::PlayerMonsterCollision()
 {
     bool player_died = false;
 
-    for (int g = 0; g < 4; g++) // loop ghosts
+    for (int g = 0; g < Globals::total_ghosts; g++) // loop ghosts
     {
-        if (p_player->GetCurrentPosition().IsSame(p_ghosts[g].GetCurrentPosition()))
+        if (p_player->GetCurrentPosition().IsSame(p_ghosts[g]->GetCurrentPosition()))
         {
             DrawLevel(); // print the move immediately
-            if (p_ghosts[g].IsEdible()) // ghost dies
+            if (p_ghosts[g]->IsEdible()) // ghost dies
             {
                 // if the ghost was on a pellet/powerup sqaure need to count it up
-                if (p_ghosts[g].GetContentCurrent() == (char)Globals::pellet || p_ghosts[g].GetContentCurrent() == (char)Globals::powerup)
+                if (p_ghosts[g]->GetContentCurrent() == (char)Globals::pellet || p_ghosts[g]->GetContentCurrent() == (char)Globals::powerup)
                     p_level->eaten_pellets++;
                 p_level->eaten_ghosts++; // increment ghosts eaten
                 gobble_pause = true; // set small pause after eating ghost
-                SpawnThisGhost(p_ghosts[g].Name(), false);
+                SpawnThisGhost(p_ghosts[g]->Name(), false);
                 p_player->EatGhost(g);
                 if (p_player->AllGhostsEaten()) {
                     p_level->all_eaten_ghosts += 1;
@@ -730,9 +739,9 @@ void Game::PlayerMonsterCollision()
         {
             player_beat_pause = true; // give player time to get ready
             p_player->ReSpawn();
-            for (int g = 0; g < 4; g++) {
+            for (int g = 0; g < Globals::total_ghosts; g++) {
                 // replace ghost with empty sqaure since the player was there an any pellet got eaten
-                p_level->p_map[p_ghosts[g].GetCurrentRow()][p_ghosts[g].GetCurrentCol()] = ' ';
+                p_level->p_map[p_ghosts[g]->GetCurrentRow()][p_ghosts[g]->GetCurrentCol()] = ' ';
                 // respawn ghost
                 SpawnAllGhosts();
             }
@@ -744,31 +753,30 @@ void Game::PlayerMonsterCollision()
             SFX(Play::DEATH);
         }
     }
-
 }
 
 int Game::GetBestMove(int g, Coord current_position, Direction current_direction, int depth)
 {
     // and on the target the ghost chases: red chases player pos, yellow player pos + 2 cols (to the right of player)
-    switch (p_ghosts[g].GetMode())
+    switch (p_ghosts[g]->GetMode())
     {
     case Mode::CHASE: // redude distance to player
-        if (p_ghosts[g].DistanceToPlayer(p_player->GetCurrentPosition()) == 0) { // if player and ghost collide return 0 + depth as score
+        if (p_ghosts[g]->DistanceToPlayer(p_player->GetCurrentPosition()) == 0) { // if player and ghost collide return 0 + depth as score
             return 0 + depth; // add depth to get fastest path
         }
         if (depth == Globals::look_ahead) { // if depth X return the distance score, increase this to make the ghost look forward more
-            return (p_ghosts[g].DistanceToPlayer(p_player->GetCurrentPosition()) + depth); // add depth to get fastest path
+            return (p_ghosts[g]->DistanceToPlayer(p_player->GetCurrentPosition()) + depth); // add depth to get fastest path
         }
         break;
     case Mode::ROAM: // reduce distance to the ghost's roam target
         if (depth == Globals::look_ahead) {
-            return p_ghosts[g].DistanceToRoamTarget();
+            return p_ghosts[g]->DistanceToRoamTarget();
         }
         break;
     case Mode::SPAWN: // target is above the exit area
-        if (p_ghosts[g].DistanceToSpawnTarget() == 0)
-            p_ghosts[g].SetMode(p_level->level_mode == Mode::RUN ? Mode::CHASE : p_level->level_mode);
-        return p_ghosts[g].DistanceToSpawnTarget();
+        if (p_ghosts[g]->DistanceToSpawnTarget() == 0)
+            p_ghosts[g]->SetMode(p_level->level_mode == Mode::RUN ? Mode::CHASE : p_level->level_mode);
+        return p_ghosts[g]->DistanceToSpawnTarget();
         break;
     }
 
@@ -783,17 +791,17 @@ int Game::GetBestMove(int g, Coord current_position, Direction current_direction
         new_direction = static_cast<Direction>(i); // cast index to direction up, down, left, right
         map_content = GetMapContent(current_position, new_direction); // get the content on the map pos we are moving to 
 
-        if (p_ghosts[g].NotWall(map_content, new_direction) && !p_ghosts[g].IsReverseDirection(new_direction)) // check if the direction is valid i.e not wall or reverse
+        if (p_ghosts[g]->NotWall(map_content, new_direction) && !p_ghosts[g]->IsReverseDirection(new_direction)) // check if the direction is valid i.e not wall or reverse
         {
             // set new coords of ghost
             next_move.SetTo(current_position, new_direction);
-            p_ghosts[g].SetCurrentPosition(next_move);
+            p_ghosts[g]->SetCurrentPosition(next_move);
 
             // calculate distance score based on new coords
             int score = GetBestMove(g, next_move, new_direction, depth + 1); // get the minimax score for the move (recurssive)
 
             // revert ghost coords back
-            p_ghosts[g].SetCurrentPosition(current_position);
+            p_ghosts[g]->SetCurrentPosition(current_position);
 
             // if the score of is better than the current bestscore set the score to be the new best score (min to get closer, max when running away)
             best_score = min(score, best_score);
@@ -807,8 +815,8 @@ Direction Game::RandomGhostMove(int g)
     Direction newDirection = Direction::NONE;
 
     // first move when on the run is ALWAYS to reverse direction which is ALWAYS a valid move
-    if (p_ghosts[g].ReverseMove()) {
-        switch (p_ghosts[g].GetDirection())
+    if (p_ghosts[g]->ReverseMove()) {
+        switch (p_ghosts[g]->GetDirection())
         {
         case Direction::UP:
             newDirection = Direction::DOWN;
@@ -823,23 +831,23 @@ Direction Game::RandomGhostMove(int g)
             newDirection = Direction::RIGHT;
             break;
         }
-        p_ghosts[g].SetReverseMove(false);
+        p_ghosts[g]->SetReverseMove(false);
         return newDirection;
     }
 
-    Coord move(p_ghosts[g].GetCurrentPosition());
+    Coord move(p_ghosts[g]->GetCurrentPosition());
     int unsigned seed = (int)(std::chrono::system_clock::now().time_since_epoch().count());
     srand(seed);
 
     if (p_level->IsTeleport(move)) // if on teleportkeep the same direction
-        p_ghosts[g].GetDirection() == Direction::LEFT ? newDirection = Direction::LEFT : newDirection = Direction::RIGHT;
+        p_ghosts[g]->GetDirection() == Direction::LEFT ? newDirection = Direction::LEFT : newDirection = Direction::RIGHT;
     else // else choose a valid random direction
     {
         do
         {
             int randomNumber = rand() % 4; //generate random number to select from the 4 possible options
             newDirection = static_cast<Direction>(randomNumber);
-        } while (!p_level->NotWall(p_player, Coord(move, newDirection), newDirection) || p_ghosts[g].IsReverseDirection(newDirection));
+        } while (!p_level->NotWall(p_player, Coord(move, newDirection), newDirection) || p_ghosts[g]->IsReverseDirection(newDirection));
     }
     return newDirection;
 }
@@ -853,11 +861,11 @@ void Game::SetPlayerState()
         p_level->eaten_pellets++;
         break;
     case (char)Globals::powerup: // eat power up
-        for (int g = 0; g < 4; g++) // loop ghosts
+        for (int g = 0; g < Globals::total_ghosts; g++) // loop ghosts
         {
-            p_ghosts[g].GetMode() != Mode::SPAWN ? p_ghosts[g].SetEdible(true) : p_ghosts[g].SetEdible(false); // ghost only edible on power up if out of spwan area
-            p_ghosts[g].IsEdible() ? p_ghosts[g].SetMode(Mode::RUN) : p_ghosts[g].SetMode(p_ghosts[g].GetMode());
-            p_ghosts[g].GetMode() == Mode::RUN ? p_ghosts[g].SetReverseMove(true) : p_ghosts[g].SetReverseMove(false);
+            p_ghosts[g]->GetMode() != Mode::SPAWN ? p_ghosts[g]->SetEdible(true) : p_ghosts[g]->SetEdible(false); // ghost only edible on power up if out of spwan area
+            p_ghosts[g]->IsEdible() ? p_ghosts[g]->SetMode(Mode::RUN) : p_ghosts[g]->SetMode(p_ghosts[g]->GetMode());
+            p_ghosts[g]->GetMode() == Mode::RUN ? p_ghosts[g]->SetReverseMove(true) : p_ghosts[g]->SetReverseMove(false);
         }
         if (p_level->level_mode != Mode::RUN)
             p_player->ClearEatenGohsts();

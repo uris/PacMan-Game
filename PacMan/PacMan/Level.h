@@ -57,11 +57,11 @@ public:
     ~Level();
 
 	// methods
-    void SetupLevel(Player* p_player, Ghost* p_ghosts, int& current_scene);
-    void CreateLevelScene(Player* p_player, Ghost* p_ghosts, int& current_scene);
+    void SetupLevel(Player* p_player, Ghost** p_ghosts, int& current_scene);
+    void CreateLevelScene(Player* p_player, Ghost** p_ghosts, int& current_scene);
     string LoadSceneFromFile(string filename, int scene_to_load);
     Coord MapSize(const string& map);
-    void DrawLevel(Player* p_player, Ghost* p_ghosts);
+    void DrawLevel(Player* p_player, Ghost** p_ghosts);
     bool NotWall(const Player* player, const Coord& move, const Direction& direction);
     void CheckLevelComplete();
     bool IsTeleport(const Coord& move);

@@ -21,15 +21,18 @@ Level::Level()
 Level::~Level()
 {
     // deallocate the dynamic level array
-    for (int i = 0; i < rows; i++) {
-        delete[] p_map[i];
+    if (p_map)
+    {
+        for (int i = 0; i < rows; i++) {
+            delete[] p_map[i];
+        }
+        delete[] p_map;
+        p_map = nullptr;
     }
-    delete[] p_map;
-    p_map = nullptr;
 }
 
 // Public Methods
-void Level::SetupLevel(Player* player, Ghost* ghosts, int& current_scene)
+void Level::SetupLevel(Player* player, Ghost** p_ghosts, int& current_scene)
 {
     // reset initial state of key level variables
     level_paused = true;
@@ -42,13 +45,13 @@ void Level::SetupLevel(Player* player, Ghost* ghosts, int& current_scene)
     is_complete = false;
 
     // create the scene map and set up player + ghosts accordingly
-    CreateLevelScene(player, ghosts, current_scene);
+    CreateLevelScene(player, p_ghosts, current_scene);
 
     // start the chase timer
     chase_time_start = chrono::high_resolution_clock::now();
 }
 
-void Level::CreateLevelScene(Player* p_player, Ghost* p_ghosts, int& current_scene)
+void Level::CreateLevelScene(Player* p_player, Ghost** p_ghosts, int& current_scene)
 {
     Utility utility;
 
@@ -109,9 +112,9 @@ void Level::CreateLevelScene(Player* p_player, Ghost* p_ghosts, int& current_sce
             total_pellets++;
 
             // set ghosts spawn target
-            for (int g = 0; g < 4; g++) // loop through ghosts
+            for (int g = 0; g < Globals::total_ghosts; g++) // loop through ghosts
             {
-                p_ghosts[g].SetSpawnTarget(row, col);
+                p_ghosts[g]->SetSpawnTarget(row, col);
             }
         }
 
@@ -133,9 +136,9 @@ void Level::CreateLevelScene(Player* p_player, Ghost* p_ghosts, int& current_sce
             break;
         }
         if (index >= 0 && index < 4) {
-            p_ghosts[index].SetSpawnPosition(row, col);
-            p_ghosts[index].SetCurrentPosition(row, col);
-            p_ghosts[index].SetPreviousPosition(row, col);
+            p_ghosts[index]->SetSpawnPosition(row, col);
+            p_ghosts[index]->SetCurrentPosition(row, col);
+            p_ghosts[index]->SetPreviousPosition(row, col);
         }
 
 
@@ -297,7 +300,7 @@ Coord Level::MapSize(const string& map)
     return { (int)rows, (int)cols };
 }
 
-void Level::DrawLevel(Player* p_player, Ghost* p_ghosts)
+void Level::DrawLevel(Player* p_player, Ghost** p_ghosts)
 {
     Draw draw;
     Utility utility;
@@ -315,13 +318,13 @@ void Level::DrawLevel(Player* p_player, Ghost* p_ghosts)
             switch (p_map[r][c])
             {
             case Globals::red_ghost:
-                p_map[r][c] = p_ghosts[0].GetPreviousSqaureContent();
+                p_map[r][c] = p_ghosts[0]->GetPreviousSqaureContent();
             case Globals::yellow_ghost:
-                p_map[r][c] = p_ghosts[1].GetPreviousSqaureContent();
+                p_map[r][c] = p_ghosts[1]->GetPreviousSqaureContent();
             case Globals::blue_ghost:
-                p_map[r][c] = p_ghosts[2].GetPreviousSqaureContent();
+                p_map[r][c] = p_ghosts[2]->GetPreviousSqaureContent();
             case Globals::pink_ghost:
-                p_map[r][c] = p_ghosts[3].GetPreviousSqaureContent();
+                p_map[r][c] = p_ghosts[3]->GetPreviousSqaureContent();
             }
         }
     }
@@ -343,22 +346,22 @@ void Level::DrawLevel(Player* p_player, Ghost* p_ghosts)
         p_player->SetCurrentPosition(tp_1);
     }
 
-    for (int g = 0; g < 4; g++) // loop through ghots
+    for (int g = 0; g < Globals::total_ghosts; g++) // loop through ghots
     {
         // remove ghosts from map at last position if they are different
-        if (p_ghosts[g].GetPreviousPosition().IsSame(p_ghosts[g].GetCurrentPosition()))
-            p_map[p_ghosts[g].GetPreviousRow()][p_ghosts[g].GetPreviousCol()] = Globals::space;
+        if (p_ghosts[g]->GetPreviousPosition().IsSame(p_ghosts[g]->GetCurrentPosition()))
+            p_map[p_ghosts[g]->GetPreviousRow()][p_ghosts[g]->GetPreviousCol()] = Globals::space;
 
         // ghost in tunnel
-        if (!p_ghosts[g].SkipTurn())
+        if (!p_ghosts[g]->SkipTurn())
         {
-            if (p_ghosts[g].GetCurrentPosition().IsSame(tp_1)) {
-                p_map[p_ghosts[g].GetCurrentRow()][p_ghosts[g].GetCurrentCol()] = Globals::teleport;
-                p_ghosts[g].SetCurrentPosition(tp_2);
+            if (p_ghosts[g]->GetCurrentPosition().IsSame(tp_1)) {
+                p_map[p_ghosts[g]->GetCurrentRow()][p_ghosts[g]->GetCurrentCol()] = Globals::teleport;
+                p_ghosts[g]->SetCurrentPosition(tp_2);
             }
-            else if (p_ghosts[g].GetCurrentPosition().IsSame(tp_2)) {
-                p_map[p_ghosts[g].GetCurrentRow()][p_ghosts[g].GetCurrentCol()] = Globals::teleport;
-                p_ghosts[g].SetCurrentPosition(tp_1);
+            else if (p_ghosts[g]->GetCurrentPosition().IsSame(tp_2)) {
+                p_map[p_ghosts[g]->GetCurrentRow()][p_ghosts[g]->GetCurrentCol()] = Globals::teleport;
+                p_ghosts[g]->SetCurrentPosition(tp_1);
             }
         }
 
@@ -382,18 +385,18 @@ void Level::DrawLevel(Player* p_player, Ghost* p_ghosts)
             if (p_player->GetCurrentPosition().IsSame(Coord(r, c)))
                 p_map[r][c] = Globals::player;
 
-            for (int g = 0; g < 4; g++) // loop through ghots
+            for (int g = 0; g < Globals::total_ghosts; g++) // loop through ghots
             {
                 // position ghost
-                if (p_ghosts[g].GetCurrentPosition().IsSame(Coord(r, c)))
-                    p_map[r][c] = p_ghosts[g].GhostChar();
+                if (p_ghosts[g]->GetCurrentPosition().IsSame(Coord(r, c)))
+                    p_map[r][c] = p_ghosts[g]->GhostChar();
 
                 // if the ghost moved from the last position
-                if (!p_ghosts[g].GetPreviousPosition().IsSame(p_ghosts[g].GetCurrentPosition()))
+                if (!p_ghosts[g]->GetPreviousPosition().IsSame(p_ghosts[g]->GetCurrentPosition()))
                 {
                     // put back the content of the square the ghost was last at
-                    if (p_ghosts[g].GetPreviousPosition().IsSame(Coord(r, c)))
-                        p_map[r][c] = p_ghosts[g].GetPreviousSqaureContent();
+                    if (p_ghosts[g]->GetPreviousPosition().IsSame(Coord(r, c)))
+                        p_map[r][c] = p_ghosts[g]->GetPreviousSqaureContent();
                 }
             }
 
@@ -415,39 +418,39 @@ void Level::DrawLevel(Player* p_player, Ghost* p_ghosts)
                 draw.SetColor(Globals::cWHITE); // white for power ups
                 break;
             case Globals::pink_ghost: // blue ghost
-                if (p_ghosts[3].IsEdible()) { // flashing effect - signals edible sate of ghost
-                    p_ghosts[3].FlashBlue() ? draw.SetColor(Globals::cGHOST_ON) : draw.SetColor(Globals::cGHOST_OFF);
-                    p_ghosts[3].SetFlashBlue(!p_ghosts[0].FlashBlue());
+                if (p_ghosts[3]->IsEdible()) { // flashing effect - signals edible sate of ghost
+                    p_ghosts[3]->FlashBlue() ? draw.SetColor(Globals::cGHOST_ON) : draw.SetColor(Globals::cGHOST_OFF);
+                    p_ghosts[3]->SetFlashBlue(!p_ghosts[0]->FlashBlue());
                 }
                 else { // solid color
-                    draw.SetColor(p_ghosts[3].GetColor());
+                    draw.SetColor(p_ghosts[3]->GetColor());
                 }
                 break;
             case Globals::yellow_ghost: // yellow ghost
-                if (p_ghosts[1].IsEdible()) { // flashing effect - signals edible sate of ghost
-                    p_ghosts[1].FlashBlue() ? draw.SetColor(Globals::cGHOST_ON) : draw.SetColor(Globals::cGHOST_OFF);
-                    p_ghosts[1].SetFlashBlue(!p_ghosts[0].FlashBlue());
+                if (p_ghosts[1]->IsEdible()) { // flashing effect - signals edible sate of ghost
+                    p_ghosts[1]->FlashBlue() ? draw.SetColor(Globals::cGHOST_ON) : draw.SetColor(Globals::cGHOST_OFF);
+                    p_ghosts[1]->SetFlashBlue(!p_ghosts[0]->FlashBlue());
                 }
                 else { // solid color
-                    draw.SetColor(p_ghosts[1].GetColor());
+                    draw.SetColor(p_ghosts[1]->GetColor());
                 }
                 break;
             case Globals::blue_ghost: // green ghost
-                if (p_ghosts[2].IsEdible()) { // flashing effect - signals edible sate of ghost
-                    p_ghosts[2].FlashBlue() ? draw.SetColor(Globals::cGHOST_ON) : draw.SetColor(Globals::cGHOST_OFF);
-                    p_ghosts[2].SetFlashBlue(!p_ghosts[0].FlashBlue());
+                if (p_ghosts[2]->IsEdible()) { // flashing effect - signals edible sate of ghost
+                    p_ghosts[2]->FlashBlue() ? draw.SetColor(Globals::cGHOST_ON) : draw.SetColor(Globals::cGHOST_OFF);
+                    p_ghosts[2]->SetFlashBlue(!p_ghosts[0]->FlashBlue());
                 }
                 else { // solid color
-                    draw.SetColor(p_ghosts[2].GetColor());
+                    draw.SetColor(p_ghosts[2]->GetColor());
                 }
                 break;
             case Globals::red_ghost: // red ghost
-                if (p_ghosts[0].IsEdible()) { // flashing effect - signals edible sate of ghost
-                    p_ghosts[0].FlashBlue() ? draw.SetColor(Globals::cGHOST_ON) : draw.SetColor(Globals::cGHOST_OFF);
-                    p_ghosts[0].SetFlashBlue(!p_ghosts[0].FlashBlue());
+                if (p_ghosts[0]->IsEdible()) { // flashing effect - signals edible sate of ghost
+                    p_ghosts[0]->FlashBlue() ? draw.SetColor(Globals::cGHOST_ON) : draw.SetColor(Globals::cGHOST_OFF);
+                    p_ghosts[0]->SetFlashBlue(!p_ghosts[0]->FlashBlue());
                 }
                 else { // solid color
-                    draw.SetColor(p_ghosts[0].GetColor());
+                    draw.SetColor(p_ghosts[0]->GetColor());
                 }
                 break;
             case Globals::player: // player
