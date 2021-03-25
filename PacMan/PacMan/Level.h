@@ -9,7 +9,14 @@
 using namespace std;
 using namespace std::chrono;
 
-class Level
+class ILeverInterface
+{
+    virtual void CheckLevelComplete() = 0;
+    // funtions here
+};
+
+
+class Level : ILeverInterface
 {
 public:
     // level map and scene
@@ -63,6 +70,6 @@ public:
     Coord MapSize(const string& map);
     void DrawLevel(Player* p_player, Ghost** p_ghosts);
     bool NotWall(const Player* player, const Coord& move, const Direction& direction);
-    void CheckLevelComplete();
+    void CheckLevelComplete() override;
     bool IsTeleport(const Coord& move);
 };

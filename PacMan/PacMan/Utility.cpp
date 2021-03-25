@@ -4,6 +4,8 @@
 
 using namespace std;
 
+int Utility::count = 0;
+
 //constructors
 Utility::Utility() {};
 
@@ -33,6 +35,20 @@ void Utility::ReplaceString(string& text, const string from, const char to)
 }
 string Utility::Spacer(const string& format, const int block_width)
 {
+    count++;
+    // used to center the "format" string -> cout the return on either side of the string to print
+    int spacer = ((block_width - (int)format.size()) / 2);
+    string spaces = "";
+    for (int i = 0; i < spacer; i++)
+    {
+        spaces = spaces + " ";
+    }
+    return spaces;
+}
+
+string Utility::StaticSpacer(const string& format, const int block_width)
+{
+    count++;
     // used to center the "format" string -> cout the return on either side of the string to print
     int spacer = ((block_width - (int)format.size()) / 2);
     string spaces = "";

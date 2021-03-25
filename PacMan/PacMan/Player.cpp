@@ -1,6 +1,13 @@
 #include "Player.h"
+#include "Level.h" // 
 
-Player::Player() {};
+Player::Player() 
+{
+	if (level)
+	{
+		level->CheckLevelComplete();
+	}
+};
 
 
 // methods

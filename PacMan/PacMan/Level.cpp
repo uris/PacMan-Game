@@ -75,7 +75,7 @@ void Level::CreateLevelScene(Player* p_player, Ghost** p_ghosts, int& current_sc
     cols = size.col; // set lsizes in level
     rows = size.row; // set sizes in level
 
-     char** p_mapArray = new char* [size.row];
+    char** p_mapArray = new char* [size.row];
     for (int i = 0; i < size.row; i++)
     {
         p_mapArray[i] = new char[size.col];
@@ -381,6 +381,10 @@ void Level::DrawLevel(Player* p_player, Ghost** p_ghosts)
     {
         for (int c = 0; c < cols; c++)
         {
+            //Character* characters[5] = { Player, ghost1 };
+
+            //characters[0]->DrawCharacter();
+
             // position player
             if (p_player->GetCurrentPosition().IsSame(Coord(r, c)))
                 p_map[r][c] = Globals::player;

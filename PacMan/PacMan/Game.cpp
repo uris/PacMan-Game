@@ -106,7 +106,7 @@ void Game::RunGame()
 void Game::GameCredits()
 {
     Draw draw;
-    Utility utility;
+    //Utility utility;
     string ghost;
 
     draw.ShowConsoleCursor(false);
@@ -126,7 +126,8 @@ void Game::GameCredits()
     ghost += "    ***      *****    ****      ***\n";
 
     // print image
-    string format = utility.Spacer("PACMAN 2021", 40);
+    Utility::count = 15;
+    string format = Utility::StaticSpacer("PACMAN 2021", 40);
     cout << endl << endl;
     draw.SetColor(7);
     cout << ghost;

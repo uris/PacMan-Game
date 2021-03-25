@@ -24,6 +24,12 @@ public:
 	virtual void MoveTo(Coord coord, Direction direction);
 	bool NotWall(const char map_char_content, const Direction direction);
 
+	virtual void DrawCharacter() 
+	{
+		//draw character
+		//0
+	};
+
 	// getters
 	int GetCurrentRow();
 	int GetCurrentCol();

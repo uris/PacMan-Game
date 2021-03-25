@@ -1,8 +1,14 @@
 #pragma once
 #include "Character.h"
+//#include "Ghost.h"
+
+//class Level; // forward declare level
 
 class Player : public Character
 {
+    class Level* level = nullptr; // fwd declare and make ptr
+    //Level noptr = Level();// does not compile
+    //Ghost test = Ghost(); // does not compile
 
 private:
     bool is_super = false;
@@ -26,6 +32,15 @@ public:
     bool HasNoLives();
     bool AllGhostsEaten();
 
+
+    void DrawCharacter() override 
+    {
+        // do somehting
+        Character::DrawCharacter();
+        //15
+    }
+    void DrawCharacter(char a) { };
+
     // getters
     char GetMovedIntoSquareContents();
     int Lives();
@@ -37,5 +52,6 @@ public:
     void SetLives(int number);
     void SetScore(int score);
     void SetMovedIntoSquareContents(char ascii);
+    void SetLevelPointer(Level* levelPtr) { level = levelPtr; }
 
 };
