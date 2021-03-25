@@ -2,22 +2,22 @@
 #include <chrono>
 #include <string>
 #include "Coord.h"
-#include "Ghost.h"
-#include "Player.h"
 #include "EnumsAndStatics.h"
 
 using namespace std;
 using namespace std::chrono;
 
-class ILevelInterface
-{
-    virtual void CheckLevelComplete() = 0;
-    // and other funtions here
-};
+//class ILevelInterface
+//{
+//    virtual void CheckLevelComplete() = 0;
+//    // and other funtions here
+//};
 
 
-class Level : ILevelInterface
+class Level
 {
+    class Game* p_game = nullptr; // fwd declare class
+
 public:
     // level map and scene
     string title = "Scene 1";
@@ -64,12 +64,18 @@ public:
     ~Level();
 
 	// methods
-    void SetupLevel(Player* p_player, Ghost** p_ghosts, int& current_scene);
-    void CreateLevelScene(Player* p_player, Ghost** p_ghosts, int& current_scene);
+    void SetupLevel(int& current_scene);
+    void CreateLevelScene(int& current_scene);
     string LoadSceneFromFile(string filename, int scene_to_load);
     Coord MapSize(const string& map);
-    void DrawLevel(Player* p_player, Ghost** p_ghosts);
-    bool NotWall(const Player* player, const Coord& move, const Direction& direction);
-    void CheckLevelComplete() override;
+    void DrawLevel();
+    bool NotWall(const Coord& move, const Direction& direction);
+    void CheckLevelComplete();
     bool IsTeleport(const Coord& move);
+
+    // getters
+    bool GameRefIsSet();
+
+    //setter for forward class
+    void SetGameRef(Game* p_game);
 };

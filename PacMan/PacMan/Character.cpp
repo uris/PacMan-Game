@@ -21,11 +21,6 @@ bool Character::IsReverseDirection(Direction new_direction)
 	return false;
 }
 
-bool  Character::HasCollided(Character character)
-{
-	return (current_position.IsSame(character.current_position));
-}
-
 void Character::MoveTo(Coord coord, Direction direction)
 {
 	current_position = coord;
@@ -46,26 +41,6 @@ void Character::MoveTo(Coord coord, Direction direction)
 	case Direction::NONE:
 		break;
 	}
-}
-
-bool Character::NotWall(const char map_char_content, const Direction direction)
-{
-	switch (map_char_content)
-	{
-	case Globals::space:
-	case Globals::teleport:
-	case (char)Globals::pellet:
-	case (char)Globals::powerup:
-	case Globals::red_ghost:
-	case Globals::yellow_ghost:
-	case Globals::blue_ghost:
-	case Globals::pink_ghost:
-	case Globals::player:
-		return true;
-	case Globals::one_way: // one way move to exit ghost spawn area
-		return (direction != Direction::DOWN ? true : false);
-	}
-	return false;
 }
 
 

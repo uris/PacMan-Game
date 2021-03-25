@@ -15,15 +15,6 @@ class Game
     Utility utility;
     Draw draw;
     
-    // level
-    Level* p_level = nullptr;
-    
-    // player
-    Player* p_player = nullptr;
-
-    // ghosts
-    Ghost** p_ghosts = nullptr;
-    
     // Game States
     bool game_over = false;
     bool gobble_pause = false;
@@ -31,13 +22,21 @@ class Game
 
     // Game level
     int current_scene = 1;
-    char map_contents[4]{};
 
     //SFX
     Play sfx = Play::NONE;
     high_resolution_clock::time_point sfx_start = std::chrono::high_resolution_clock::now();
 
     public:
+        // level - public for class forwarding
+        Level* p_level = nullptr;
+
+        // player - public for class forwarding
+        Player* p_player = nullptr;
+
+        // ghosts -- public for class forwarding
+        Ghost** p_ghosts = nullptr;
+        
         // game constructors
         Game();
 
@@ -49,23 +48,17 @@ class Game
         void GameCredits();
         void SetupGame();
         void MovePlayer();
-        int MoveGhosts();
-        int GetBestMove(int g, Coord new_position, Direction current_direction, int depth);
-        char GetMapContent(Coord map_coord, Direction direction);
-        void SetMapContents(Coord map_coord);
-        bool PlayerGhostCollision(const int g);
+        void MoveGhosts();
         bool NextLevelRestartGame();
         void PrintStatusBar();
         void DrawLevel();
+        bool IsGameOver();
         
         // game orchestration methods
-        char GhostContentNow(char ghost_char);
-        Direction RandomGhostMove(int g);
         void PlayerMonsterCollision();
         void CheckLevelComplete();
         void NextScene();
         void GetKeyboardInput();
-        void SpawnThisGhost(Ghosts name, bool player_died);
         void SpawnAllGhosts();
         int SFX(Play playSFX);
         void Add(Player* player);

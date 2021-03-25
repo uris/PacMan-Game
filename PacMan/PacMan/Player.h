@@ -2,13 +2,14 @@
 #include "Character.h"
 //#include "Ghost.h"
 
-//class Level; // forward declare level
+//class IPlayerInterface : public Character
+//{
+//    virtual Coord GetCurrentPosition() {};
+//};
 
 class Player : public Character
 {
-    class Level* level = nullptr; // fwd declare and make ptr
-    //Level noptr = Level();// does not compile
-    //Ghost test = Ghost(); // does not compile
+    class Game* p_game = nullptr; // fwd declare class
 
 private:
     bool is_super = false;
@@ -21,8 +22,11 @@ public:
     //constructors
     Player();
 
+    //destructors
+    ~Player();
+
     // methods
-    void MovePlayer(char map_contents[]);
+    void MovePlayer();
     void AddLives(int number);
     void TakeLives(int number);
     void ReSpawn();
@@ -31,27 +35,21 @@ public:
     void ClearEatenGohsts();
     bool HasNoLives();
     bool AllGhostsEaten();
-
-
-    void DrawCharacter() override 
-    {
-        // do somehting
-        Character::DrawCharacter();
-        //15
-    }
-    void DrawCharacter(char a) { };
+    bool PayerGhostCollision(int ghost_index);
 
     // getters
     char GetMovedIntoSquareContents();
     int Lives();
     void PowerUp(bool powerup);
     int GetScore();
+    Coord GetCurrentPosition();
+    bool GameRefIsSet();
 
     // setters
     void SetLives();
     void SetLives(int number);
     void SetScore(int score);
     void SetMovedIntoSquareContents(char ascii);
-    void SetLevelPointer(Level* levelPtr) { level = levelPtr; }
+    void SetGameRef(Game* p_game);
 
 };

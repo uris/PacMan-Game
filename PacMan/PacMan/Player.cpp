@@ -1,13 +1,19 @@
 #include "Player.h"
-#include "Level.h" // include the level header her with access to the interface functions
+#include "Game.h"
 
 Player::Player() 
 {
-	if (level)
-	{
-		level->CheckLevelComplete();
-	}
+
 };
+
+//destructors
+Player::~Player()
+{
+	if (p_game)
+	{
+		p_game = nullptr;
+	}
+}
 
 
 // methods
@@ -78,7 +84,7 @@ bool Player::HasNoLives()
 	return(lives < 1 ? true : false);
 }
 
-void Player::MovePlayer(char map_contents[])
+void Player::MovePlayer()
 {
 	previous_position = current_position;
 	Coord next_position(current_position, previous_direction);
@@ -86,25 +92,25 @@ void Player::MovePlayer(char map_contents[])
 	switch (current_direction)
 	{
 	case Direction::UP: //up
-		if (NotWall(map_contents[0], Direction::UP)) {
+		if (p_game->p_level->NotWall(current_position, Direction::UP)) {
 			next_position.SetTo(current_position, Direction::UP);
 			previous_direction = Direction::UP;
 		}
 		break;
 	case Direction::RIGHT: // right
-		if (NotWall(map_contents[1], Direction::RIGHT)) {
+		if (p_game->p_level->NotWall(current_position, Direction::RIGHT)) {
 			next_position.SetTo(current_position, Direction::RIGHT);
 			previous_direction = Direction::RIGHT;
 		}
 		break;
 	case Direction::DOWN: // down
-		if (NotWall(map_contents[2], Direction::DOWN)) {
+		if (p_game->p_level->NotWall(current_position, Direction::DOWN)) {
 			next_position.SetTo(current_position, Direction::DOWN);
 			previous_direction = Direction::DOWN;
 		}
 		break;
 	case Direction::LEFT: // left
-		if (NotWall(map_contents[3], Direction::LEFT)) {
+		if (p_game->p_level->NotWall(current_position, Direction::LEFT)) {
 			next_position.SetTo(current_position, Direction::LEFT);
 			previous_direction = Direction::LEFT;
 		}
@@ -115,25 +121,30 @@ void Player::MovePlayer(char map_contents[])
 	switch (previous_direction)
 	{
 	case Direction::UP:
-		if (!NotWall(map_contents[0], Direction::UP))
+		if (!p_game->p_level->NotWall(current_position, Direction::UP))
 			next_position = current_position;
 		break;
 	case Direction::RIGHT:
-		if (!NotWall(map_contents[1], Direction::RIGHT))
+		if (!p_game->p_level->NotWall(current_position, Direction::RIGHT))
 			next_position = current_position;
 		break;
 	case Direction::DOWN:
-		if (!NotWall(map_contents[2], Direction::DOWN))
+		if (!p_game->p_level->NotWall(current_position, Direction::DOWN))
 			next_position = current_position;
 		break;
 	case Direction::LEFT:
-		if (!NotWall(map_contents[3], Direction::LEFT))
+		if (!p_game->p_level->NotWall(current_position, Direction::LEFT))
 			next_position = current_position;
 		break;
 	}
 
 	// move the player
 	current_position = next_position;
+}
+
+bool Player::PayerGhostCollision(int ghost_index)
+{
+	return (current_position.IsSame(p_game->p_ghosts[ghost_index]->GetCurrentPosition()));
 }
 
 
@@ -158,6 +169,16 @@ char Player::GetMovedIntoSquareContents()
 	return player_move_content;
 }
 
+Coord Player::GetCurrentPosition()
+{
+	return current_position;
+}
+
+bool Player::GameRefIsSet()
+{
+	return (p_game ? true : false);
+}
+
 
 // setters
 void Player::SetLives()
@@ -178,4 +199,9 @@ void Player::SetScore(int score)
 void Player::SetMovedIntoSquareContents(char ascii)
 {
 	player_move_content = ascii;
+}
+
+void Player::SetGameRef(Game* p_game)
+{
+	this->p_game = p_game;
 }

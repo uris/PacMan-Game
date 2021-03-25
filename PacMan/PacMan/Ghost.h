@@ -1,12 +1,13 @@
 #pragma once
 #include "Character.h"
-#include "Player.h"
 #include "Coord.h"
 #include "EnumsAndStatics.h"
 
 class Ghost: public Character
 {
 private:
+    // forward class declared as pointer to game object
+    class Game* p_game = nullptr;
 
     // gets set once based on ghost type
     Ghosts name;
@@ -33,6 +34,9 @@ public:
     Ghost();
     Ghost(Ghosts ghost);
 
+    //destructors
+    ~Ghost();
+
     // methods
     int DistanceToPlayer(Coord player_current_position);
     int DistanceToRoamTarget();
@@ -40,12 +44,10 @@ public:
     bool PlayerCollision(Coord player_coord);
     void DecreaseWait();
     void MoveGhost(const Coord player_coord, const Direction direction, const char map_content);
-    int GetGhostMove(const bool game_over, Player* p_player, char** p_map, Mode level_mode, Ghost** p_ghosts);
-    int GetBestMove(char** p_map, Player* p_player, Coord current_position, Direction current_direction, Mode level_mode, int depth);
-    Direction RandomGhostMove(char** p_map);
-    char GhostContentNow(Ghost** p_ghosts, Player* p_player, char map_content);
-    char GetMapContent(char** p_map, Coord map_coord, Direction direction);
-    bool IsTeleport(char** p_map);
+    int MakeGhostMove();
+    int GetBestMove(Coord current_position, Direction current_direction, int depth);
+    Direction RandomGhostMove();
+    char GhostContentNow(Direction best_move);
 
     // Getters
     Coord GetChaseModifier();
@@ -62,6 +64,7 @@ public:
     Coord GetSpawnTarget();
     char GhostChar();
     bool ReverseMove();
+    bool GameRefIsSet();
 
     // Setters
     void SetPreviousSqaureContent(char content);
@@ -73,8 +76,11 @@ public:
     void SetColor(int color);
     void SetWait(int wait);
     void SetSkipTurn(bool skip_turn);
-    void SpawnGhost(bool player_died);
+    void SpawnGhost(Ghosts name, bool player_died);
     void SetSpawnTarget(Coord spawn_target);
     void SetSpawnTarget(int row, int col);
     void SetReverseMove(bool reverse);
+
+    //setter for forward class
+    void SetGameRef(Game* p_game);
 };
