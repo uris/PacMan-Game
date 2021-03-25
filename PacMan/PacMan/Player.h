@@ -48,5 +48,4 @@ public:
     void SetScore(int score);
     void SetMovedIntoSquareContents(char ascii);
     void SetGameRef(Game* p_game);
-
 };

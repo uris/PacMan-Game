@@ -127,7 +127,7 @@ void Game::RunGame()
 void Game::GameCredits()
 {
     string ghost;
-    draw.ShowConsoleCursor(false);
+    Draw::ShowConsoleCursor(false);
 
     ghost += "               *********\n";
     ghost += "           *****************\n";
@@ -146,9 +146,9 @@ void Game::GameCredits()
     // print image
     string format = Utility::Spacer("PACMAN 2021", 40);
     cout << endl << endl;
-    draw.SetColor(7);
+    Draw::SetColor(7);
     cout << ghost;
-    draw.SetColor(7);
+    Draw::SetColor(7);
     cout << endl;
     cout << format;
     cout << "PACMAN 2021";
@@ -185,7 +185,7 @@ void Game::DrawLevel()
         // pause before starting the level
         if (p_level->level_paused) {
             // before start of level get any key to start
-            string format = utility.Spacer("Press any key to start.", p_level->cols);
+            string format = Utility::Spacer("Press any key to start.", p_level->cols);
             cout << endl;
             cout << format;
             cout << "Press any key to start.";
@@ -378,7 +378,7 @@ void Game::PrintStatusBar()
     //Draw draw;
     //Utility utility;
     // get number of lives
-    string format = utility.Spacer("LIVES:CCC    SCORE:00000000", p_level->cols);
+    string format = Utility::Spacer("LIVES:CCC    SCORE:00000000", p_level->cols);
     string lives;
     for (int i = 0; i < 6; i++)
     {
@@ -387,29 +387,29 @@ void Game::PrintStatusBar()
     p_player->SetScore(((p_level->eaten_pellets + 1) * p_level->points_pellet) + (p_level->eaten_ghosts * p_level->points_ghost) + (p_level->eaten_ghosts >= 4 ? p_level->all_ghost_bonus : 0));
     cout << endl;
     cout << format;
-    draw.SetColor(7);
+    Draw::SetColor(7);
     cout << "LIVES:";
-    draw.SetColor(14);
+    Draw::SetColor(14);
     cout << (!p_player->HasNoLives() ? lives : "-");
-    draw.SetColor(7);
+    Draw::SetColor(7);
     cout << " SCORE:";
-    draw.SetColor(14);
+    Draw::SetColor(14);
     cout << setfill('0') << setw(8) << p_player->GetScore();
-    draw.SetColor(7);
+    Draw::SetColor(7);
     cout << format;
     cout << "\r";
 
     // message game over or level complete
     if (game_over)
     {
-        format = utility.Spacer("Game Over! Press a key to continue.", p_level->cols);
+        format = Utility::Spacer("Game Over! Press a key to continue.", p_level->cols);
         cout << format;
         cout << "Game Over! Press a key to continue.";
         cout << format;
     }
     else if (p_level->is_complete)
     {
-        format = utility.Spacer("Level complete! Press a key to continue.", p_level->cols);
+        format = Utility::Spacer("Level complete! Press a key to continue.", p_level->cols);
         cout << format;
         cout << "Level complete! Press a key to continue.";
         cout << format;
@@ -541,7 +541,7 @@ bool Game::NextLevelRestartGame()
     if (game_over)
     {
 
-        string format = utility.Spacer("play again? 'y' = yes, 'n' = no", p_level->cols);
+        string format = Utility::Spacer("play again? 'y' = yes, 'n' = no", p_level->cols);
         cout << "\r";
         cout << format;
         cout << "play again? 'y' = yes, 'n' = no";
@@ -549,7 +549,7 @@ bool Game::NextLevelRestartGame()
         char input = _getch();
         if (input == Globals::kNO)
         {
-            draw.ShowConsoleCursor(false);
+            Draw::ShowConsoleCursor(false);
             return false;
         }
         else

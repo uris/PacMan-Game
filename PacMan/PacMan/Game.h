@@ -11,10 +11,6 @@ using namespace std::chrono;
 
 class Game
 {
-    // helper objects for utility / qol
-    Utility utility;
-    Draw draw;
-    
     // Game States
     bool game_over = false;
     bool gobble_pause = false;
