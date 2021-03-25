@@ -9,14 +9,14 @@
 using namespace std;
 using namespace std::chrono;
 
-class ILeverInterface
+class ILevelInterface
 {
     virtual void CheckLevelComplete() = 0;
-    // funtions here
+    // and other funtions here
 };
 
 
-class Level : ILeverInterface
+class Level : ILevelInterface
 {
 public:
     // level map and scene

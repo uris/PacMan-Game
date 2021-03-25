@@ -1,5 +1,5 @@
 #include "Player.h"
-#include "Level.h" // 
+#include "Level.h" // include the level header her with access to the interface functions
 
 Player::Player() 
 {
