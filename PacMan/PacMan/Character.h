@@ -20,7 +20,7 @@ public:
 
 	// methods
 	bool IsReverseDirection(Direction new_direction);
-	virtual void MoveTo(Coord coord, Direction direction);
+	void MoveTo(Coord coord, Direction direction);
 
 	// getters
 	int GetCurrentRow();

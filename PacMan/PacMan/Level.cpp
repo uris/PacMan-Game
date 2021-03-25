@@ -2,10 +2,6 @@
 #include <iostream> // print to console
 #include <stdlib.h> // exit
 #include <conio.h> // used to get input without requiring return
-#include "EnumsAndStatics.h"
-#include "Utility.h"
-#include "Draw.h"
-#include "Level.h"
 #include "Game.h"
 
 using namespace std;
@@ -28,11 +24,6 @@ Level::~Level()
         }
         delete[] p_map;
         p_map = nullptr;
-    }
-
-    if (p_game)
-    {
-        p_game = nullptr;
     }
 }
 
@@ -72,8 +63,8 @@ void Level::CreateLevelScene(int& current_scene)
     }
 
     // parse through string to replace pellt and powerup markers to their ascii code
-    utility.ReplaceString(map, ".", char(Globals::pellet));
-    utility.ReplaceString(map, "o", char(Globals::powerup));
+    Utility::ReplaceString(map, ".", char(Globals::pellet));
+    Utility::ReplaceString(map, "o", char(Globals::powerup));
 
     // create dynamic two dimension pointer array to hold map
     Coord size = MapSize(map); // get width and height of the map
@@ -184,9 +175,9 @@ string Level::LoadSceneFromFile(string filename, int scene_to_load)
 
             //check for right scene
             section = "#scene:";
-            if (fileLine.find(utility.TransformString(section, 1), 0) != std::string::npos) { // if line is scene identifier
+            if (fileLine.find(Utility::TransformString(section, 1), 0) != std::string::npos) { // if line is scene identifier
 
-                if (scene_to_load == stoi(fileLine.substr(utility.TransformString(section, 1).size(), 2))) // and if the sence is the one I'm looking for
+                if (scene_to_load == stoi(fileLine.substr(Utility::TransformString(section, 1).size(), 2))) // and if the sence is the one I'm looking for
                 {
                     //this is the scene we are looking for so let's process it until your get to the end of the level info
                     while (getline(scenesFile, fileLine))
@@ -194,66 +185,66 @@ string Level::LoadSceneFromFile(string filename, int scene_to_load)
                         // get the next line and set the relevant info in the level info
 
                         section = "title:";
-                        if (fileLine.find(utility.TransformString(section, 1), 0) != std::string::npos) {
-                            title = fileLine.substr(utility.TransformString(section, 1).size(), (fileLine.size() - section.size()));
+                        if (fileLine.find(Utility::TransformString(section, 1), 0) != std::string::npos) {
+                            title = fileLine.substr(Utility::TransformString(section, 1).size(), (fileLine.size() - section.size()));
                             continue;
                         }
 
                         section = "pellet_points:";
-                        if (fileLine.find(utility.TransformString(section, 1), 0) != std::string::npos) {
-                            points_ghost = stoi(fileLine.substr(utility.TransformString(section, 1).size(), (fileLine.size() - section.size())));
+                        if (fileLine.find(Utility::TransformString(section, 1), 0) != std::string::npos) {
+                            points_ghost = stoi(fileLine.substr(Utility::TransformString(section, 1).size(), (fileLine.size() - section.size())));
                             continue;
                         }
 
                         section = "ghost_points:";
-                        if (fileLine.find(utility.TransformString(section, 1), 0) != std::string::npos) {
-                            points_ghost = stoi(fileLine.substr(utility.TransformString(section, 1).size(), (fileLine.size() - section.size())));
+                        if (fileLine.find(Utility::TransformString(section, 1), 0) != std::string::npos) {
+                            points_ghost = stoi(fileLine.substr(Utility::TransformString(section, 1).size(), (fileLine.size() - section.size())));
                             continue;
                         }
 
                         section = "all_ghosts_bonus:";
-                        if (fileLine.find(utility.TransformString(section, 1), 0) != std::string::npos) {
-                            all_ghost_bonus = stoi(fileLine.substr(utility.TransformString(section, 1).size(), (fileLine.size() - section.size())));
+                        if (fileLine.find(Utility::TransformString(section, 1), 0) != std::string::npos) {
+                            all_ghost_bonus = stoi(fileLine.substr(Utility::TransformString(section, 1).size(), (fileLine.size() - section.size())));
                             continue;
                         }
 
                         section = "edible_ghost duration:";
-                        if (fileLine.find(utility.TransformString(section, 1), 0) != std::string::npos) {
-                            edible_ghost_duration = stoi(fileLine.substr(utility.TransformString(section, 1).size(), (fileLine.size() - section.size())));
+                        if (fileLine.find(Utility::TransformString(section, 1), 0) != std::string::npos) {
+                            edible_ghost_duration = stoi(fileLine.substr(Utility::TransformString(section, 1).size(), (fileLine.size() - section.size())));
                             continue;
                         }
 
                         section = "chase_duration:";
-                        if (fileLine.find(utility.TransformString(section, 1), 0) != std::string::npos) {
-                            chase_for = stoi(fileLine.substr(utility.TransformString(section, 1).size(), (fileLine.size() - section.size())));
+                        if (fileLine.find(Utility::TransformString(section, 1), 0) != std::string::npos) {
+                            chase_for = stoi(fileLine.substr(Utility::TransformString(section, 1).size(), (fileLine.size() - section.size())));
                             continue;
                         }
 
                         section = "run_duration:";
-                        if (fileLine.find(utility.TransformString(section, 1), 0) != std::string::npos) {
-                            run_for = stoi(fileLine.substr(utility.TransformString(section, 1).size(), (fileLine.size() - section.size())));
+                        if (fileLine.find(Utility::TransformString(section, 1), 0) != std::string::npos) {
+                            run_for = stoi(fileLine.substr(Utility::TransformString(section, 1).size(), (fileLine.size() - section.size())));
                             continue;
                         }
 
                         section = "roam_duration:";
-                        if (fileLine.find(utility.TransformString(section, 1), 0) != std::string::npos) {
-                            roam_for = stoi(fileLine.substr(utility.TransformString(section, 1).size(), (fileLine.size() - section.size())));
+                        if (fileLine.find(Utility::TransformString(section, 1), 0) != std::string::npos) {
+                            roam_for = stoi(fileLine.substr(Utility::TransformString(section, 1).size(), (fileLine.size() - section.size())));
                             continue;
                         }
 
                         section = "roam_count:";
-                        if (fileLine.find(utility.TransformString(section, 1), 0) != std::string::npos) {
-                            roam_count = stoi(fileLine.substr(utility.TransformString(section, 1).size(), (fileLine.size() - section.size())));
+                        if (fileLine.find(Utility::TransformString(section, 1), 0) != std::string::npos) {
+                            roam_count = stoi(fileLine.substr(Utility::TransformString(section, 1).size(), (fileLine.size() - section.size())));
                             continue;
                         }
 
                         section = "level_map:";
-                        if (fileLine.find(utility.TransformString(section, 1), 0) != std::string::npos) {
+                        if (fileLine.find(Utility::TransformString(section, 1), 0) != std::string::npos) {
                             // get map info into the map string ending when you reach end of map
                             section = "#end_scene";
                             while (getline(scenesFile, fileLine))
                             {
-                                if (fileLine.find(utility.TransformString(section, 1), 0) == std::string::npos)
+                                if (fileLine.find(Utility::TransformString(section, 1), 0) == std::string::npos)
                                     map += fileLine;
                                 else
                                     break;
@@ -261,7 +252,7 @@ string Level::LoadSceneFromFile(string filename, int scene_to_load)
                         }
 
                         section = "#scene:"; // check to see if reached the next scene;
-                        if (fileLine.find(utility.TransformString(section, 1), 0) != std::string::npos) {
+                        if (fileLine.find(Utility::TransformString(section, 1), 0) != std::string::npos) {
                             break;
                         }
 
@@ -307,8 +298,6 @@ Coord Level::MapSize(const string& map)
 
 void Level::DrawLevel()
 {
-    Draw draw;
-    Utility utility;
 
     // set the content of the sqaure the player is moving into - will use this to play the appropriate sound
     p_game->p_player->SetMovedIntoSquareContents(p_map[p_game->p_player->GetCurrentRow()][p_game->p_player->GetCurrentCol()]);
@@ -335,7 +324,7 @@ void Level::DrawLevel()
     }
 
     // place cursor on top left of console
-    draw.CursorTopLeft(rows + 5); // + 5 for title and status
+    Draw::CursorTopLeft(rows + 5); // + 5 for title and status
 
     // remove player from map at last position if they are different
     if (!p_game->p_player->GetPreviousPosition().IsSame(p_game->p_player->GetCurrentPosition()))
@@ -373,11 +362,11 @@ void Level::DrawLevel()
     }
 
     // Level Title
-    string format = utility.Spacer(" PACMAN: " + utility.TransformString(title, 0), cols);
-    draw.SetColor(Globals::cWHITE);
+    string format = Utility::Spacer(" PACMAN: " + Utility::TransformString(title, 0), cols);
+    Draw::SetColor(Globals::cWHITE);
     cout << endl;
     cout << format;
-    cout << "PACMAN: " << utility.TransformString(title, 0);
+    cout << "PACMAN: " << Utility::TransformString(title, 0);
     cout << format;
     cout << endl << endl;
 
@@ -416,57 +405,57 @@ void Level::DrawLevel()
             case Globals::teleport: // T = portal
             case Globals::space: // ' ' = empty space
             case Globals::one_way: // $ = one way door for ghost spawn area
-                draw.SetColor(Globals::cINVISIBLE); // black on black = not visible
+                Draw::SetColor(Globals::cINVISIBLE); // black on black = not visible
                 break;
             case (char)Globals::pellet: // . = pellet
                 current_pellets++;
-                draw.SetColor(Globals::cWHITE); // gray for bullets
+                Draw::SetColor(Globals::cWHITE); // gray for bullets
                 break;
             case (char)Globals::powerup: // o = power up
                 current_pellets++;
-                draw.SetColor(Globals::cWHITE); // white for power ups
+                Draw::SetColor(Globals::cWHITE); // white for power ups
                 break;
             case Globals::pink_ghost: // blue ghost
                 if (p_game->p_ghosts[3]->IsEdible()) { // flashing effect - signals edible sate of ghost
-                    p_game->p_ghosts[3]->FlashBlue() ? draw.SetColor(Globals::cGHOST_ON) : draw.SetColor(Globals::cGHOST_OFF);
+                    p_game->p_ghosts[3]->FlashBlue() ? Draw::SetColor(Globals::cGHOST_ON) : Draw::SetColor(Globals::cGHOST_OFF);
                     p_game->p_ghosts[3]->SetFlashBlue(!p_game->p_ghosts[0]->FlashBlue());
                 }
                 else { // solid color
-                    draw.SetColor(p_game->p_ghosts[3]->GetColor());
+                    Draw::SetColor(p_game->p_ghosts[3]->GetColor());
                 }
                 break;
             case Globals::yellow_ghost: // yellow ghost
                 if (p_game->p_ghosts[1]->IsEdible()) { // flashing effect - signals edible sate of ghost
-                    p_game->p_ghosts[1]->FlashBlue() ? draw.SetColor(Globals::cGHOST_ON) : draw.SetColor(Globals::cGHOST_OFF);
+                    p_game->p_ghosts[1]->FlashBlue() ? Draw::SetColor(Globals::cGHOST_ON) : Draw::SetColor(Globals::cGHOST_OFF);
                     p_game->p_ghosts[1]->SetFlashBlue(!p_game->p_ghosts[0]->FlashBlue());
                 }
                 else { // solid color
-                    draw.SetColor(p_game->p_ghosts[1]->GetColor());
+                    Draw::SetColor(p_game->p_ghosts[1]->GetColor());
                 }
                 break;
             case Globals::blue_ghost: // green ghost
                 if (p_game->p_ghosts[2]->IsEdible()) { // flashing effect - signals edible sate of ghost
-                    p_game->p_ghosts[2]->FlashBlue() ? draw.SetColor(Globals::cGHOST_ON) : draw.SetColor(Globals::cGHOST_OFF);
+                    p_game->p_ghosts[2]->FlashBlue() ? Draw::SetColor(Globals::cGHOST_ON) : Draw::SetColor(Globals::cGHOST_OFF);
                     p_game->p_ghosts[2]->SetFlashBlue(!p_game->p_ghosts[0]->FlashBlue());
                 }
                 else { // solid color
-                    draw.SetColor(p_game->p_ghosts[2]->GetColor());
+                    Draw::SetColor(p_game->p_ghosts[2]->GetColor());
                 }
                 break;
             case Globals::red_ghost: // red ghost
                 if (p_game->p_ghosts[0]->IsEdible()) { // flashing effect - signals edible sate of ghost
-                    p_game->p_ghosts[0]->FlashBlue() ? draw.SetColor(Globals::cGHOST_ON) : draw.SetColor(Globals::cGHOST_OFF);
+                    p_game->p_ghosts[0]->FlashBlue() ? Draw::SetColor(Globals::cGHOST_ON) : Draw::SetColor(Globals::cGHOST_OFF);
                     p_game->p_ghosts[0]->SetFlashBlue(!p_game->p_ghosts[0]->FlashBlue());
                 }
                 else { // solid color
-                    draw.SetColor(p_game->p_ghosts[0]->GetColor());
+                    Draw::SetColor(p_game->p_ghosts[0]->GetColor());
                 }
                 break;
             case Globals::player: // player
-                draw.SetColor(Globals::cPLAYER);
+                Draw::SetColor(Globals::cPLAYER);
                 break;
             default:
-                draw.SetColor(Globals::cWALLS); // gray bg on gray text for all other chars making them walls essentially
+                Draw::SetColor(Globals::cWALLS); // gray bg on gray text for all other chars making them walls essentially
                 break;
             }
 
@@ -474,7 +463,7 @@ void Level::DrawLevel()
             cout << p_map[r][c];
 
             // set color back to default
-            draw.SetColor(Globals::cWHITE);
+            Draw::SetColor(Globals::cWHITE);
         }
         // end of row ad line feed
         cout << endl;

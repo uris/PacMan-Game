@@ -22,9 +22,6 @@ public:
     //constructors
     Player();
 
-    //destructors
-    ~Player();
-
     // methods
     void MovePlayer();
     void AddLives(int number);

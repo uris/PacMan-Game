@@ -1,9 +1,6 @@
-#include "Ghost.h"
 #include "Game.h"
-#include "EnumsAndStatics.h"
 #include <iomanip> // abs function
 #include <iostream>
-#include <chrono>
 
 using namespace std;
 using namespace std::chrono;
@@ -70,15 +67,6 @@ Ghost::Ghost(Ghosts ghost)
     }
 }
 
-//destructors
-Ghost::~Ghost()
-{
-    if (p_game)
-    {
-        p_game = nullptr;
-    }
-}
-
 // methods
 int Ghost::DistanceToPlayer(Coord player_current_position)
 {
@@ -136,12 +124,13 @@ int Ghost::MakeGhostMove()
         for (int i = 0; i <= 3; i++) // cycle through up,down,left,right to find the valid best next move
         {
 
-            new_direction = static_cast<Direction>(i); // set the direction we will get best move for
             
-            if (p_game->p_level->NotWall(current_position, new_direction) && !IsReverseDirection(new_direction)) // check for next available square
+            new_direction = static_cast<Direction>(i); // set the direction we will get best move for
+            next_move.SetTo(current_position, new_direction);
+
+            if (p_game->p_level->NotWall(next_move, new_direction) && !IsReverseDirection(new_direction)) // check for next available square
             {
                 // it's a viable move to position so set new coords of ghost
-                next_move.SetTo(current_position, new_direction);
                 prior_position = current_position;
                 current_position = next_move;
 
@@ -200,11 +189,11 @@ int Ghost::GetBestMove(Coord current_position, Direction current_direction, int 
     for (int i = 0; i <= 3; i++) // cycle through each next possible move up, down, left, right
     {
         new_direction = static_cast<Direction>(i); // cast index to direction up, down, left, right
-        
-        if (p_game->p_level->NotWall(current_position, new_direction) && !IsReverseDirection(new_direction)) // check if the direction is valid i.e not wall or reverse
+        next_move.SetTo(current_position, new_direction);
+
+        if (p_game->p_level->NotWall(next_move, new_direction) && !IsReverseDirection(new_direction)) // check if the direction is valid i.e not wall or reverse
         {
             // set new coords of ghost
-            next_move.SetTo(current_position, new_direction);
             prior_position = current_position;
             current_position = next_move;
 
@@ -223,44 +212,45 @@ int Ghost::GetBestMove(Coord current_position, Direction current_direction, int 
 
 Direction Ghost::RandomGhostMove()
 {
-    Direction newDirection = Direction::NONE;
+    Direction new_direction = Direction::NONE;
+    Coord next_move;
 
     // first move when on the run is ALWAYS to reverse direction which is ALWAYS a valid move
     if (run_first_move) {
         switch (current_direction)
         {
         case Direction::UP:
-            newDirection = Direction::DOWN;
+            new_direction = Direction::DOWN;
             break;
         case Direction::RIGHT:
-            newDirection = Direction::LEFT;
+            new_direction = Direction::LEFT;
             break;
         case Direction::DOWN:
-            newDirection = Direction::UP;
+            new_direction = Direction::UP;
             break;
         case Direction::LEFT:
-            newDirection = Direction::RIGHT;
+            new_direction = Direction::RIGHT;
             break;
         }
         run_first_move = false;
-        return newDirection;
+        return new_direction;
     }
 
-    Coord move = current_position;
     int unsigned seed = (int)(std::chrono::system_clock::now().time_since_epoch().count());
     srand(seed);
 
-    if (p_game->p_level->IsTeleport(move)) // if on teleportkeep the same direction
-        current_direction == Direction::LEFT ? newDirection = Direction::LEFT : newDirection = Direction::RIGHT;
+    if (p_game->p_level->IsTeleport(current_position)) // if on teleportkeep the same direction
+        current_direction == Direction::LEFT ? new_direction = Direction::LEFT : new_direction = Direction::RIGHT;
     else // else choose a valid random direction
     {
         do
         {
             int random_number = rand() % 4; //generate random number to select from the 4 possible options
-            newDirection = static_cast<Direction>(random_number);
-        } while (p_game->p_level->NotWall(current_position, newDirection) || IsReverseDirection(newDirection));
+            new_direction = static_cast<Direction>(random_number);
+            next_move.SetTo(current_position, new_direction);
+        } while (!p_game->p_level->NotWall(next_move, new_direction) || IsReverseDirection(new_direction));
     }
-    return newDirection;
+    return new_direction;
 }
 
 char Ghost::GhostContentNow(Direction best_move)

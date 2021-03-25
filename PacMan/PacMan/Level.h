@@ -7,13 +7,6 @@
 using namespace std;
 using namespace std::chrono;
 
-//class ILevelInterface
-//{
-//    virtual void CheckLevelComplete() = 0;
-//    // and other funtions here
-//};
-
-
 class Level
 {
     class Game* p_game = nullptr; // fwd declare class

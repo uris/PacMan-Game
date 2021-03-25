@@ -5,10 +5,10 @@
 
 class Ghost: public Character
 {
-private:
     // forward class declared as pointer to game object
     class Game* p_game = nullptr;
 
+private:
     // gets set once based on ghost type
     Ghosts name;
     char ghost;
@@ -33,9 +33,6 @@ public:
     // constructors
     Ghost();
     Ghost(Ghosts ghost);
-
-    //destructors
-    ~Ghost();
 
     // methods
     int DistanceToPlayer(Coord player_current_position);

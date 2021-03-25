@@ -1,19 +1,9 @@
-#include "Player.h"
 #include "Game.h"
 
 Player::Player() 
 {
 
 };
-
-//destructors
-Player::~Player()
-{
-	if (p_game)
-	{
-		p_game = nullptr;
-	}
-}
 
 
 // methods
@@ -92,25 +82,25 @@ void Player::MovePlayer()
 	switch (current_direction)
 	{
 	case Direction::UP: //up
-		if (p_game->p_level->NotWall(current_position, Direction::UP)) {
+		if (p_game->p_level->NotWall({ current_position.row - 1, current_position.col }, Direction::UP)) {
 			next_position.SetTo(current_position, Direction::UP);
 			previous_direction = Direction::UP;
 		}
 		break;
 	case Direction::RIGHT: // right
-		if (p_game->p_level->NotWall(current_position, Direction::RIGHT)) {
+		if (p_game->p_level->NotWall({ current_position.row, current_position.col + 1 }, Direction::RIGHT)) {
 			next_position.SetTo(current_position, Direction::RIGHT);
 			previous_direction = Direction::RIGHT;
 		}
 		break;
 	case Direction::DOWN: // down
-		if (p_game->p_level->NotWall(current_position, Direction::DOWN)) {
+		if (p_game->p_level->NotWall({ current_position.row + 1, current_position.col }, Direction::DOWN)) {
 			next_position.SetTo(current_position, Direction::DOWN);
 			previous_direction = Direction::DOWN;
 		}
 		break;
 	case Direction::LEFT: // left
-		if (p_game->p_level->NotWall(current_position, Direction::LEFT)) {
+		if (p_game->p_level->NotWall({ current_position.row, current_position.col - 1}, Direction::LEFT)) {
 			next_position.SetTo(current_position, Direction::LEFT);
 			previous_direction = Direction::LEFT;
 		}
@@ -121,19 +111,19 @@ void Player::MovePlayer()
 	switch (previous_direction)
 	{
 	case Direction::UP:
-		if (!p_game->p_level->NotWall(current_position, Direction::UP))
+		if (!p_game->p_level->NotWall({ current_position.row - 1, current_position.col }, Direction::UP))
 			next_position = current_position;
 		break;
 	case Direction::RIGHT:
-		if (!p_game->p_level->NotWall(current_position, Direction::RIGHT))
+		if (!p_game->p_level->NotWall({ current_position.row, current_position.col + 1}, Direction::RIGHT))
 			next_position = current_position;
 		break;
 	case Direction::DOWN:
-		if (!p_game->p_level->NotWall(current_position, Direction::DOWN))
+		if (!p_game->p_level->NotWall({ current_position.row + 1, current_position.col }, Direction::DOWN))
 			next_position = current_position;
 		break;
 	case Direction::LEFT:
-		if (!p_game->p_level->NotWall(current_position, Direction::LEFT))
+		if (!p_game->p_level->NotWall({ current_position.row, current_position.col - 1}, Direction::LEFT))
 			next_position = current_position;
 		break;
 	}

@@ -7,8 +7,8 @@ public:
     Draw();
 
 	//methods
-    void SetColor(const int color);
-    void ShowColors(const int colors);
-    void CursorTopLeft(const int rows);
-    void ShowConsoleCursor(const bool showFlag);
+    static void SetColor(const int color);
+    static void ShowColors(const int colors);
+    static void CursorTopLeft(const int rows);
+    static void ShowConsoleCursor(const bool showFlag);
 };

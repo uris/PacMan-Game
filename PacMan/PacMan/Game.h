@@ -61,9 +61,6 @@ class Game
         void GetKeyboardInput();
         void SpawnAllGhosts();
         int SFX(Play playSFX);
-        void Add(Player* player);
-        void Add(Ghost* red, Ghost* yellow, Ghost* blue, Ghost* pink);
-        void Add(Level* level);
         void SetPlayerState();
         void SetGhostMode();
         void SetCollisionDelay();

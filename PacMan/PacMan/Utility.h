@@ -10,12 +10,7 @@ public:
     Utility();
 
 	//methods
-    string TransformString(const string& text, const int operation);
-    void ReplaceString(string& text, const string from, const char to);
-    string Spacer(const string& format, const int block_width);
-
-    static int count; 
-
-    //static way
-    static string StaticSpacer(const string& format, const int block_width);
+    static string TransformString(const string& text, const int operation);
+    static void ReplaceString(string& text, const string from, const char to);
+    static string Spacer(const string& format, const int block_width);
 };

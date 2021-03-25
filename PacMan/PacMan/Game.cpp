@@ -1,6 +1,4 @@
 #include "Game.h"
-#include "Draw.h"
-#include "Utility.h"
 #include <conio.h>
 #include <iostream>
 #include <Windows.h> // colors and play sounds
@@ -11,7 +9,28 @@
 using namespace std;
 
 //constructors
-Game::Game() {};
+Game::Game()
+{
+    // create level object and set the game ref
+    p_level = new Level;
+    p_level->SetGameRef(this);
+
+    // create player object and pass it the game ref
+    p_player = new Player;
+    p_player->SetGameRef(this);
+
+    // create the ghosts array and pass it the game ref
+    p_ghosts = new Ghost* [Globals::total_ghosts] {};
+    p_ghosts[0] = new Ghost(Ghosts::RED);
+    p_ghosts[1] = new Ghost(Ghosts::YELLOW);
+    p_ghosts[2] = new Ghost(Ghosts::BLUE);
+    p_ghosts[3] = new Ghost(Ghosts::PINK);
+    for (int g = 0; g < Globals::total_ghosts; g++)
+    {
+        p_ghosts[g]->SetGameRef(this);
+    }
+
+};
 
 //destructors
 Game::~Game()
@@ -107,10 +126,7 @@ void Game::RunGame()
 
 void Game::GameCredits()
 {
-    Draw draw;
-    //Utility utility;
     string ghost;
-
     draw.ShowConsoleCursor(false);
 
     ghost += "               *********\n";
@@ -128,8 +144,7 @@ void Game::GameCredits()
     ghost += "    ***      *****    ****      ***\n";
 
     // print image
-    Utility::count = 15;
-    string format = Utility::StaticSpacer("PACMAN 2021", 40);
+    string format = Utility::Spacer("PACMAN 2021", 40);
     cout << endl << endl;
     draw.SetColor(7);
     cout << ghost;
@@ -550,37 +565,6 @@ bool Game::NextLevelRestartGame()
 
 
 // other methods
-void Game::Add(Ghost* red, Ghost* yellow, Ghost* blue, Ghost* pink)
-{
-    // create a pointer array with all the pointers to ghosts
-    p_ghosts = new Ghost*[Globals::total_ghosts]{ red, yellow, blue, pink };
-
-    // for each ghost object in the pointer array, set their pointer to the game object
-    for (int g = 0; g < Globals::total_ghosts; g++)
-    {
-        p_ghosts[g]->SetGameRef(this);
-    }
-
-}
-
-void Game::Add(Player* player)
-{
-    // add pointer to the player object
-    p_player = player;
-
-    // add pointer to the game object to the player
-    p_player->SetGameRef(this);
-}
-
-void Game::Add(Level* level)
-{
-    // set the pointer to the level object
-    p_level = level;
-
-    // set the game pointer for the level object
-    p_level->SetGameRef(this);
-}
-
 void Game::SpawnAllGhosts()
 {
     if (p_ghosts)
