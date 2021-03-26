@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.30907.101
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PacMan", "PacMan\PacMan.vcxproj", "{65B3520D-852B-49EB-B79D-1BA9CF77EA7C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PacMan_SceneEditor", "PacMan_SceneEditor\PacMan_SceneEditor.vcxproj", "{819FE926-C1B2-4759-A244-EB45260AF1FC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{65B3520D-852B-49EB-B79D-1BA9CF77EA7C}.Release|x64.Build.0 = Release|x64
 		{65B3520D-852B-49EB-B79D-1BA9CF77EA7C}.Release|x86.ActiveCfg = Release|Win32
 		{65B3520D-852B-49EB-B79D-1BA9CF77EA7C}.Release|x86.Build.0 = Release|Win32
+		{819FE926-C1B2-4759-A244-EB45260AF1FC}.Debug|x64.ActiveCfg = Debug|x64
+		{819FE926-C1B2-4759-A244-EB45260AF1FC}.Debug|x64.Build.0 = Debug|x64
+		{819FE926-C1B2-4759-A244-EB45260AF1FC}.Debug|x86.ActiveCfg = Debug|Win32
+		{819FE926-C1B2-4759-A244-EB45260AF1FC}.Debug|x86.Build.0 = Debug|Win32
+		{819FE926-C1B2-4759-A244-EB45260AF1FC}.Release|x64.ActiveCfg = Release|x64
+		{819FE926-C1B2-4759-A244-EB45260AF1FC}.Release|x64.Build.0 = Release|x64
+		{819FE926-C1B2-4759-A244-EB45260AF1FC}.Release|x86.ActiveCfg = Release|Win32
+		{819FE926-C1B2-4759-A244-EB45260AF1FC}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
