@@ -1,6 +1,7 @@
 #include "Utility.h"
 #include <algorithm>
 #include <string>
+#include <fstream>
 
 using namespace std;
 
@@ -22,6 +23,7 @@ string Utility::TransformString(const string& text, const int operation)
     }
     return "";
 }
+
 void Utility::ReplaceString(string& text, const string from, const char to)
 {
     size_t start_pos = 0;
@@ -31,6 +33,7 @@ void Utility::ReplaceString(string& text, const string from, const char to)
         start_pos += to_string.length(); // ...
     }
 }
+
 string Utility::Spacer(const string& format, const int block_width)
 {
     // used to center the "format" string -> cout the return on either side of the string to print
@@ -41,4 +44,77 @@ string Utility::Spacer(const string& format, const int block_width)
         spaces = spaces + " ";
     }
     return spaces;
+}
+
+string Utility::GetMenuFromFile(string file_name)
+{
+    ifstream file(file_name);
+    string file_line, marker, content = "false";
+    bool process_lines = true;
+    int number_options = 0;
+
+    if (file) {
+        // file exists and is open 
+        content = "";
+        while (getline(file, file_line))
+        {
+            marker = "#template";
+            if (file_line.find(Utility::TransformString(marker, 1), 0) != std::string::npos) {
+                break;
+            }
+
+            marker = "#scene:";
+            if (file_line.find(Utility::TransformString(marker, 1), 0) != std::string::npos)
+            {
+                content += file_line.substr(Utility::TransformString(marker, 1).size(), (file_line.size() - marker.size())) + "*";
+                continue;
+            }
+
+            marker = "title:";
+            if (file_line.find(Utility::TransformString(marker, 1), 0) != std::string::npos) {
+                content += file_line.substr(Utility::TransformString(marker, 1).size(), (file_line.size() - marker.size())) + "\n";
+                number_options++;
+                continue;
+            }
+        }
+    }
+    file.close();
+
+    // returns a new line seperated string with the menu option, adding the number of options at the head
+    return to_string(number_options) + "\n" + content;
+}
+
+string Utility::GetTemplateFromFile(string file_name)
+{
+    ifstream file(file_name);
+    string file_line, marker, content = "false";
+    bool process_lines = true;
+
+    if (file) {
+        content = "";
+        string start_marker = "#template";
+        string end_marker = "#end_template";
+        
+        while (getline(file, file_line))
+        {
+            if (file_line.find(Utility::TransformString(start_marker, 1), 0) != std::string::npos)
+            {
+                while (getline(file, file_line))
+                {
+                    if (file_line.find(Utility::TransformString(end_marker, 1), 0) != std::string::npos)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        content += file_line + '\n';
+                    }
+                }
+            }
+        }
+    }
+    file.close();
+
+    return content;
+    
 }

@@ -1,8 +1,8 @@
 #pragma once
 
-enum class Content {
-    SCENE = 0,
-    EDIT = 1,
+enum class Menu {
+    EDIT = 0,
+    OTHER = 1,
 };
 
 enum class Direction {
@@ -44,13 +44,19 @@ enum class Ghosts
 
 struct Globals
 {
-    // Colors
+    // Game Colors
     static constexpr int cINVISIBLE = 0; // black on black
     static constexpr int cWHITE = 7; // white
     static constexpr int cPLAYER = 14; // yellow
     static constexpr int cWALLS = 392; // gray on gray text
     static constexpr int cGHOST_ON = 275; // for ghost flash
     static constexpr int cGHOST_OFF = 155; // for ghost flash
+
+    // Editor menu colors
+    static constexpr int c_blackwhite = 7; // black bg, white text
+    static constexpr int c_bluewhite = 30; // blue bg, white text
+    static constexpr int c_whiteblack = 240; // white bg, black text
+    static constexpr int c_redwhite = 335; // white bg, black text
 
     // Ghosts
     static constexpr int gRED = 0;
@@ -88,6 +94,8 @@ struct Globals
     static constexpr char kESCAPE = 27;
     static constexpr char kYES = 121; // 'y'
     static constexpr char kNO = 110; // 'n'
+    static constexpr char kRETURN = 13;
+    static constexpr char kN = 110; // 'n'
 
     // Game delay / speed defaults
     static constexpr int gobble_delay = 750; // wait in milliseconds
