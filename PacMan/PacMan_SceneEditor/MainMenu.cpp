@@ -2,7 +2,6 @@
 #include <iostream>
 #include "Utility.h"
 #include "Draw.h"
-#include "EnumsAndStatics.h"
 #include <conio.h>
 
 using namespace std;
@@ -143,7 +142,7 @@ void MainMenu::Create(const string menu_options[][2], const int menu_size)
 	}
 }
 
-void MainMenu::Create(const string** menu_options, const int menu_size)
+void MainMenu::Create(string** menu_options, const int menu_size)
 {
 	DeallocateMenuPointer();
 	menu_options_size = menu_size;
@@ -219,9 +218,7 @@ string MainMenu::Show()
 {
 	Draw::ShowConsoleCursor(false);
 
-	cout << endl << "   PACMAN SCENE EDITOR" << endl;
-	cout << "   Choose a scene you would like to modify or create a new one." << endl;
-	cout << "   ----------------- " << endl << endl << endl;
+	cout << menu_title;
 
 	int input;
 	bool return_pressed = false;
@@ -312,4 +309,55 @@ string MainMenu::SelectedOption()
 int MainMenu::SelectedIndex()
 {
 	return option_selected;
+}
+
+void MainMenu::SetTitle(string title)
+{
+	menu_title = title;
+}
+
+string MainMenu::Title()
+{
+	return menu_title;
+}
+
+void MainMenu::Template(MenuTemplates menu_template)
+{
+	switch (menu_template)
+	{
+	case MenuTemplates::EDIT_SCENE_OPTIONS:
+		is_horizontal = false;
+		show_instructions = false;
+		show_icon = true;
+		new_index = 10;
+		exit_index = -1;
+		first_draw = true;
+		option_selected = -1;
+		menu_title =  "\n   EDIT SCENE OPTIONS\n";
+		menu_title += "   Choose an option to modify\n";
+		menu_title += "   Select save to comitt changes.\n";
+		menu_title += "   ----------------- \n\n\n";
+		break;
+	case MenuTemplates::LIST_SCENES:
+		is_horizontal = false;
+		show_instructions = true;
+		show_icon = false;
+		new_index = -1;
+		exit_index = -1;
+		option_selected = -1;
+		menu_title =  "\n   PACMAN SCENE EDITOR\n";
+		menu_title += "   Choose a scene you would like to modify\n";
+		menu_title += "   Or create a new one from a template.\n";
+		menu_title += "   ----------------- \n\n\n";
+		break;
+	default: // case none
+		is_horizontal = false;
+		show_instructions = true;
+		show_icon = false;
+		new_index = -1;
+		exit_index = -1;
+		option_selected = -1;
+		menu_title = "";
+		break;
+	}
 }

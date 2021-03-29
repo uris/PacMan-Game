@@ -39,3 +39,12 @@ void Draw::ShowConsoleCursor(const bool showFlag)
     cursorInfo.bVisible = showFlag; // set the cursor visibility
     SetConsoleCursorInfo(out, &cursorInfo);
 }
+string Draw::WriteEmptyLine(const int length)
+{
+    string empty_line = "";
+    for (int i = 0; i < length; i++)
+    {
+        empty_line += " ";
+    }
+    return (empty_line);
+}

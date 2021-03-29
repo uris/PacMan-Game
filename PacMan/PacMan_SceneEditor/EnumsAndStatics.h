@@ -1,8 +1,19 @@
 #pragma once
 
+enum class MenuTemplates {
+    LIST_SCENES = 0,
+    EDIT_SCENE_OPTIONS = 1,
+    NONE = 2,
+};
+
 enum class Menu {
     EDIT = 0,
     OTHER = 1,
+};
+
+enum class EditMode {
+    EDIT = 0,
+    HOVER = 1,
 };
 
 enum class Direction {
@@ -58,6 +69,11 @@ struct Globals
     static constexpr int c_whiteblack = 240; // white bg, black text
     static constexpr int c_redwhite = 335; // white bg, black text
 
+    /// Editor settings
+    static constexpr int editor_refresh_delay = 150; //milliseconds
+    static constexpr int cursor = 240; //milliseconds
+
+
     // Ghosts
     static constexpr int gRED = 0;
     static constexpr int gYELLOW = 1;
@@ -95,6 +111,7 @@ struct Globals
     static constexpr char kYES = 121; // 'y'
     static constexpr char kNO = 110; // 'n'
     static constexpr char kRETURN = 13;
+    static constexpr char kSPACE = 32;
     static constexpr char kN = 110; // 'n'
 
     // Game delay / speed defaults
