@@ -34,6 +34,16 @@ void Utility::ReplaceString(string& text, const string from, const char to)
     }
 }
 
+void Utility::ReplaceString(string& text, const char from, const char to)
+{
+    size_t start_pos = 0;
+    string to_string = { to };
+    while ((start_pos = text.find(from, start_pos)) != std::string::npos) {
+        text.replace(start_pos, 1, to_string);
+        start_pos += to_string.length(); // ...
+    }
+}
+
 string Utility::Spacer(const string& format, const int block_width)
 {
     // used to center the "format" string -> cout the return on either side of the string to print
@@ -58,24 +68,29 @@ string Utility::GetMenuFromFile(string file_name)
         content = "";
         while (getline(file, file_line))
         {
-            marker = "#template";
-            if (file_line.find(Utility::TransformString(marker, 1), 0) != std::string::npos) {
-                break;
-            }
-
+            int this_scene;
+            
             marker = "#scene:";
             if (file_line.find(Utility::TransformString(marker, 1), 0) != std::string::npos)
             {
-                content += file_line.substr(Utility::TransformString(marker, 1).size(), (file_line.size() - marker.size())) + "*";
-                continue;
-            }
+                
+                // set the scene number
+                int this_scene = stoi(file_line.substr(Utility::TransformString(marker, 1).size(), 2));
+                
+                if (this_scene != 0) {
+                    
+                    content += file_line.substr(Utility::TransformString(marker, 1).size(), (file_line.size() - marker.size())) + "*";
 
-            marker = "title:";
-            if (file_line.find(Utility::TransformString(marker, 1), 0) != std::string::npos) {
-                content += file_line.substr(Utility::TransformString(marker, 1).size(), (file_line.size() - marker.size())) + "\n";
-                number_options++;
-                continue;
+                    marker = "title:";
+                    getline(file, file_line);
+                    if (file_line.find(Utility::TransformString(marker, 1), 0) != std::string::npos) {
+                        content += file_line.substr(Utility::TransformString(marker, 1).size(), (file_line.size() - marker.size())) + "\n";
+                        number_options++;
+                    }
+
+                }
             }
+           
         }
     }
     file.close();
@@ -92,8 +107,8 @@ string Utility::GetTemplateFromFile(string file_name)
 
     if (file) {
         content = "";
-        string start_marker = "#template";
-        string end_marker = "#end_template";
+        string start_marker = "#scene:0";
+        string end_marker = "#end_scene";
         
         while (getline(file, file_line))
         {

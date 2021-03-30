@@ -67,9 +67,9 @@ void MainMenu::Create(const string file_name)
 		}
 
 	}
-	p_menu_options[menu_options_size - 2][0] = "new";
+	p_menu_options[menu_options_size - 2][0] = "#new";
 	p_menu_options[menu_options_size - 2][1] = "Create a new scene";
-	p_menu_options[menu_options_size - 1][0] = "exit";
+	p_menu_options[menu_options_size - 1][0] = "#exit";
 	p_menu_options[menu_options_size - 1][1] = "Exit";
 
 	exit_index = menu_options_size - 1;
@@ -172,9 +172,9 @@ void MainMenu::Draw()
 {
 	if (!first_draw)
 		if (!is_horizontal)
-			Draw::CursorTopLeft((menu_options_size * 2) + (show_instructions ? 3 : 0));
+			Draw::CursorTopLeft((menu_options_size * 2) + (show_instructions ? 2 : 0));
 		else
-			Draw::CursorTopLeft((show_instructions ? 3 : 0));
+			Draw::CursorTopLeft((show_instructions ? 2 : 0));
 	first_draw = false;
 	
 	string icon = "";
@@ -229,7 +229,7 @@ string MainMenu::Show()
 		
 		if (show_instructions)
 		{
-			cout << endl << endl << "   ----------------- " << endl;
+			cout << endl << "   ----------------- " << endl;
 			cout << "   arrows + return to select.";
 		}
 		
@@ -275,6 +275,9 @@ string MainMenu::Show()
 		}
 	} while (!return_pressed);
 
+	// so that next time the menu is show it gets reset
+	first_draw = true;
+	
 	return (p_menu_options[option_selected][0]);
 }
 
@@ -336,7 +339,7 @@ void MainMenu::Template(MenuTemplates menu_template)
 		menu_title =  "\n   EDIT SCENE OPTIONS\n";
 		menu_title += "   Choose an option to modify\n";
 		menu_title += "   Select save to comitt changes.\n";
-		menu_title += "   ----------------- \n\n\n";
+		menu_title += "   ----------------- \n\n";
 		break;
 	case MenuTemplates::LIST_SCENES:
 		is_horizontal = false;
@@ -348,7 +351,7 @@ void MainMenu::Template(MenuTemplates menu_template)
 		menu_title =  "\n   PACMAN SCENE EDITOR\n";
 		menu_title += "   Choose a scene you would like to modify\n";
 		menu_title += "   Or create a new one from a template.\n";
-		menu_title += "   ----------------- \n\n\n";
+		menu_title += "   ----------------- \n\n";
 		break;
 	default: // case none
 		is_horizontal = false;

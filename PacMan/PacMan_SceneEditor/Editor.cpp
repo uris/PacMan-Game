@@ -41,19 +41,28 @@ void Editor::EditScenes()
 
     do
     {
-        // reset editing state
-        done_editing = false;
-        exit_editing = false;
-        is_saved = false;
-        cancel_edit = false;
+        // initialize editor variables
+        Reset();
 
         // create menu of scenes to edit, display it and load selected scene.
         menu.Create();
         menu.Template(MenuTemplates::LIST_SCENES);
         string selected_scene = menu.Show();
-        int load_scene = stoi(selected_scene);
+        
+        // if selection is exit or new process that
+        if (selected_scene == "#exit")
+        {
+            is_restart = true; // restart the game
+            break; // break out of the base edit loop
+        }
 
-        // do the editing of the selcted scene
+        int load_scene;
+        if (selected_scene == "#new")
+            load_scene = 0;
+        else
+            load_scene = stoi(selected_scene);
+        
+        // do the editing of the selcted scene if not exiting
         DoSceneEdit(load_scene);
 
         // check cancel - restart edit loop if cancel is true
@@ -79,7 +88,9 @@ void Editor::EditScenes()
             if (selected_option == "#save")
             {
                 // do save stuff
+                p_scene->SaveToFile();
                 is_saved = true;
+                break;
             }
             else
             {
@@ -94,7 +105,7 @@ void Editor::EditScenes()
     } while (!is_saved);
 
     system("cls");
-    cout << "save successful";
+    cout << "ended edit.";
     
 
 }
@@ -206,71 +217,63 @@ void Editor::SetDoneEditing(bool state)
     done_editing = state;
 }
 
-void Editor::UpdateValue(string option)
+int Editor::UpdateValue(string option)
 {
     system("cls"); Draw::ShowConsoleCursor(true);
-    int int_input = 0;
-    string string_input = "";
     option = Utility::TransformString(option, 1);
+    string spacer = "  ";
 
-    if (option == "0") //scen #
-    {
-        cout << "Enter the new scene number: ";
-        cin >> int_input;
-        p_scene->this_scene = int_input;
+    if (option == "0") { //scen #
+        p_scene->this_scene = ProcessNumberOption(spacer +"Enter the new scene number : ");
+        return 0;
     }
 
-    if (option == "1") // title
-    {
-        cout << "Enter the new title: ";
-        getline(cin, string_input);
-        p_scene->title = string_input;
+    if (option == "1") { // title
+        p_scene->title = ProcessTextOption(spacer + "Enter the new title: ");
+        return 0;
     }
 
-    if (option == "2")
-    {
-
+    if (option == "2") { // points per pellet
+        p_scene->points_pellet = ProcessNumberOption(spacer + "Points per pellet: ");
+        return 0;
     }
 
-    if (option == "3")
-    {
-
+    if (option == "3") { // points per ghost
+        p_scene->points_ghost = ProcessNumberOption(spacer + "Points per ghots: ");
+        return 0;
     }
 
-    if (option == "4")
-    {
-
+    if (option == "4") { // points all ghosts
+        p_scene->all_ghost_bonus = ProcessNumberOption(spacer + "Points for all ghots: ");
+        return 0;
     }
 
-    if (option == "5")
-    {
-
+    if (option == "5") { // run duration
+        p_scene->edible_ghost_duration = ProcessNumberOption(spacer + "Edible ghost duration: ");
+        return 0;
     }
 
-    if (option == "6")
-    {
-
+    if (option == "6") { // chase duration
+        p_scene->chase_for = ProcessNumberOption(spacer + "Chase duration: ");
+        return 0;
     }
 
-    if (option == "7")
-    {
-
+    if (option == "7") { // chase duration
+        p_scene->run_for = ProcessNumberOption(spacer + "Run duration: ");
+        return 0;
     }
 
-    if (option == "8")
-    {
-
+    if (option == "8") { // roam duration
+        p_scene->roam_for = ProcessNumberOption(spacer + "Roam duration: ");
+        return 0;
     }
 
-    if (option == "9")
-    {
-
+    if (option == "9") { // roam count
+        p_scene->roam_count = ProcessNumberOption(spacer + "Roam count: ");
+        return 0;
     }
 
-    if (option == "0")
-    {
-
-    }
+    return 0;
 }
 
 void Editor::DoSceneEdit(int load_scene)
@@ -302,4 +305,29 @@ void Editor::DoSceneEdit(int load_scene)
 
     // join the keyboard thread back to the main thread
     inputThread.join();
+}
+
+void Editor::Reset()
+{
+    // reset editing state
+    done_editing = false;
+    exit_editing = false;
+    is_saved = false;
+    cancel_edit = false;
+}
+
+string Editor::ProcessTextOption(string label)
+{
+    string string_input;
+    cout << label;
+    getline(cin, string_input);
+    return string_input;
+}
+
+int Editor::ProcessNumberOption(string label)
+{
+    int int_input;
+    cout << label;
+    cin >> int_input;
+    return int_input;
 }

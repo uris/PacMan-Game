@@ -14,6 +14,8 @@ private:
 	bool exit_editing = false;
 	bool is_saved = false;
 	bool cancel_edit = false;
+	bool is_restart = false;
+
 
 public:
 	Cursor* p_cursor;
@@ -28,8 +30,11 @@ public:
 	void EditScenes();
 	void GetKeyboardInput();
 	void SetRefreshDelay();
-	void UpdateValue(string option);
+	int UpdateValue(string option);
 	void DoSceneEdit(int load_scene);
+	void Reset();
+	string ProcessTextOption(string label);
+	int ProcessNumberOption(string label);
 
 	// getters
 	bool IsDoneEditing();

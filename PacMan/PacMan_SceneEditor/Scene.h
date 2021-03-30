@@ -68,6 +68,8 @@ public:
     string** GetSceneValues();
     void DeleteOptions();
     bool PenIsValid(char pen);
+    bool SaveToFile();
+    string CreatesceneString();
 
     // setters
     void SetEditor(Editor* p_editor);

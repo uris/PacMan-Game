@@ -486,3 +486,104 @@ bool Scene::PenIsValid(char pen)
 
     return (count > max_count ? false : true);
 }
+
+bool Scene::SaveToFile()
+{
+    // create the scene updates string
+    string update = CreatesceneString();
+
+    // get the text from file until we need to insert the update
+    ifstream read_scenes("PacMan.Scenes");
+    string file_line, text_1 = "", text_2 = "", marker;
+    bool is_part2 = false;
+
+    if (read_scenes)
+    {
+        // file exists and is open 
+        while (getline(read_scenes, file_line))
+        {
+            marker = "#scene:" + to_string(this_scene);
+            if (file_line.find(Utility::TransformString(marker, 1), 0) == std::string::npos) {
+                if (!is_part2) {
+                    text_1 += file_line + "\n";
+                }
+                else {
+                    text_2 += file_line + "\n";
+                }
+                continue;
+            }
+            else
+            {
+                is_part2 = true;
+                while (getline(read_scenes, file_line))
+                {
+                    marker = "#end_scene";
+                    if (file_line.find(Utility::TransformString(marker, 1), 0) == std::string::npos)
+                    {
+                        continue; // skip
+                    }
+                    else
+                    {
+                        break; // exit this loop
+                    }
+                }
+            }
+
+        }
+        read_scenes.close();
+    }
+
+    update = text_1 + update + text_2;
+
+    
+    //std::ofstream outfile;
+    //outfile.open("test.txt", std::ios_base::app); // append instead of overwrite
+    //outfile << "Data";
+    //return 0;
+    
+    ofstream scene_file("PacMan.scenes");
+    scene_file << update;
+    scene_file.close();
+
+    /*string fileLine, section, map = "";
+    bool processLines = true;*/
+
+    return true;
+
+}
+
+string Scene::CreatesceneString()
+{
+    // create the string to write
+    string map = "";
+    string update = "";
+    update += "#scene:" + to_string(this_scene) + "\n";
+    update += "title:" + title + "\n";
+    update += "pellet_points:" + to_string(points_pellet) + "\n";
+    update += "ghost_points:" + to_string(points_ghost) + "\n";
+    update += "all_ghosts_bonus:" + to_string(all_ghost_bonus) + "\n";
+    update += "edible_ghost_duration:" + to_string(edible_ghost_duration) + "\n";
+    update += "chase_duration:" + to_string(chase_for) + "\n";
+    update += "run_duration:" + to_string(run_for) + "\n";
+    update += "roam_duration:" + to_string(roam_for) + "\n";
+    update += "roam_count:" + to_string(roam_count) + "\n";
+    update += "level_map:\n";
+    // insert map array
+    for (int row = 0; row < rows; row++)
+    {
+        for (int col = 0; col < cols; col++)
+        {
+            if (p_map[row][col] == char(Globals::cursor))
+            {
+                p_map[row][col] = p_editor->p_cursor->content_now;
+            }
+            map += p_map[row][col];
+        }
+        map += "\n";
+    }
+    Utility::ReplaceString(map, Globals::pellet, '.');
+    update += map;
+    update += "#end_scene\n";
+
+    return update;
+}

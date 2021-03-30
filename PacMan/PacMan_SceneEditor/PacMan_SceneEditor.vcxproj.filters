@@ -76,5 +76,8 @@
     <None Include="PacMan.scenes">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="PacMan - Copy.scenes">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
