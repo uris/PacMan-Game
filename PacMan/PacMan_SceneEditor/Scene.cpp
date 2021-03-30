@@ -489,20 +489,28 @@ bool Scene::PenIsValid(char pen)
 
 bool Scene::SaveToFile()
 {
-    // create the scene updates string
-    string update = CreatesceneString();
+    
 
     // get the text from file until we need to insert the update
     ifstream read_scenes("PacMan.Scenes");
     string file_line, text_1 = "", text_2 = "", marker;
     bool is_part2 = false;
+    int scene_number = 0;
 
     if (read_scenes)
     {
         // file exists and is open 
         while (getline(read_scenes, file_line))
         {
+            marker = "#scene:";
+
+            if (file_line.find(Utility::TransformString(marker, 1), 0) != std::string::npos)
+            {
+                scene_number++;
+            }
+
             marker = "#scene:" + to_string(this_scene);
+
             if (file_line.find(Utility::TransformString(marker, 1), 0) == std::string::npos) {
                 if (!is_part2) {
                     text_1 += file_line + "\n";
@@ -515,23 +523,52 @@ bool Scene::SaveToFile()
             else
             {
                 is_part2 = true;
-                while (getline(read_scenes, file_line))
+                
+                if (this_scene == 0)
                 {
-                    marker = "#end_scene";
-                    if (file_line.find(Utility::TransformString(marker, 1), 0) == std::string::npos)
+                    // place the scene into text_2
+                    text_2 += "\n" + file_line + "\n";
+                    while (getline(read_scenes, file_line))
                     {
-                        continue; // skip
-                    }
-                    else
-                    {
-                        break; // exit this loop
+                        marker = "#end_scene";
+                        if (file_line.find(Utility::TransformString(marker, 1), 0) != std::string::npos)
+                        {
+                            text_2 += file_line + "\n";
+                            break; // skip
+                        }
+                        else
+                        {
+                            text_2 += file_line + "\n";
+                        }
                     }
                 }
+                else
+                {
+                    // move past the scene
+                    while (getline(read_scenes, file_line))
+                    {
+                        marker = "#end_scene";
+                        if (file_line.find(Utility::TransformString(marker, 1), 0) == std::string::npos)
+                        {
+                            continue; // skip
+                        }
+                        else
+                        {
+                            break; // exit this loop
+                        }
+                    }
+
+                }
+                
+                
             }
 
         }
         read_scenes.close();
     }
+
+    // create the scene updates string
+    string update = CreatesceneString(scene_number);
 
     update = text_1 + update + text_2;
 
@@ -552,12 +589,12 @@ bool Scene::SaveToFile()
 
 }
 
-string Scene::CreatesceneString()
+string Scene::CreatesceneString(int scene)
 {
     // create the string to write
     string map = "";
     string update = "";
-    update += "#scene:" + to_string(this_scene) + "\n";
+    update += "#scene:" + to_string(this_scene != 0 ? this_scene : scene) + "\n";
     update += "title:" + title + "\n";
     update += "pellet_points:" + to_string(points_pellet) + "\n";
     update += "ghost_points:" + to_string(points_ghost) + "\n";

@@ -69,7 +69,7 @@ public:
     void DeleteOptions();
     bool PenIsValid(char pen);
     bool SaveToFile();
-    string CreatesceneString();
+    string CreatesceneString(int scene);
 
     // setters
     void SetEditor(Editor* p_editor);

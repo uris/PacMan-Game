@@ -102,10 +102,22 @@ bool Cursor::IsEditable(Direction direction)
 bool Cursor::IsInBounds(Direction direction)
 {
 	Coord position(current_position, direction);
-	if (position.col < 1 || position.col > p_editor->p_scene->cols - 2)
+	
+	if (position.col < 0 || position.col > p_editor->p_scene->cols - 1)
 		return false;
-	if (position.row < 1 || position.row > p_editor->p_scene->rows - 2)
+	
+	if (position.row < 0 || position.row > p_editor->p_scene->rows - 1)
 		return false;
+
+	switch (p_editor->p_scene->p_map[position.row][position.col])
+	{
+	case 'R':
+	case 'Y':
+	case 'B':
+	case 'P':
+		return false;
+	}
+
 	return true;
 
 }
