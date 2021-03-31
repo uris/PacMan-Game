@@ -7,9 +7,7 @@
 #include "Draw.h"
 #include "Editor.h"
 
-
 using namespace std;
-using namespace std::chrono;
 
 //constructors
 Scene::Scene()
