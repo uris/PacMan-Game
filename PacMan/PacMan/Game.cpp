@@ -119,6 +119,8 @@ void Game::RunGame()
 
     } while (true);
 
+    system("cls");
+
 }
 
 // flow methods
