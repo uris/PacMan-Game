@@ -3,7 +3,6 @@
 #include <string>
 #include <fstream>
 
-
 using namespace std;
 
 //constructors
@@ -24,6 +23,7 @@ string Utility::TransformString(const string& text, const int operation)
     }
     return "";
 }
+
 void Utility::ReplaceString(string& text, const string from, const char to)
 {
     size_t start_pos = 0;
@@ -33,6 +33,17 @@ void Utility::ReplaceString(string& text, const string from, const char to)
         start_pos += to_string.length(); // ...
     }
 }
+
+void Utility::ReplaceString(string& text, const char from, const char to)
+{
+    size_t start_pos = 0;
+    string to_string = { to };
+    while ((start_pos = text.find(from, start_pos)) != std::string::npos) {
+        text.replace(start_pos, 1, to_string);
+        start_pos += to_string.length(); // ...
+    }
+}
+
 string Utility::Spacer(const string& format, const int block_width)
 {
     // used to center the "format" string -> cout the return on either side of the string to print
@@ -44,109 +55,81 @@ string Utility::Spacer(const string& format, const int block_width)
     }
     return spaces;
 }
-//string Utility::LoadSceneFromFile(string filename, int scene_to_load)
-//{
-//    Utility utility; // access to utilities
-//
-//    ifstream file(filename);
-//    string file_line, marker, content = "";
-//    bool process_lines = true;
-//
-//    if (file) {
-//         file exists and is open 
-//        while (getline(file, file_line))
-//        {
-//
-//            check for right scene
-//            marker = "#scene:";
-//            if (file_line.find(Utility::TransformString(marker, 1), 0) != std::string::npos) { // if line is scene identifier
-//
-//                if (scene_to_load == stoi(file_line.substr(Utility::TransformString(marker, 1).size(), 2))) // and if the sence is the one I'm looking for
-//                {
-//                    this is the scene we are looking for so let's process it until your get to the end of the level info
-//                    while (getline(file, file_line))
-//                    {
-//                         get the next line and set the relevant info in the level info
-//
-//                        marker = "title:";
-//                        if (file_line.find(Utility::TransformString(marker, 1), 0) != std::string::npos) {
-//                            content += file_line + "\n";
-//                            continue;
-//                        }
-//
-//                        marker = "pellet_points:";
-//                        if (file_line.find(Utility::TransformString(marker, 1), 0) != std::string::npos) {
-//                            content += file_line + "\n";
-//                            continue;
-//                        }
-//
-//                        marker = "ghost_points:";
-//                        if (file_line.find(Utility::TransformString(marker, 1), 0) != std::string::npos) {
-//                            content += file_line + "\n";
-//                            continue;
-//                        }
-//
-//                        marker = "all_ghosts_bonus:";
-//                        if (file_line.find(Utility::TransformString(marker, 1), 0) != std::string::npos) {
-//                            content += file_line + "\n";
-//                            continue;
-//                        }
-//
-//                        marker = "edible_ghost duration:";
-//                        if (file_line.find(Utility::TransformString(marker, 1), 0) != std::string::npos) {
-//                            content += file_line + "\n";
-//                            continue;
-//                        }
-//
-//                        marker = "chase_duration:";
-//                        if (file_line.find(Utility::TransformString(marker, 1), 0) != std::string::npos) {
-//                            content += file_line + "\n";
-//                            continue;
-//                        }
-//
-//                        marker = "run_duration:";
-//                        if (file_line.find(Utility::TransformString(marker, 1), 0) != std::string::npos) {
-//                            content += file_line + "\n";
-//                            continue;
-//                        }
-//
-//                        marker = "roam_duration:";
-//                        if (file_line.find(Utility::TransformString(marker, 1), 0) != std::string::npos) {
-//                            content += file_line + "\n";
-//                            continue;
-//                        }
-//
-//                        marker = "roam_count:";
-//                        if (file_line.find(Utility::TransformString(marker, 1), 0) != std::string::npos) {
-//                            content += file_line + "\n";
-//                            continue;
-//                        }
-//
-//                        marker = "level_map:";
-//                        if (file_line.find(Utility::TransformString(marker, 1), 0) != std::string::npos) {
-//                             get map info into the map string ending when you reach end of map
-//                            marker = "#end_scene";
-//                            while (getline(file, file_line))
-//                            {
-//                                if (file_line.find(Utility::TransformString(marker, 1), 0) == std::string::npos)
-//                                    content += file_line;
-//                                else
-//                                    break;
-//                            }
-//                        }
-//
-//                        marker = "#scene:"; // check to see if reached the next scene;
-//                        if (file_line.find(Utility::TransformString(marker, 1), 0) != std::string::npos) {
-//                            break;
-//                        }
-//
-//                    }
-//                }
-//                process_lines = false;
-//            }
-//        }
-//        file.close();
-//    }
-//
-//    return (content);
-//}
+
+string Utility::GetMenuFromFile(string file_name)
+{
+    ifstream file(file_name);
+    string file_line, marker, content = "false";
+    bool process_lines = true;
+    int number_options = 0;
+
+    if (file) {
+        // file exists and is open 
+        content = "";
+        while (getline(file, file_line))
+        {
+            int this_scene;
+
+            marker = "#scene:";
+            if (file_line.find(Utility::TransformString(marker, 1), 0) != std::string::npos)
+            {
+
+                // set the scene number
+                int this_scene = stoi(file_line.substr(Utility::TransformString(marker, 1).size(), 2));
+
+                if (this_scene != 0) {
+
+                    content += file_line.substr(Utility::TransformString(marker, 1).size(), (file_line.size() - marker.size())) + "*";
+
+                    marker = "title:";
+                    getline(file, file_line);
+                    if (file_line.find(Utility::TransformString(marker, 1), 0) != std::string::npos) {
+                        content += file_line.substr(Utility::TransformString(marker, 1).size(), (file_line.size() - marker.size())) + "\n";
+                        number_options++;
+                    }
+
+                }
+            }
+
+        }
+    }
+    file.close();
+
+    // returns a new line seperated string with the menu option, adding the number of options at the head
+    return to_string(number_options) + "\n" + content;
+}
+
+string Utility::GetTemplateFromFile(string file_name)
+{
+    ifstream file(file_name);
+    string file_line, marker, content = "false";
+    bool process_lines = true;
+
+    if (file) {
+        content = "";
+        string start_marker = "#scene:0";
+        string end_marker = "#end_scene";
+
+        while (getline(file, file_line))
+        {
+            if (file_line.find(Utility::TransformString(start_marker, 1), 0) != std::string::npos)
+            {
+                while (getline(file, file_line))
+                {
+                    if (file_line.find(Utility::TransformString(end_marker, 1), 0) != std::string::npos)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        content += file_line + '\n';
+                    }
+                }
+            }
+        }
+    }
+    file.close();
+
+    return content;
+
+}

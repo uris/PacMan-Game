@@ -61,7 +61,6 @@ Game::~Game()
 //game flow
 void Game::RunGame()
 {
-    GameCredits(); // show game credits
 
     do
     {
@@ -123,44 +122,6 @@ void Game::RunGame()
 }
 
 // flow methods
-
-void Game::GameCredits()
-{
-    string ghost;
-    Draw::ShowConsoleCursor(false);
-
-    ghost += "               *********\n";
-    ghost += "           *****************\n";
-    ghost += "         *********************\n";
-    ghost += "       ******####********####**\n";
-    ghost += "       ****#########***#########\n";
-    ghost += "       ****#####    ***#####    *\n";
-    ghost += "    *******#####    ***#####    ***\n";
-    ghost += "    *********#####********####*****\n";
-    ghost += "    *******************************\n";
-    ghost += "    *******************************\n";
-    ghost += "    *******************************\n";
-    ghost += "    *****  *******    ******  *****\n";
-    ghost += "    ***      *****    ****      ***\n";
-
-    // print image
-    string format = Utility::Spacer("PACMAN 2021", 40);
-    cout << endl << endl;
-    Draw::SetColor(7);
-    cout << ghost;
-    Draw::SetColor(7);
-    cout << endl;
-    cout << format;
-    cout << "PACMAN 2021";
-    cout << format;
-
-    // play intro
-    SFX(Play::INTRO);
-
-    // any key press starts game
-    char input = _getch();
-    system("cls");
-}
 
 void Game::SetupGame()
 {

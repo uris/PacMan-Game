@@ -144,16 +144,21 @@
   <ItemGroup>
     <ClCompile Include="Character.cpp" />
     <ClCompile Include="Coord.cpp" />
+    <ClCompile Include="Cursor.cpp" />
     <ClCompile Include="Draw.cpp" />
+    <ClCompile Include="Editor.cpp" />
     <ClCompile Include="Fruit.cpp" />
     <ClCompile Include="Ghost.cpp" />
     <ClCompile Include="Level.cpp" />
+    <ClCompile Include="MainMenu.cpp" />
     <ClCompile Include="PacMan.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Utility.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="PacMan - Copy.scenes" />
     <None Include="PacMan.scenes" />
   </ItemGroup>
   <ItemGroup>
@@ -173,13 +178,17 @@
   <ItemGroup>
     <ClInclude Include="Character.h" />
     <ClInclude Include="Coord.h" />
+    <ClInclude Include="Cursor.h" />
     <ClInclude Include="Draw.h" />
+    <ClInclude Include="Editor.h" />
     <ClInclude Include="EnumsAndStatics.h" />
     <ClInclude Include="Fruit.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Ghost.h" />
     <ClInclude Include="Level.h" />
+    <ClInclude Include="MainMenu.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="Scene.h" />
     <ClInclude Include="Utility.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

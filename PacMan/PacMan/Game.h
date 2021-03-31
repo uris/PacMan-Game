@@ -41,7 +41,6 @@ class Game
 
         // game flow
         void RunGame();
-        void GameCredits();
         void SetupGame();
         void MovePlayer();
         void MoveGhosts();
