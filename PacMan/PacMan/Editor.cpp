@@ -63,16 +63,21 @@ void Editor::EditScenes()
             load_scene = stoi(selected_scene);
         
         // do the editing of the selcted scene if not exiting
-        DoSceneEdit(load_scene);
+        do
+        {
+            DoSceneEdit(load_scene);
+
+        } while (!exit_editing);
+        
 
         // check cancel - restart edit loop if cancel is true
         if (cancel_edit) {
-            system("cls");
+            std::system("cls");
             continue;
         }
 
         // cls
-        system("cls");
+        std::system("cls");
 
         // process the selected option, setting the value or saving the scene edits
         string selected_option = "#none";
@@ -87,7 +92,7 @@ void Editor::EditScenes()
             // process the selected option
             if (selected_option == "#save")
             {
-                // do save stuff
+                // do save
                 p_scene->SaveToFile();
                 is_saved = true;
                 break;
@@ -99,12 +104,12 @@ void Editor::EditScenes()
             }
            
             // clear
-            system("cls");
+            std::system("cls");
         }
 
     } while (!is_saved);
 
-    system("cls");
+    std::system("cls");
 
     if (is_saved) {
         cout << endl << endl;
@@ -115,7 +120,7 @@ void Editor::EditScenes()
     }
     
     Reset();
-    system("cls");
+    std::system("cls");
 }
 
 void Editor::GetKeyboardInput()
@@ -160,10 +165,20 @@ void Editor::GetKeyboardInput()
             }
             break;
         case 'y':
-            if (done_editing) {
-                cancel_edit = false;
-                done_editing = true;
-                exit_editing = true;
+            if (done_editing)
+            {
+                if (p_scene->ValiditeScene())
+                {
+                    cancel_edit = false;
+                    done_editing = true;
+                    exit_editing = true;
+                }
+                else
+                {
+                    cancel_edit = false;
+                    done_editing = false;
+                    exit_editing = false;
+                }
             }
             break;
         case 'n':
@@ -204,6 +219,12 @@ void Editor::GetKeyboardInput()
                 p_cursor->SetPen(char(input));
             }
             break;
+        case 'r':
+            if (p_cursor->IsEditing() && p_cursor->Pen() == '0') {
+                p_scene->resize_scene = true;
+                exit_editing = true;
+            }
+            break;
         default:
             break;
         }
@@ -227,7 +248,7 @@ void Editor::SetDoneEditing(bool state)
 
 int Editor::UpdateValue(string option)
 {
-    system("cls"); Draw::ShowConsoleCursor(true);
+    std::system("cls"); Draw::ShowConsoleCursor(true);
     option = Utility::TransformString(option, 1);
     string spacer = "  ";
 
@@ -287,7 +308,7 @@ int Editor::UpdateValue(string option)
 void Editor::DoSceneEdit(int load_scene)
 {
     // clear screen
-    system("cls");
+    std::system("cls");
 
     // Create the scene based on the selection
     p_scene->CreateLevelScene(load_scene);
@@ -299,20 +320,27 @@ void Editor::DoSceneEdit(int load_scene)
     // Edit the scene while not done editing
     do
     {
-        // move the cursor
-        p_cursor->MoveCursor();
+     
+            // move the cursor
+            p_cursor->MoveCursor();
 
-        //draw the edited scene
-        p_scene->DrawLevel();
+            //draw the edited scene
+            p_scene->DrawLevel();
 
-        // refresh rate to slow down render
-        SetRefreshDelay();
-
+            // refresh rate to slow down render
+            SetRefreshDelay();
+        
 
     } while (!exit_editing);
 
     // join the keyboard thread back to the main thread
     inputThread.join();
+
+    if (p_scene->resize_scene)
+    {
+        p_scene->ResizeScene();
+        exit_editing = false;
+    }
 }
 
 void Editor::Reset()

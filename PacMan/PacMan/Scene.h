@@ -14,6 +14,9 @@ public:
     int this_scene = 0;
     char** p_map = nullptr;
     string** p_options = nullptr;
+    string scene_errors = "";
+    int error_count = 0;
+    bool resize_scene = false;
 
 	//constructors
 	Scene();
@@ -32,6 +35,13 @@ public:
     bool PenIsValid(char pen);
     bool SaveToFile();
     string CreatesceneString(int scene);
+    bool ValiditeScene();
+    bool HasNoDeadEnd(int row, int col);
+    bool HasOuterWalls(int row, int col);
+    void ResizeScene();
+    string ProcessTextOption(string label);
+    int ProcessNumberOption(string label);
+    void ResizeMap(int new_rows, int new_cols);
 
     // setters
     void SetEditor(Editor* p_editor);

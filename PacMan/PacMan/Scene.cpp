@@ -6,6 +6,8 @@
 #include "Utility.h"
 #include "Draw.h"
 #include "Editor.h"
+#include <chrono>
+#include <thread>
 
 using namespace std;
 
@@ -338,6 +340,78 @@ void Scene::DrawLevel()
 
 } 
 
+void Scene::ResizeScene()
+{
+    // display menu with rowws and columns options
+    string resize_options[4][2]{};
+    MainMenu resize_menu;
+    int new_row_size = rows, new_col_size = cols;
+
+    do
+    {
+        system("cls");
+        resize_options[0][0] = "#rows";
+        resize_options[0][1] = "Rows (current scene " + to_string(rows) + "): " + to_string(new_row_size);
+        resize_options[1][0] = "#cols";
+        resize_options[1][1] = "Columns (current scene " + to_string(cols) +"): " + to_string(new_col_size);
+        resize_options[2][0] = "#save";
+        resize_options[2][1] = "SAVE";
+        resize_options[3][0] = "#cancel";
+        resize_options[3][1] = "CANCEL";
+        resize_menu.Create(resize_options, 4);
+        resize_menu.Template(MenuTemplates::EDIT_SCENE_OPTIONS);
+        string selection = resize_menu.Show();
+
+        if (selection == "#rows")
+        {
+            new_row_size = ProcessNumberOption("Set rows to: ");
+        }
+        else if (selection == "#cols")
+        {
+            new_col_size = ProcessNumberOption("Set columns to: ");
+        }
+        else if (selection == "#save")
+        {
+            //updated array and rows
+            ResizeMap(new_row_size, new_col_size);
+            break;
+        }
+        else
+        {
+            // exit with no update
+            break;
+        }
+
+
+    } while (true);
+    
+
+}
+
+void Scene::ResizeMap(int new_rows, int new_cols)
+{
+    // update the level array
+    string** p_map_temp = nullptr;
+}
+
+string Scene::ProcessTextOption(string label)
+{
+    string string_input;
+    cout << label;
+    getline(cin, string_input);
+    return string_input;
+}
+
+int Scene::ProcessNumberOption(string label)
+{
+    string format = "   ";
+    Draw::ShowConsoleCursor(true);
+    int int_input;
+    cout << endl << format << label;
+    cin >> int_input;
+    return int_input;
+}
+
 // setters
 void Scene::SetEditor(Editor* p_editor)
 {
@@ -347,15 +421,29 @@ void Scene::SetEditor(Editor* p_editor)
 void Scene::ShowKey()
 {
     string format = "";
-    if (p_editor->p_cursor->IsEditing())
+    if (error_count > 0)
     {
-         if (p_editor->p_cursor->Pen() == '0')
+        format = Utility::Spacer(scene_errors, cols);
+        cout << endl;
+        cout << Draw::WriteEmptyLine(70) << '\r';
+        cout << format << scene_errors;
+        cout << Draw::WriteEmptyLine(70) << '\r';
+        top_left_modifier = 5;
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(3000)); // pause to slow game
+
+        scene_errors = "";
+        error_count = 0;
+    }
+    else if (p_editor->p_cursor->IsEditing())
+    {
+        if (p_editor->p_cursor->Pen() == '0')
         {
             cout << endl;
             cout << Draw::WriteEmptyLine(70) << '\r';
-            cout << " '.' = pellet, 'o' = powerup, ' ' = space, 'S' = Player start position" << endl;
+            cout << " '.' pellet, 'o' powerup, ' ' space, 'S' Player start, 'R' resize" << endl;
             cout << Draw::WriteEmptyLine(70) << '\r';
-            cout << " '#' = wall '%' = hidden wall 'T' = teleport, '^' = Ghost spawn target" << endl;
+            cout << " '#' wall, '%' hidden wall, 'T' teleport, '^' Ghost spawn" << endl;
             top_left_modifier = 6;
         }
         else
@@ -621,4 +709,147 @@ string Scene::CreatesceneString(int scene)
     update += "#end_scene\n";
 
     return update;
+}
+
+bool Scene::ValiditeScene()
+{
+    int teleport = 0, player_start = 0, ghost_spawn_target = 0;
+    bool no_dead_ends = true, has_outer_walls = true, is_valid_scene = true;
+    scene_errors = "";
+
+    for (int row = 0; row < rows; row++)
+    {
+        for (int col = 0; col < cols; col++)
+        {
+            // do counts
+            switch (p_map[row][col])
+            {
+            case char(Globals::teleport):
+                teleport++;
+                break;
+            case char(Globals::player_start):
+                player_start++;
+                break;
+            case char(Globals::ghost_spawn_target):
+                ghost_spawn_target++;
+                break;
+            }
+
+            // check for dead end
+            if (!HasNoDeadEnd(row, col))
+            {
+                no_dead_ends = false;
+            }
+
+            // check for outer walls
+            if (!HasOuterWalls(row, col))
+            {
+                has_outer_walls = false;
+            }
+
+        }
+    }
+
+     if (teleport > 2 || teleport < 2)
+    {
+        scene_errors = "You need one pair of teleports\n";
+        is_valid_scene = false;
+        error_count++;
+    }
+
+    if (player_start > 1 || player_start < 1)
+    {
+        scene_errors = "You need one player start position.\n";
+        is_valid_scene = false;
+        error_count++;
+    }
+
+    if (ghost_spawn_target > 1 || ghost_spawn_target < 1)
+    {
+        scene_errors = "You need one ghosts spawn target.\n";
+        is_valid_scene = false;
+        error_count++;
+    }
+
+    if (!no_dead_ends)
+    {
+        scene_errors = "The level cannot have dead ends.\n";
+        is_valid_scene = false;
+        error_count++;
+    }
+
+    if (!has_outer_walls)
+    {
+        scene_errors = "You need outer walls around the scene.\n";
+        is_valid_scene = false;
+        error_count++;
+    }
+
+    return is_valid_scene;
+
+}
+
+bool Scene::HasOuterWalls(int row, int col)
+{
+    if (col == 0 || col == cols || row == 0 || row == rows)
+    {
+        if (p_map[row][col] == '+' || p_map[row][col] == '|' || p_map[row][col] == '-' || p_map[row][col] == '#' || (p_map[row][col] == Globals::teleport))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool Scene::HasNoDeadEnd(int row, int col)
+{
+    // if in baounds of the outer walls
+    if (col > 0 && col < cols && row > 0 && row < rows)
+    {
+        
+        // and the current position is a pellet
+        if (p_map[row][col] == char(Globals::pellet))
+        {
+            // look around the sqaure for other pellet sqaures
+            int route_count = 0; int this_row = 0, this_col = 0;
+            for (int i = 0; i < 4; i++)
+            {
+
+                this_row = row, this_col = col;
+                switch (i)
+                {
+                case 0: // above
+                    this_row = row - 1;
+                    break;
+                case 1: // to right
+                    this_col = col + 1;
+                    break;
+                case 2: // below
+                    this_row = row + 1;
+                    break;
+                case 3: // to left
+                    this_col = col - 1;
+                    break;
+                }
+
+                if (p_map[this_row][this_col] == char(Globals::space) || p_map[this_row][this_col] == char(Globals::pellet) || p_map[this_row][this_col] == char(Globals::powerup) || p_map[this_row][this_col] == char(Globals::player_start) || p_map[this_row][this_col] == char(Globals::ghost_spawn_target))
+                {
+                    route_count++;
+                }
+
+            }
+
+            // if the number of pellets around the sqaure is more than 1 there are no dead ends
+            return route_count > 1 ? true : false;
+
+        }
+
+        return true;
+    }
+
+    return true;
 }

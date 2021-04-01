@@ -83,7 +83,7 @@ string Draw::Credits()
     cout << endl << endl;
 
     // play intro
-    PlaySound(TEXT("sfx_intro.wav"), NULL, SND_FILENAME | SND_SYNC);
+    //PlaySound(TEXT("sfx_intro.wav"), NULL, SND_FILENAME | SND_SYNC);
 
     string options[3][2];
     options[0][0] = "#play";
