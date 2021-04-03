@@ -14,6 +14,7 @@ private:
 	int option_selected = -1;
 	int exit_index = -1;
 	int new_index = -1;
+	int del_index = -1;
 	bool first_draw = true;
 	bool show_instructions = true;
 	bool is_horizontal = false;

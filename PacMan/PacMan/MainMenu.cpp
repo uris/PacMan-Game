@@ -44,7 +44,7 @@ void MainMenu::Create(const string file_name, const bool templates)
 	// get number of options for size of the menu array
 	if ((pos = options.find(marker)) != std::string::npos)
 	{
-		menu_options_size = stoi(options.substr(0, pos)) + 2;
+		menu_options_size = stoi(options.substr(0, pos)) + (templates ? 2 : 3);
 	}
 	options.erase(0, pos + marker.length()); // remove first line that contains size info
 
@@ -67,13 +67,34 @@ void MainMenu::Create(const string file_name, const bool templates)
 		}
 
 	}
-	p_menu_options[menu_options_size - 2][0] = "#new";
-	p_menu_options[menu_options_size - 2][1] = (templates ? "Blank template" : "Create a new scene");
-	p_menu_options[menu_options_size - 1][0] = "#exit";
-	p_menu_options[menu_options_size - 1][1] = "Exit";
+	if (templates)
+	{
+		p_menu_options[menu_options_size - 2][0] = "#new";
+		p_menu_options[menu_options_size - 2][1] = "Blank template";
+		p_menu_options[menu_options_size - 1][0] = "#exit";
+		p_menu_options[menu_options_size - 1][1] = "Exit";
 
-	exit_index = menu_options_size - 1;
-	new_index = menu_options_size - 2;
+		exit_index = menu_options_size - 1;
+		new_index = menu_options_size - 2;
+		del_index = -1;
+
+	}
+	else
+	{
+		p_menu_options[menu_options_size - 3][0] = "#new";
+		p_menu_options[menu_options_size - 3][1] = (templates ? "Blank template" : "Create a new scene");
+		p_menu_options[menu_options_size - 2][0] = "#delete";
+		p_menu_options[menu_options_size - 2][1] = "Delete Scenes";
+		p_menu_options[menu_options_size - 1][0] = "#exit";
+		p_menu_options[menu_options_size - 1][1] = "Exit";
+
+		exit_index = menu_options_size - 1;
+		del_index = menu_options_size - 2;
+		new_index = menu_options_size - 3;
+	}
+	
+
+	
 
 }
 
@@ -199,6 +220,7 @@ void MainMenu::Draw()
 			icon = "> ";
 			i == exit_index ? icon = "< " : icon;
 			i == new_index ? icon = "+ " : icon;
+			i == del_index ? icon = "- " : icon;
 		}
 
 		cout << (icon + p_menu_options[i][1]) + " ";
@@ -338,6 +360,7 @@ void MainMenu::Template(MenuTemplates menu_template)
 		show_icon = true;
 		new_index = 9;
 		exit_index = 10;
+		del_index = -1;
 		first_draw = true;
 		option_selected = -1;
 		menu_title =  "\n   EDIT SCENE OPTIONS\n";
@@ -351,6 +374,7 @@ void MainMenu::Template(MenuTemplates menu_template)
 		show_icon = false;
 		new_index = -1;
 		exit_index = -1;
+		del_index = -1;
 		first_draw = true;
 		option_selected = 0;
 		menu_title = "";
@@ -371,6 +395,7 @@ void MainMenu::Template(MenuTemplates menu_template)
 		show_instructions = true;
 		show_icon = true;
 		option_selected = -1;
+		del_index = -1;
 		menu_title = "\n   SCENE TEMPLATES\n";
 		menu_title += "   Choose a scene to use as a template\n";
 		menu_title += "   Start from scratch with a blank template.\n";
@@ -382,6 +407,7 @@ void MainMenu::Template(MenuTemplates menu_template)
 		show_icon = false;
 		new_index = -1;
 		exit_index = -1;
+		del_index = -1;
 		option_selected = -1;
 		menu_title = "";
 		break;
