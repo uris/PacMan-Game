@@ -44,7 +44,7 @@ void MainMenu::Create(const string file_name, const bool templates)
 	// get number of options for size of the menu array
 	if ((pos = options.find(marker)) != std::string::npos)
 	{
-		menu_options_size = stoi(options.substr(0, pos)) + (templates ? 2 : 3);
+		menu_options_size = stoi(options.substr(0, pos)) + 2;
 	}
 	options.erase(0, pos + marker.length()); // remove first line that contains size info
 
@@ -67,34 +67,14 @@ void MainMenu::Create(const string file_name, const bool templates)
 		}
 
 	}
-	if (templates)
-	{
-		p_menu_options[menu_options_size - 2][0] = "#new";
-		p_menu_options[menu_options_size - 2][1] = "Blank template";
-		p_menu_options[menu_options_size - 1][0] = "#exit";
-		p_menu_options[menu_options_size - 1][1] = "Exit";
 
-		exit_index = menu_options_size - 1;
-		new_index = menu_options_size - 2;
-		del_index = -1;
+	p_menu_options[menu_options_size - 2][0] = "#new";
+	p_menu_options[menu_options_size - 2][1] = (templates ? "Blank template" : "Create a new scene");
+	p_menu_options[menu_options_size - 1][0] = "#exit";
+	p_menu_options[menu_options_size - 1][1] = "Exit";
 
-	}
-	else
-	{
-		p_menu_options[menu_options_size - 3][0] = "#new";
-		p_menu_options[menu_options_size - 3][1] = (templates ? "Blank template" : "Create a new scene");
-		p_menu_options[menu_options_size - 2][0] = "#delete";
-		p_menu_options[menu_options_size - 2][1] = "Delete Scenes";
-		p_menu_options[menu_options_size - 1][0] = "#exit";
-		p_menu_options[menu_options_size - 1][1] = "Exit";
-
-		exit_index = menu_options_size - 1;
-		del_index = menu_options_size - 2;
-		new_index = menu_options_size - 3;
-	}
-	
-
-	
+	exit_index = menu_options_size - 1;
+	new_index = menu_options_size - 2;
 
 }
 

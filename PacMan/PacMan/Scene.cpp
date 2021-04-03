@@ -545,49 +545,13 @@ void Scene::ResizeScene()
         remove_rows = false;
     }
 
-    //// display menu with rowws and columns options
-    //string resize_options[4][2]{};
-    //MainMenu resize_menu;
-    //int new_row_size = rows, new_col_size = cols;
-
-    //do
-    //{
-    //    system("cls");
-    //    resize_options[0][0] = "#rows";
-    //    resize_options[0][1] = "Rows (current scene " + to_string(rows) + "): " + to_string(new_row_size);
-    //    resize_options[1][0] = "#cols";
-    //    resize_options[1][1] = "Columns (current scene " + to_string(cols) +"): " + to_string(new_col_size);
-    //    resize_options[2][0] = "#save";
-    //    resize_options[2][1] = "SAVE";
-    //    resize_options[3][0] = "#cancel";
-    //    resize_options[3][1] = "CANCEL";
-    //    resize_menu.Create(resize_options, 4);
-    //    resize_menu.Template(MenuTemplates::EDIT_SCENE_OPTIONS);
-    //    string selection = resize_menu.Show();
-
-    //    if (selection == "#rows")
-    //    {
-    //        new_row_size = ProcessNumberOption("Set rows to: ");
-    //    }
-    //    else if (selection == "#cols")
-    //    {
-    //        new_col_size = ProcessNumberOption("Set columns to: ");
-    //    }
-    //    else if (selection == "#save")
-    //    {
-    //        //updated array and rows
-    //        ResizeMap(new_row_size, new_col_size);
-    //        break;
-    //    }
-    //    else
-    //    {
-    //        // exit with no update
-    //        break;
-    //    }
-
-
-    //} while (true);
-    
+    // check cursor is in bounds
+    if (p_editor->p_cursor->GetCurrentRow() > rows - 1) {
+        p_editor->p_cursor->SetCurrentPosition(rows - 1, p_editor->p_cursor->GetCurrentCol());
+    }
+    if (p_editor->p_cursor->GetCurrentCol() > cols - 1) {
+        p_editor->p_cursor->SetCurrentPosition(p_editor->p_cursor->GetCurrentRow(), cols - 1);
+    }
 
 }
 
