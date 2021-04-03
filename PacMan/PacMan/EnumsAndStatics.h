@@ -72,8 +72,8 @@ struct Globals
     static constexpr int c_redwhite = 335; // white bg, black text
 
     /// Editor settings
-    static constexpr int editor_refresh_delay = 0; //milliseconds
-    static constexpr int cursor = 240; //milliseconds
+    static constexpr int editor_refresh_delay = 25; //milliseconds
+    static constexpr int cursor = 240;
     static constexpr int max_scene_rows = 37;
     static constexpr int min_scene_rows = 10;
     static constexpr int max_scene_cols = 77;
@@ -123,5 +123,5 @@ struct Globals
     // Game delay / speed defaults
     static constexpr int gobble_delay = 750; // wait in milliseconds
     static constexpr int player_beat_delay = 1000; // wait in milliseconds
-    static constexpr int refresh_delay = 0; //milliseconds
+    static constexpr int refresh_delay = 35; //milliseconds
 };

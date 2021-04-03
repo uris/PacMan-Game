@@ -3,7 +3,7 @@ title:Scene 1
 pellet_points:10
 ghost_points:250
 all_ghosts_bonus:1500
-chase_duration:9
+chase_duration:16
 run_duration:15
 roam_duration:6
 roam_count:6
@@ -37,12 +37,11 @@ T ...........%|%.%| B R Y P |%.%|%........... T
 title:Scene 1, Part 2
 pellet_points:10
 ghost_points:250
-all_ghosts_bonus:2600
-edible_ghost_duration:20
+all_ghosts_bonus:1500
 chase_duration:16
-run_duration:10
-roam_duration:5
-roam_count:4
+run_duration:15
+roam_duration:6
+roam_count:6
 level_map:
 +---------------------------------------------+
 |%o...................%|%...................o%|
@@ -73,9 +72,8 @@ T ...........%|%.%| B R Y P |%.%|%........... T
 title:New Scene
 pellet_points:10
 ghost_points:250
-all_ghosts_bonus:2600
-edible_ghost_duration:20
-chase_duration:5000
+all_ghosts_bonus:1500
+chase_duration:16
 run_duration:15
 roam_duration:6
 roam_count:6

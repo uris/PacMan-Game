@@ -355,6 +355,7 @@ void Level::DrawLevel()
 
     }
 
+
     // Level Title
     string format = Utility::Spacer(" PACMAN: " + Utility::TransformString(title, 0), cols);
     Draw::SetColor(Globals::cWHITE);

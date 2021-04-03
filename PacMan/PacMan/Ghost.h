@@ -28,16 +28,18 @@ private:
     bool is_edible = false;
     bool color_on = false;
     bool skip_turn = false; // use this to slow down moster if edible
+    
 
 public:
+    bool exit_teleport = false;
     // constructors
     Ghost();
     Ghost(Ghosts ghost);
 
     // methods
-    int DistanceToPlayer(Coord player_current_position);
-    int DistanceToRoamTarget();
-    int DistanceToSpawnTarget();
+    int DistanceToPlayer(Coord ghost_position, Coord player_current_position);
+    int DistanceToRoamTarget(Coord ghost_position);
+    int DistanceToSpawnTarget(Coord ghost_position);
     bool PlayerCollision(Coord player_coord);
     void DecreaseWait();
     void MoveGhost(const Coord player_coord, const Direction direction, const char map_content);
@@ -45,6 +47,7 @@ public:
     int GetBestMove(Coord current_position, Direction current_direction, int depth);
     Direction RandomGhostMove();
     char GhostContentNow(Direction best_move);
+    void Teleport(Coord& ghost_position, Direction& ghost_direction);
 
     // Getters
     Coord GetChaseModifier();

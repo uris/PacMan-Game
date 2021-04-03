@@ -24,7 +24,6 @@ Ghost::Ghost(Ghosts ghost)
     {
     case Ghosts::RED:
         name = Ghosts::RED;
-        roam_target = { 24, 45 };
         chase_modifier = { 0, 0 };
         this->ghost = 'R';
         color = 71;
@@ -32,7 +31,6 @@ Ghost::Ghost(Ghosts ghost)
         break;
     case Ghosts::YELLOW:
         name = Ghosts::YELLOW;
-        roam_target = { 24, 2 };
         chase_modifier = { 0, 3 };
         this->ghost = 'Y';
         color = 367;
@@ -40,7 +38,6 @@ Ghost::Ghost(Ghosts ghost)
         break;
     case Ghosts::BLUE:
         name = Ghosts::BLUE;
-        roam_target = { -3, 2 };
         chase_modifier = { 0, -3 };
         this->ghost = 'B';
         color = 435;
@@ -48,7 +45,6 @@ Ghost::Ghost(Ghosts ghost)
         break;
     case Ghosts::PINK:
         name = Ghosts::PINK;
-        roam_target = { -3, 45 };
         chase_modifier = { -3, 0 };
         this->ghost = 'P';
         color = 479;
@@ -56,7 +52,6 @@ Ghost::Ghost(Ghosts ghost)
         break;
     default:
         name = Ghosts::RED;
-        roam_target = { 24, 45 };
         chase_modifier = { 0, 0 };
         name = Ghosts::RED;
         this->ghost = 'R';
@@ -67,22 +62,22 @@ Ghost::Ghost(Ghosts ghost)
 }
 
 // methods
-int Ghost::DistanceToPlayer(Coord player_current_position)
+int Ghost::DistanceToPlayer(Coord ghost_position, Coord player_current_position)
 {
     // overload to return the distance to a coord with a specified modifier
-    return (abs(current_position.col - (player_current_position.col + chase_modifier.col)) + abs(current_position.row - (player_current_position.row + chase_modifier.row)));
+    return (abs(ghost_position.col - (player_current_position.col + chase_modifier.col)) + abs(ghost_position.row - (player_current_position.row + chase_modifier.row)));
 }
 
-int Ghost::DistanceToRoamTarget()
+int Ghost::DistanceToRoamTarget(Coord ghost_position)
 {
     // overload to return the distance to a coord with a specified modifier
-    return ( abs(current_position.col - roam_target.col) + abs(current_position.row - roam_target.row) );
+    return ( abs(ghost_position.col - roam_target.col) + abs(ghost_position.row - roam_target.row) );
 }
 
-int Ghost::DistanceToSpawnTarget()
+int Ghost::DistanceToSpawnTarget(Coord ghost_position)
 {
     // overload to return the distance to a coord with a specified modifier
-    return (abs(current_position.col - spawn_target.col) + abs(current_position.row - spawn_target.row));
+    return (abs(ghost_position.col - spawn_target.col) + abs(ghost_position.row - spawn_target.row));
 }
 
 bool Ghost::PlayerCollision(Coord player_coord)
@@ -94,7 +89,7 @@ bool Ghost::PlayerCollision(Coord player_coord)
 int Ghost::MakeGhostMove()
 {
     Direction best_move = Direction::NONE; // will store the next move
-      
+    
     if (skip_turn || p_game->IsGameOver() || PlayerCollision(p_game->p_player->GetCurrentPosition()))
     {
         return 0; // next ghost (no move)
@@ -120,9 +115,11 @@ int Ghost::MakeGhostMove()
         Coord next_move, prior_position;
         Direction new_direction = Direction::NONE;
 
+        // Do teleport if on teleport
+        Teleport(current_position, current_direction);
+
         for (int i = 0; i <= 3; i++) // cycle through up,down,left,right to find the valid best next move
         {
-
             
             new_direction = static_cast<Direction>(i); // set the direction we will get best move for
             next_move.SetTo(current_position, new_direction);
@@ -157,26 +154,30 @@ int Ghost::MakeGhostMove()
 
 int Ghost::GetBestMove(Coord current_position, Direction current_direction, int depth)
 {
+    
+    //if on teleport do the teleport
+    Teleport(current_position, current_direction);
+    
     // and on the target the ghost chases: red chases player pos, yellow player pos + 2 cols (to the right of player)
     switch (mode)
     {
     case Mode::CHASE: // redude distance to player
-        if (DistanceToPlayer(p_game->p_player->GetCurrentPosition()) == 0) { // if player and ghost collide return 0 + depth as score
+        if (DistanceToPlayer(current_position, p_game->p_player->GetCurrentPosition()) == 0) { // if player and ghost collide return 0 + depth as score
             return 0 + depth; // add depth to get fastest path
         }
         if (depth == Globals::look_ahead) { // if depth X return the distance score, increase this to make the ghost look forward more
-            return (DistanceToPlayer(p_game->p_player->GetCurrentPosition()) + depth); // add depth to get fastest path
+            return (DistanceToPlayer(current_position, p_game->p_player->GetCurrentPosition()) + depth); // add depth to get fastest path
         }
         break;
     case Mode::ROAM: // reduce distance to the ghost's roam target
         if (depth == Globals::look_ahead) {
-            return DistanceToRoamTarget();
+            return DistanceToRoamTarget(current_position);
         }
         break;
     case Mode::SPAWN: // target is above the exit area
-        if (DistanceToSpawnTarget() == 0)
+        if (DistanceToSpawnTarget(current_position) == 0)
             mode = (p_game->p_level->level_mode == Mode::RUN ? Mode::CHASE : p_game->p_level->level_mode);
-        return DistanceToSpawnTarget();
+        return DistanceToSpawnTarget(current_position);
         break;
     }
 
@@ -207,6 +208,21 @@ int Ghost::GetBestMove(Coord current_position, Direction current_direction, int 
         }
     }
     return best_score;
+}
+
+void Ghost::Teleport(Coord& ghost_position, Direction& ghost_direction)
+{
+    if (p_game->p_level->IsTeleport(ghost_position))
+    {
+        if (ghost_position.col == 0 && ghost_direction == Direction::LEFT)
+        {
+            ghost_position.col = p_game->p_level->cols - 1;
+        }
+        if (ghost_position.col == p_game->p_level->cols - 1 && ghost_direction == Direction::RIGHT)
+        {
+            ghost_position.col = 0;
+        }
+    }
 }
 
 Direction Ghost::RandomGhostMove()
@@ -324,6 +340,24 @@ bool Ghost::GameRefIsSet()
 void Ghost::SetGameRef(Game* p_game)
 {
     this->p_game = p_game;
+    switch (name)
+    {
+    case Ghosts::RED:
+        roam_target = { p_game->p_level->rows + 3, p_game->p_level->cols - 3 };
+        break;
+    case Ghosts::YELLOW:
+        roam_target = { p_game->p_level->rows + 3, 3 };
+        break;
+    case Ghosts::BLUE:
+        roam_target = { -3, 3 };
+        break;
+    case Ghosts::PINK:
+        roam_target = { -3 , p_game->p_level->cols - 3 };
+        break;
+    default:
+        roam_target = { p_game->p_level->rows + 3, p_game->p_level->cols - 2 };
+        break;
+    }
 }
 
 // encapsulation
