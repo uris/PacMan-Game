@@ -32,7 +32,7 @@ void MainMenu::DeallocateMenuPointer()
 	}
 }
 
-void MainMenu::Create(const string file_name)
+void MainMenu::Create(const string file_name, const bool templates)
 {
 	// if there's a pointer array already, delete it
 	DeallocateMenuPointer();
@@ -68,7 +68,7 @@ void MainMenu::Create(const string file_name)
 
 	}
 	p_menu_options[menu_options_size - 2][0] = "#new";
-	p_menu_options[menu_options_size - 2][1] = "Create a new scene";
+	p_menu_options[menu_options_size - 2][1] = (templates ? "Blank template" : "Create a new scene");
 	p_menu_options[menu_options_size - 1][0] = "#exit";
 	p_menu_options[menu_options_size - 1][1] = "Exit";
 
@@ -359,13 +359,21 @@ void MainMenu::Template(MenuTemplates menu_template)
 	case MenuTemplates::LIST_SCENES:
 		is_horizontal = false;
 		show_instructions = true;
-		show_icon = false;
-		new_index = -1;
-		exit_index = -1;
+		show_icon = true;
 		option_selected = -1;
 		menu_title =  "\n   PACMAN SCENE EDITOR\n";
 		menu_title += "   Choose a scene you would like to modify\n";
 		menu_title += "   Or create a new one from a template.\n";
+		menu_title += "   ----------------- \n\n";
+		break;
+	case MenuTemplates::LIST_TEMPLATES:
+		is_horizontal = false;
+		show_instructions = true;
+		show_icon = true;
+		option_selected = -1;
+		menu_title = "\n   SCENE TEMPLATES\n";
+		menu_title += "   Choose a scene to use as a template\n";
+		menu_title += "   Start from scratch with a blank template.\n";
 		menu_title += "   ----------------- \n\n";
 		break;
 	default: // case none

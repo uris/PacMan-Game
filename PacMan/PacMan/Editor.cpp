@@ -38,34 +38,70 @@ void Editor::EditScenes()
 {
     MainMenu menu;
     MainMenu options;
+    bool new_scene = false;
 
     do
     {
         // initialize editor variables
         Reset();
+        new_scene = false;
 
         // create menu of scenes to edit, display it and load selected scene.
         menu.Create();
         menu.Template(MenuTemplates::LIST_SCENES);
         string selected_scene = menu.Show();
         
-        // if selection is exit or new process that
+        // if selection is exit then break out
         if (selected_scene == "#exit")
         {
             is_restart = true; // restart the game
             break; // break out of the base edit loop
         }
 
+        // process the edit selection
         int load_scene;
+
         if (selected_scene == "#new")
-            load_scene = 0;
+        {
+            // list the available scenes as temmplate scenes
+            system("cls");
+            menu.Create("PacMan.scenes", true);
+            menu.Template(MenuTemplates::LIST_TEMPLATES);
+            string selected_template = menu.Show();
+            
+            if (selected_template == "#new")
+            {
+                load_scene = 0;
+                new_scene = true;
+            }
+            else if (selected_template == "#exit")
+            {
+                is_restart = true;
+                break;
+            }
+            else
+            {
+                load_scene = stoi(selected_template);
+                new_scene = true;
+            }
+        }   
         else
+        {
+            // load the selected existing scene
             load_scene = stoi(selected_scene);
+        }
+            
         
         // do the editing of the selcted scene if not exiting
         do
         {
             DoSceneEdit(load_scene);
+            if (new_scene)
+            {
+                p_scene->this_scene = 0;
+                new_scene = false;
+            }
+            
 
         } while (!exit_editing);
         

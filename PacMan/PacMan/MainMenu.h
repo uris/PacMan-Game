@@ -28,7 +28,7 @@ public:
 	~MainMenu();
 
 	//methods
-	void Create(const string file_name = "PacMan.scenes");
+	void Create(const string file_name = "PacMan.scenes", const bool templates = false);
 	void Create(const string menu_options, string marker1, string marker2);
 	void Create(const string menu_options[], const int menu_options_size, bool return_index);
 	void Create(const string menu_options[][2], const int menu_options_size);

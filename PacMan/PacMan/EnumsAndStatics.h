@@ -4,7 +4,8 @@ enum class MenuTemplates {
     LIST_SCENES = 0,
     EDIT_SCENE_OPTIONS = 1,
     CHOOSE_EDIT_PLAY = 2,
-    NONE = 3,
+    LIST_TEMPLATES = 3,
+    NONE = 4,
 };
 
 enum class Menu {
