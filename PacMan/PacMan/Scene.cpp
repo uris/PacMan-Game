@@ -337,9 +337,15 @@ void Scene::DrawLevel()
 
 } 
 
-void Scene::AddRemoveColumns(bool add)
+int Scene::AddRemoveColumns(bool add)
 {
-   
+     // set max and min bouderies for size of the level
+    if ((!add && cols - 1 < Globals::min_scene_cols) || (add && cols + 1 > Globals::max_scene_cols))
+    {
+        // exit add/remove
+        return 0;
+    }
+
     // determine where to add/remove from
     bool left = cols_from_left;
     int new_cols = add ? cols + 1 : cols - 1;
@@ -419,10 +425,19 @@ void Scene::AddRemoveColumns(bool add)
     // set flag fromleft/right to opposite
     cols_from_left = !cols_from_left;
 
+    //clean exit
+    return 0;
+
 }
 
-void Scene::AddRemoveRows(bool add)
+int Scene::AddRemoveRows(bool add)
 {
+    // set max and min bouderies for size of the level
+    if ((!add && rows - 1 < Globals::min_scene_rows) || (add && rows + 1 > Globals::max_scene_rows))
+    {
+        return 0;
+    }
+    
     // determine where to add/remove from
     bool left = rows_fom_bottom;
     int new_rows = add ? rows + 1 : rows - 1;
@@ -498,6 +513,9 @@ void Scene::AddRemoveRows(bool add)
 
     // set flag fromleft/right to opposite
     rows_fom_bottom = !rows_fom_bottom;
+
+    // clean exit
+    return 0;
 }
 
 void Scene::ResizeScene()

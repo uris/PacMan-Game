@@ -45,8 +45,8 @@ public:
     bool HasNoDeadEnd(int row, int col);
     bool HasOuterWalls(int row, int col);
     void ResizeScene();
-    void AddRemoveRows(bool add);
-    void AddRemoveColumns(bool add);
+    int AddRemoveRows(bool add);
+    int AddRemoveColumns(bool add);
     void DeallocateMapArray();
 
     // setters

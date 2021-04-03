@@ -73,6 +73,10 @@ struct Globals
     /// Editor settings
     static constexpr int editor_refresh_delay = 0; //milliseconds
     static constexpr int cursor = 240; //milliseconds
+    static constexpr int max_scene_rows = 37;
+    static constexpr int min_scene_rows = 10;
+    static constexpr int max_scene_cols = 77;
+    static constexpr int min_scene_cols = 17;
 
 
     // Ghosts
