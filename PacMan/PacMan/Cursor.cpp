@@ -111,10 +111,11 @@ bool Cursor::IsInBounds(Direction direction)
 
 	switch (p_editor->p_scene->p_map[position.row][position.col])
 	{
-	case 'R':
-	case 'Y':
-	case 'B':
-	case 'P':
+	case char(Globals::red_ghost):
+	case char(Globals::yellow_ghost):
+	case char(Globals::blue_ghost):
+	case char(Globals::pink_ghost):
+	case char(Globals::one_way):
 		return false;
 	}
 

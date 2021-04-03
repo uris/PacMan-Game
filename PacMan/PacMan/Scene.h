@@ -48,6 +48,8 @@ public:
     int AddRemoveRows(bool add);
     int AddRemoveColumns(bool add);
     void DeallocateMapArray();
+    bool AlPelletsReacheable();
+    void SetPositionToAccessible(Coord new_position, char** temp);
 
     // setters
     void SetEditor(Editor* p_editor);

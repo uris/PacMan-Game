@@ -876,8 +876,9 @@ string Scene::CreatesceneString(int scene)
 
 bool Scene::ValiditeScene()
 {
+        
     int teleport = 0, player_start = 0, ghost_spawn_target = 0;
-    bool no_dead_ends = true, has_outer_walls = true, is_valid_scene = true;
+    bool no_dead_ends = true, has_outer_walls = true, all_pellets_reacheable, is_valid_scene = true;
     scene_errors = "";
 
     for (int row = 0; row < rows; row++)
@@ -918,6 +919,7 @@ bool Scene::ValiditeScene()
         scene_errors = "You need one pair of teleports\n";
         is_valid_scene = false;
         error_count++;
+        return false;
     }
 
     if (player_start > 1 || player_start < 1)
@@ -925,6 +927,7 @@ bool Scene::ValiditeScene()
         scene_errors = "You need one player start position.\n";
         is_valid_scene = false;
         error_count++;
+        return false;
     }
 
     if (ghost_spawn_target > 1 || ghost_spawn_target < 1)
@@ -932,6 +935,7 @@ bool Scene::ValiditeScene()
         scene_errors = "You need one ghosts spawn target.\n";
         is_valid_scene = false;
         error_count++;
+        return false;
     }
 
     if (!no_dead_ends)
@@ -939,6 +943,7 @@ bool Scene::ValiditeScene()
         scene_errors = "The level cannot have dead ends.\n";
         is_valid_scene = false;
         error_count++;
+        return false;
     }
 
     if (!has_outer_walls)
@@ -946,6 +951,15 @@ bool Scene::ValiditeScene()
         scene_errors = "You need outer walls around the scene.\n";
         is_valid_scene = false;
         error_count++;
+        return false;
+    }
+
+    if (!(all_pellets_reacheable = AlPelletsReacheable()))
+    {
+        scene_errors = "You have unreacheable pellets.\n";
+        is_valid_scene = false;
+        error_count++;
+        return false;
     }
 
     return is_valid_scene;
@@ -1028,6 +1042,193 @@ bool Scene::HasNoDeadEnd(int row, int col)
     }
 
     return true;
+}
+
+bool Scene::AlPelletsReacheable()
+{
+    Coord player_start;
+    bool is_match = false;
+    bool pellets_reacheable = true;
+    
+    char** temp = nullptr;
+    temp = new char* [rows];
+    for (int i = 0; i < rows; i++)
+    {
+        temp[i] = new char[cols];
+    }
+
+    for (int row = 0; row < rows; row++)
+    {
+        for (int col = 0; col < cols; col++)
+        {
+            temp[row][col] = p_map[row][col];
+            
+            if (p_map[row][col] == char(Globals::player_start))
+            {
+                player_start = { row, col };
+            }
+
+            if (p_map[row][col] == char(Globals::cursor))
+            {
+                temp[row][col] = p_editor->p_cursor->content_now;
+            }
+        }
+    }
+
+    Coord current_position = player_start;
+    Coord new_position = current_position;
+
+    for (int dir = 0; dir < 4; dir++)
+    {
+        // set the new position
+        switch (dir)
+        {
+        case 0:
+            if(new_position.row > 0)
+            new_position.row--;
+            break;
+        case 1:
+            if (new_position.col < cols - 1)
+            new_position.col++;
+            break;
+        case 2:
+            if (new_position.row < rows - 1)
+            new_position.row++;
+            break;
+        case 3:
+            if (new_position.col > 0)
+            new_position.col--;
+            break;
+        }
+
+        // if the new position is the same then no place to go so continue
+        if (new_position.IsSame(current_position))
+        {
+            continue;
+        }
+
+        // if the new position is in boounds, ser reachable character
+        if (new_position.row < rows && new_position.row >= 0 && new_position.col < cols && new_position.col >= 0)
+        {
+            switch (temp[new_position.row][new_position.col])
+            {
+            case char(Globals::pellet):
+            case char(Globals::powerup):
+            case 'o':
+            case '.':
+            case char(Globals::player_start):
+            case char(Globals::ghost_spawn_target):
+            case char(Globals::space):
+                is_match = true;
+                break;
+            default:
+                is_match = false;
+                break;
+            }
+
+            if (is_match)
+            {
+                temp[new_position.row][new_position.col] = 'A';
+                SetPositionToAccessible(new_position, temp);
+            }
+        }
+
+        // revert new positoin back to the intial posiotion to iterate
+        new_position = current_position;
+
+    }
+
+    // search for pellets in the temp array
+    for (int row = 0; row < rows; row++)
+    {
+        for (int col = 0; col < cols; col++)
+        {
+            if (temp[row][col] == char(Globals::pellet))
+            {
+                // if one found, then set reacheable to false
+                pellets_reacheable = false;
+            }
+        }
+    }
+
+    // clean up temp array
+    for (int i = 0; i < rows; i++)
+    {
+        delete[] temp[i];
+    }
+    delete[] temp;
+    temp = nullptr;
+
+    // return reacheable
+    return pellets_reacheable;
+}
+
+void Scene::SetPositionToAccessible(Coord new_position, char** temp)
+{
+    // save the orginal positon coming in
+    Coord current_position = new_position;
+    bool is_match = false;
+
+    // iterate the possible directions
+    for (int dir = 0; dir < 4; dir++)
+    {
+        // set the new position
+        switch (dir)
+        {
+        case 0: // up
+            if (new_position.row > 0)
+                new_position.row--;
+            break;
+        case 1: // right
+            if (new_position.col < cols - 1)
+                new_position.col++;
+            break;
+        case 2: // bottom
+            if (new_position.row < rows - 1)
+                new_position.row++;
+            break;
+        case 3: // left
+            if (new_position.col > 0)
+                new_position.col--;
+            break;
+        }
+
+        // if the new position is the same then no place to go so continue
+        if (new_position.IsSame(current_position))
+        {
+            continue;
+        }
+
+        // if the new position is in boounds, ser reachable character
+        if (new_position.row < rows && new_position.row >= 0 && new_position.col < cols && new_position.col >= 0)
+        {
+            switch (temp[new_position.row][new_position.col])
+            {
+            case char(Globals::pellet) :
+            case char(Globals::powerup) :
+            case 'o':
+            case '.':
+            case char(Globals::player_start) :
+            case char(Globals::ghost_spawn_target) :
+            case char(Globals::space) :
+                is_match = true;
+                break;
+            default:
+                is_match = false;
+                break;
+            }
+
+            if (is_match)
+            {
+                temp[new_position.row][new_position.col] = 'A';
+                SetPositionToAccessible(new_position, temp);
+            }
+        }
+
+        // revert new positoin back to the intial posiotion to iterate
+        new_position = current_position;
+
+    }
 }
 
 void Scene::DeallocateMapArray()
