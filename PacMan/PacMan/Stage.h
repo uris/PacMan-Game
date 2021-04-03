@@ -25,7 +25,6 @@ public:
     int all_ghost_bonus = 2600;
 
     // Manange modes
-    int edible_ghost_duration = 20; // seconds
     int roam_count = 8;
     int roam_for = 6; // seconds
     int chase_for = 16; // seconds

@@ -71,7 +71,7 @@ struct Globals
     static constexpr int c_redwhite = 335; // white bg, black text
 
     /// Editor settings
-    static constexpr int editor_refresh_delay = 150; //milliseconds
+    static constexpr int editor_refresh_delay = 0; //milliseconds
     static constexpr int cursor = 240; //milliseconds
 
 

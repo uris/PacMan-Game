@@ -24,14 +24,7 @@ Scene::~Scene()
     DeleteOptions();
     
     // deallocated map array
-    if (p_map)
-    {
-        for (int i = 0; i < rows; i++) {
-            delete[] p_map[i];
-        }
-        delete[] p_map;
-        p_map = nullptr;
-    }
+    DeallocateMapArray();
 
     // nullify editor pointer
     if (p_editor)
@@ -136,12 +129,6 @@ string Scene::LoadSceneFromFile(string filename, int scene_to_load)
                             continue;
                         }
 
-                        section = "edible_ghost duration:";
-                        if (fileLine.find(Utility::TransformString(section, 1), 0) != std::string::npos) {
-                            edible_ghost_duration = stoi(fileLine.substr(Utility::TransformString(section, 1).size(), (fileLine.size() - section.size())));
-                            continue;
-                        }
-
                         section = "chase_duration:";
                         if (fileLine.find(Utility::TransformString(section, 1), 0) != std::string::npos) {
                             chase_for = stoi(fileLine.substr(Utility::TransformString(section, 1).size(), (fileLine.size() - section.size())));
@@ -230,6 +217,9 @@ void Scene::DrawLevel()
     
     // place cursor on top left of console
     Draw::CursorTopLeft(rows + top_left_modifier); // + x for cpations
+
+    // update width and height of the level
+    ResizeScene();
   
     // Level Title
     string format = Utility::Spacer(" PACMAN: " + Utility::TransformString(title, 0), cols);
@@ -331,85 +321,256 @@ void Scene::DrawLevel()
 
             // set color back to default
             Draw::SetColor(Globals::cWHITE);
+
+            // write a space to delete resize left over
+            cout << (c == cols - 1 ? " " : "");
         }
         // end of row ad line feed
         cout << endl;
+        cout << (r == rows -1 ? Draw::WriteEmptyLine(cols + 15) : "");
+        
+        
     }
 
     ShowKey();
+    cout << Draw::WriteEmptyLine(cols+15);
 
 } 
 
+void Scene::AddRemoveColumns(bool add)
+{
+   
+    // determine where to add/remove from
+    bool left = cols_from_left;
+    int new_cols = add ? cols + 1 : cols - 1;
+
+    // create temp array with the new scene size
+    char** p_map_new = new char* [rows];
+    for (int i = 0; i < rows; i++)
+    {
+        p_map_new[i] = new char[new_cols];
+    }
+
+    // place pellets in the entire array
+    for (int row = 0; row < rows; row++)
+    {
+        for (int col = 0; col < new_cols; col++)
+        {
+            p_map_new[row][col] = char(Globals::pellet);
+        }
+    }
+
+    // insert from current array into new one
+    int iCols = add ? cols : cols - 1;
+    for (int row = 0; row < rows; row++)
+    {
+        for (int col = 0; col < iCols; col++)
+        {
+            if (add)
+            {
+                p_map_new[row][left ? col : col + 1] = p_map[row][col];
+            }
+            else
+            {
+                p_map_new[row][col] = p_map[row][left ? col : col + 1];
+            }
+        }
+    }
+
+    // shift rows
+    if (add)
+    {
+        // shift the walls left or right and set pellets in preior state
+        for (int row = 0; row < rows; row++)
+        {
+            p_map_new[row][left ? new_cols - 1 : 0] = p_map[row][left ? cols - 1 : 0];
+            p_map_new[row][left ? new_cols - 2 : 1] = char(Globals::pellet);
+        }
+
+        p_map_new[0][left ? new_cols - 2 : 1] = '-';
+        p_map_new[rows - 1][left ? new_cols - 2 : 1] = '-';
+    }
+    else
+    {
+        // shift the walls left or right and set pellets in preior state
+        for (int row = 0; row < rows; row++)
+        {
+            p_map_new[row][left ? new_cols - 1 : 0] = p_map[row][left ? cols - 1 : 0];
+        }
+    }
+
+
+    // place cursor on top left of console
+    Draw::CursorTopLeft(rows + top_left_modifier); // + x for cpations
+
+    // clean up screen
+    // system("cls");
+    
+    // delete the current p_map
+    DeallocateMapArray();
+
+    // set the p_map to the new array
+    p_map = p_map_new;
+    cols = new_cols;
+
+    // set the new aray to null
+    p_map_new = nullptr;
+
+    // set flag fromleft/right to opposite
+    cols_from_left = !cols_from_left;
+
+}
+
+void Scene::AddRemoveRows(bool add)
+{
+    // determine where to add/remove from
+    bool left = rows_fom_bottom;
+    int new_rows = add ? rows + 1 : rows - 1;
+
+    // create temp array with the new scene size
+    char** p_map_new = new char* [new_rows];
+    for (int i = 0; i < new_rows; i++)
+    {
+        p_map_new[i] = new char[cols];
+    }
+
+    // place pellets in the entire new array
+    for (int row = 0; row < new_rows; row++)
+    {
+        for (int col = 0; col < cols; col++)
+        {
+            p_map_new[row][col] = char(Globals::pellet);
+        }
+    }
+
+    // insert from current array into new one
+    int iRows = add ? rows : rows - 1;
+    for (int row = 0; row < iRows; row++)
+    {
+        for (int col = 0; col < cols; col++)
+        {
+            if (add)
+            {
+                p_map_new[left ? row : row + 1][col] = p_map[row][col];
+            }
+            else
+            {
+                p_map_new[row][col] = p_map[left ? row : row + 1][col];
+            }
+        }
+    }
+
+
+    // shift rows
+    if (add)
+    {
+        // shift the walls left or right and set pellets in preior state
+        for (int col = 0; col < cols; col++)
+        {
+            p_map_new[left ? new_rows - 1 : 0][col] = p_map[left ? rows - 1 : 0][col];
+            p_map_new[left ? new_rows - 2 : 1][col] = char(Globals::pellet);
+        }
+
+        p_map_new[left ? new_rows - 2 : 1][0] = '|';
+        p_map_new[left ? new_rows - 2 : 1][cols - 1] = '|';
+    }
+    else
+    {
+        // shift the walls left or right and set pellets in preior state
+        for (int col = 0; col < cols; col++)
+        {
+            p_map_new[left ? new_rows - 1 : 0][col] = p_map[left ? rows - 1 : 0][col];
+        }
+    }
+
+    // place cursor on top left of console
+    Draw::CursorTopLeft(rows + top_left_modifier); // + x for cpations
+
+    // delete the current p_map
+    DeallocateMapArray();
+
+    // set the p_map to the new array
+    p_map = p_map_new;
+    rows = new_rows;
+
+    // set the new aray to null
+    p_map_new = nullptr;
+
+    // set flag fromleft/right to opposite
+    rows_fom_bottom = !rows_fom_bottom;
+}
+
 void Scene::ResizeScene()
 {
-    // display menu with rowws and columns options
-    string resize_options[4][2]{};
-    MainMenu resize_menu;
-    int new_row_size = rows, new_col_size = cols;
 
-    do
+    if (add_cols)
     {
-        system("cls");
-        resize_options[0][0] = "#rows";
-        resize_options[0][1] = "Rows (current scene " + to_string(rows) + "): " + to_string(new_row_size);
-        resize_options[1][0] = "#cols";
-        resize_options[1][1] = "Columns (current scene " + to_string(cols) +"): " + to_string(new_col_size);
-        resize_options[2][0] = "#save";
-        resize_options[2][1] = "SAVE";
-        resize_options[3][0] = "#cancel";
-        resize_options[3][1] = "CANCEL";
-        resize_menu.Create(resize_options, 4);
-        resize_menu.Template(MenuTemplates::EDIT_SCENE_OPTIONS);
-        string selection = resize_menu.Show();
+        AddRemoveColumns(true);
+        add_cols = false;
+    }
 
-        if (selection == "#rows")
-        {
-            new_row_size = ProcessNumberOption("Set rows to: ");
-        }
-        else if (selection == "#cols")
-        {
-            new_col_size = ProcessNumberOption("Set columns to: ");
-        }
-        else if (selection == "#save")
-        {
-            //updated array and rows
-            ResizeMap(new_row_size, new_col_size);
-            break;
-        }
-        else
-        {
-            // exit with no update
-            break;
-        }
+    if (add_rows)
+    {
+        AddRemoveRows(true);
+        add_rows = false;
+    }
+
+    if (remove_cols)
+    {
+        AddRemoveColumns(false);
+        remove_cols = false;
+    }
+
+    if (remove_rows)
+    {
+        AddRemoveRows(false);
+        remove_rows = false;
+    }
+
+    //// display menu with rowws and columns options
+    //string resize_options[4][2]{};
+    //MainMenu resize_menu;
+    //int new_row_size = rows, new_col_size = cols;
+
+    //do
+    //{
+    //    system("cls");
+    //    resize_options[0][0] = "#rows";
+    //    resize_options[0][1] = "Rows (current scene " + to_string(rows) + "): " + to_string(new_row_size);
+    //    resize_options[1][0] = "#cols";
+    //    resize_options[1][1] = "Columns (current scene " + to_string(cols) +"): " + to_string(new_col_size);
+    //    resize_options[2][0] = "#save";
+    //    resize_options[2][1] = "SAVE";
+    //    resize_options[3][0] = "#cancel";
+    //    resize_options[3][1] = "CANCEL";
+    //    resize_menu.Create(resize_options, 4);
+    //    resize_menu.Template(MenuTemplates::EDIT_SCENE_OPTIONS);
+    //    string selection = resize_menu.Show();
+
+    //    if (selection == "#rows")
+    //    {
+    //        new_row_size = ProcessNumberOption("Set rows to: ");
+    //    }
+    //    else if (selection == "#cols")
+    //    {
+    //        new_col_size = ProcessNumberOption("Set columns to: ");
+    //    }
+    //    else if (selection == "#save")
+    //    {
+    //        //updated array and rows
+    //        ResizeMap(new_row_size, new_col_size);
+    //        break;
+    //    }
+    //    else
+    //    {
+    //        // exit with no update
+    //        break;
+    //    }
 
 
-    } while (true);
+    //} while (true);
     
 
-}
-
-void Scene::ResizeMap(int new_rows, int new_cols)
-{
-    // update the level array
-    string** p_map_temp = nullptr;
-}
-
-string Scene::ProcessTextOption(string label)
-{
-    string string_input;
-    cout << label;
-    getline(cin, string_input);
-    return string_input;
-}
-
-int Scene::ProcessNumberOption(string label)
-{
-    string format = "   ";
-    Draw::ShowConsoleCursor(true);
-    int int_input;
-    cout << endl << format << label;
-    cin >> int_input;
-    return int_input;
 }
 
 // setters
@@ -435,9 +596,20 @@ void Scene::ShowKey()
         scene_errors = "";
         error_count = 0;
     }
+    else if (resize_scene)
+    {
+        format = Utility::Spacer("Left/Right arrows: +/- Columns (  )", cols);
+        string format2 = Utility::Spacer("Down/Up arrows: +/- Rows (  )", cols);
+        cout << endl;
+        cout << Draw::WriteEmptyLine(70) << '\r';
+        cout << format << "Left/Right arrows: +/- Columns (" + to_string(cols) + ")" << format << endl;
+        cout << Draw::WriteEmptyLine(70) << '\r';
+        cout << format2 << " Down/Up arrows: +/- Rows (" + to_string(rows) + ")" << format2 << endl;
+        top_left_modifier = 6;
+    }
     else if (p_editor->p_cursor->IsEditing())
     {
-        if (p_editor->p_cursor->Pen() == '0')
+        if (p_editor->p_cursor->Pen() == '0' && !resize_scene)
         {
             cout << endl;
             cout << Draw::WriteEmptyLine(70) << '\r';
@@ -459,10 +631,10 @@ void Scene::ShowKey()
     }
     else if (p_editor->IsDoneEditing())
     {
-        format = Utility::Spacer("Save changes? 'y' = yes, 'n' = no, 'esc' cancels.", cols);
+        format = Utility::Spacer("Save? 'y' yes, 'n' no, 'esc' cancel", cols);
         cout << endl;
         cout << Draw::WriteEmptyLine(70) << '\r';
-        cout << format << "Save changes? 'y' = yes, 'n' = no, 'esc' cancels." << format << endl;
+        cout << format << "Save? 'y' yes, 'n' no, 'esc' cancel" << format << endl;
         cout << Draw::WriteEmptyLine(70) << '\r';
         top_left_modifier = 5;
     }
@@ -505,22 +677,22 @@ string** Scene::GetSceneValues()
     p_options[4][1] = "Points all ghosts: " + to_string(all_ghost_bonus);
 
     p_options[5][0] = "5";
-    p_options[5][1] = "Powerup duration: " + to_string(edible_ghost_duration);
-
+    p_options[5][1] = "Chase mode duration: " + to_string(chase_for);
+    
     p_options[6][0] = "6";
-    p_options[6][1] = "Chase mode duration: " + to_string(chase_for);
+    p_options[6][1] = "Run mode duration: " + to_string(run_for);
     
     p_options[7][0] = "7";
-    p_options[7][1] = "Run mode duration: " + to_string(run_for);
-    
+    p_options[7][1] = "Roam mode duration: " + to_string(roam_for);
+
     p_options[8][0] = "8";
-    p_options[8][1] = "Roam mode duration: " + to_string(roam_for);
+    p_options[8][1] = "Roam count: " + to_string(roam_count);
 
-    p_options[9][0] = "9";
-    p_options[9][1] = "Roam count: " + to_string(roam_count);
+    p_options[9][0] = "#save";
+    p_options[9][1] = "SAVE";
 
-    p_options[10][0] = "#save";
-    p_options[10][1] = "SAVE";
+    p_options[10][0] = "#cancel";
+    p_options[10][1] = "CANCEL";
 
     return p_options;
  }
@@ -685,13 +857,13 @@ string Scene::CreatesceneString(int scene)
     update += "pellet_points:" + to_string(points_pellet) + "\n";
     update += "ghost_points:" + to_string(points_ghost) + "\n";
     update += "all_ghosts_bonus:" + to_string(all_ghost_bonus) + "\n";
-    update += "edible_ghost_duration:" + to_string(edible_ghost_duration) + "\n";
     update += "chase_duration:" + to_string(chase_for) + "\n";
     update += "run_duration:" + to_string(run_for) + "\n";
     update += "roam_duration:" + to_string(roam_for) + "\n";
     update += "roam_count:" + to_string(roam_count) + "\n";
     update += "level_map:\n";
     // insert map array
+    
     for (int row = 0; row < rows; row++)
     {
         for (int col = 0; col < cols; col++)
@@ -704,7 +876,16 @@ string Scene::CreatesceneString(int scene)
         }
         map += "\n";
     }
-    Utility::ReplaceString(map, Globals::pellet, '.');
+
+    // set the boundry markers to '+' so we can get size of the map
+    p_map[0][0] = '+';
+    p_map[0][cols - 1] = '+';
+    p_map[rows -1][0] = '+';
+    p_map[rows -1][cols - 1] = '+';
+
+    // replace the full stop with pellet char
+    Utility::ReplaceString(map, char(Globals::pellet), '.');
+    
     update += map;
     update += "#end_scene\n";
 
@@ -807,8 +988,11 @@ bool Scene::HasOuterWalls(int row, int col)
 
 bool Scene::HasNoDeadEnd(int row, int col)
 {
+    // replace the cursor with the content from the sqaure its on
+    p_map[p_editor->p_cursor->GetCurrentRow()][p_editor->p_cursor->GetCurrentCol()] = p_editor->p_cursor->content_now;
+    
     // if in baounds of the outer walls
-    if (col > 0 && col < cols && row > 0 && row < rows)
+    if (col > 0 && col - 1 < cols && row > 0 && row < rows - 1)
     {
         
         // and the current position is a pellet
@@ -836,9 +1020,19 @@ bool Scene::HasNoDeadEnd(int row, int col)
                     break;
                 }
 
-                if (p_map[this_row][this_col] == char(Globals::space) || p_map[this_row][this_col] == char(Globals::pellet) || p_map[this_row][this_col] == char(Globals::powerup) || p_map[this_row][this_col] == char(Globals::player_start) || p_map[this_row][this_col] == char(Globals::ghost_spawn_target))
+                
+                switch (p_map[this_row][this_col])
                 {
+                case char(Globals::space):
+                case char(Globals::pellet):
+                case char(Globals::powerup):
+                case 'o':
+                case char(Globals::player_start):
+                case char(Globals::ghost_spawn_target):
                     route_count++;
+                    break;
+                default:
+                    break;
                 }
 
             }
@@ -852,4 +1046,18 @@ bool Scene::HasNoDeadEnd(int row, int col)
     }
 
     return true;
+}
+
+void Scene::DeallocateMapArray()
+{
+    // deallocated map array
+    if (p_map)
+    {
+        for (int i = 0; i < rows; i++) {
+            delete[] p_map[i];
+        }
+        delete[] p_map;
+        p_map = nullptr;
+    }
+
 }

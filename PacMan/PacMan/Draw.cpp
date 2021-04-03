@@ -51,6 +51,19 @@ string Draw::WriteEmptyLine(const int length)
     }
     return (empty_line);
 }
+string Draw::WriteEmptyLine(int height, int length)
+{
+    string empty_line = "";
+    for (int h = 0; h < height; h++)
+    {
+        for (int i = 0; i < length; i++)
+        {
+            empty_line += " ";
+        }
+        empty_line += "\n";
+    }
+    return (empty_line);
+}
 string Draw::Credits()
 {
     string ghost;

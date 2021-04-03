@@ -16,4 +16,6 @@ public:
     static void ShowConsoleCursor(const bool showFlag);
     static string WriteEmptyLine(const int length);
     static string Credits();
+    static string WriteEmptyLine(int height, int length);
+    
 };

@@ -16,7 +16,6 @@ private:
 	bool cancel_edit = false;
 	bool is_restart = false;
 
-
 public:
 	Cursor* p_cursor;
 	Scene* p_scene;

@@ -143,7 +143,7 @@ void Cursor::SetPen(char pen)
 		seleced_pen = 'T';
 		break;
 	case '.':
-		seleced_pen = Globals::pellet;
+		seleced_pen = char(Globals::pellet);
 		break;
 	default:
 		seleced_pen = pen;

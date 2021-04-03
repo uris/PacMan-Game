@@ -17,6 +17,12 @@ public:
     string scene_errors = "";
     int error_count = 0;
     bool resize_scene = false;
+    bool cols_from_left = true;
+    bool rows_fom_bottom = true;
+    bool add_cols = false;
+    bool add_rows = false;
+    bool remove_cols = false;
+    bool remove_rows = false;
 
 	//constructors
 	Scene();
@@ -39,9 +45,9 @@ public:
     bool HasNoDeadEnd(int row, int col);
     bool HasOuterWalls(int row, int col);
     void ResizeScene();
-    string ProcessTextOption(string label);
-    int ProcessNumberOption(string label);
-    void ResizeMap(int new_rows, int new_cols);
+    void AddRemoveRows(bool add);
+    void AddRemoveColumns(bool add);
+    void DeallocateMapArray();
 
     // setters
     void SetEditor(Editor* p_editor);

@@ -97,6 +97,13 @@ void Editor::EditScenes()
                 is_saved = true;
                 break;
             }
+            if (selected_option == "#cancel")
+            {
+                // cancel edit and return to main menu
+                system("cls");
+                is_saved = false;
+                break;
+            }
             else
             {
                 // update the scene option values
@@ -137,16 +144,32 @@ void Editor::GetKeyboardInput()
         switch (input)
         {
         case Globals::kARROW_LEFT:
-            p_cursor->SetDirection(Direction::LEFT);
+            if (!p_scene->resize_scene)
+                p_cursor->SetDirection(Direction::LEFT);
+            else
+                if(!p_scene->remove_cols)
+                    p_scene->remove_cols = true;
             break;
         case Globals::kARROW_RIGHT:
-            p_cursor->SetDirection(Direction::RIGHT);
+            if (!p_scene->resize_scene)
+                p_cursor->SetDirection(Direction::RIGHT);
+            else
+                if (!p_scene->add_cols)
+                    p_scene->add_cols = true;
             break;
         case Globals::kARROW_UP:
-            p_cursor->SetDirection(Direction::UP);
+            if (!p_scene->resize_scene)
+                p_cursor->SetDirection(Direction::UP);
+            else
+                if (!p_scene->remove_rows)
+                    p_scene->remove_rows = true;
             break;
         case Globals::kARROW_DOWN:
-            p_cursor->SetDirection(Direction::DOWN);
+            if (!p_scene->resize_scene)
+                p_cursor->SetDirection(Direction::DOWN);
+            else
+                if (!p_scene->add_rows)
+                    p_scene->add_rows = true;
             break;
         case Globals::kSPACE:
             if (p_cursor->IsEditing()) {
@@ -194,10 +217,20 @@ void Editor::GetKeyboardInput()
                 {
                     p_cursor->SetPen('0');
                 }
+                else if (p_scene->resize_scene == true)
+                {
+                    done_editing = true;
+                }
                 else
                 {
                     p_cursor->ChangeMode();
                 }
+            }
+            else if (p_scene->resize_scene)
+            {
+                p_scene->resize_scene = false;
+                p_cursor->SetPen('0');
+                p_cursor->ChangeMode();
             }
             else if (done_editing)
             {
@@ -220,9 +253,10 @@ void Editor::GetKeyboardInput()
             }
             break;
         case 'r':
-            if (p_cursor->IsEditing() && p_cursor->Pen() == '0') {
+            if (p_cursor->IsEditing() && p_cursor->Pen() == '0' && !p_scene->resize_scene) {
+                p_cursor->ChangeMode();
                 p_scene->resize_scene = true;
-                exit_editing = true;
+                //exit_editing = true;
             }
             break;
         default:
@@ -277,27 +311,22 @@ int Editor::UpdateValue(string option)
         return 0;
     }
 
-    if (option == "5") { // run duration
-        p_scene->edible_ghost_duration = ProcessNumberOption(spacer + "Edible ghost duration: ");
-        return 0;
-    }
-
-    if (option == "6") { // chase duration
+    if (option == "5") { // chase duration
         p_scene->chase_for = ProcessNumberOption(spacer + "Chase duration: ");
         return 0;
     }
 
-    if (option == "7") { // chase duration
+    if (option == "6") { // chase duration
         p_scene->run_for = ProcessNumberOption(spacer + "Run duration: ");
         return 0;
     }
 
-    if (option == "8") { // roam duration
+    if (option == "7") { // roam duration
         p_scene->roam_for = ProcessNumberOption(spacer + "Roam duration: ");
         return 0;
     }
 
-    if (option == "9") { // roam count
+    if (option == "8") { // roam count
         p_scene->roam_count = ProcessNumberOption(spacer + "Roam count: ");
         return 0;
     }
@@ -311,7 +340,10 @@ void Editor::DoSceneEdit(int load_scene)
     std::system("cls");
 
     // Create the scene based on the selection
-    p_scene->CreateLevelScene(load_scene);
+    if (!p_scene->p_map)
+    {
+        p_scene->CreateLevelScene(load_scene);
+    }
     p_scene->DrawLevel();
 
     // Get keyboard entry for editing scene
@@ -336,11 +368,7 @@ void Editor::DoSceneEdit(int load_scene)
     // join the keyboard thread back to the main thread
     inputThread.join();
 
-    if (p_scene->resize_scene)
-    {
-        p_scene->ResizeScene();
-        exit_editing = false;
-    }
+    
 }
 
 void Editor::Reset()
@@ -355,15 +383,53 @@ void Editor::Reset()
 string Editor::ProcessTextOption(string label)
 {
     string string_input;
-    cout << label;
-    getline(cin, string_input);
+    
+    do
+    {
+        cout << endl;
+        cout << label;
+        getline(cin, string_input);
+        
+        if (string_input.length() < 1) {
+            cout << "  You need a title to save your scene!" << endl;
+            cout << "  Press a any key to continue.";
+            int input = _getch();
+            system("cls");
+        }
+        else
+        {
+            break;
+        }
+
+    } while (true);
+    
     return string_input;
 }
 
 int Editor::ProcessNumberOption(string label)
 {
     int int_input;
-    cout << label;
-    cin >> int_input;
+
+    do
+    {
+        cout << endl;
+        cout << label;
+        cin >> int_input;
+
+        if (cin.fail()) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "  You need to enter a vlaid number!" << endl;
+            cout << "  Press a any key to continue.";
+            int input = _getch();
+            system("cls");
+        }
+        else
+        {
+            break;
+        }
+
+    } while (true);
+
     return int_input;
 }

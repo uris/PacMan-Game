@@ -208,12 +208,6 @@ string Level::LoadSceneFromFile(string filename, int scene_to_load)
                             continue;
                         }
 
-                        section = "edible_ghost duration:";
-                        if (fileLine.find(Utility::TransformString(section, 1), 0) != std::string::npos) {
-                            edible_ghost_duration = stoi(fileLine.substr(Utility::TransformString(section, 1).size(), (fileLine.size() - section.size())));
-                            continue;
-                        }
-
                         section = "chase_duration:";
                         if (fileLine.find(Utility::TransformString(section, 1), 0) != std::string::npos) {
                             chase_for = stoi(fileLine.substr(Utility::TransformString(section, 1).size(), (fileLine.size() - section.size())));

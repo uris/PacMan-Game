@@ -270,7 +270,9 @@ string MainMenu::Show()
 				option_selected = input - 48 - 1; // 48 = '0', -1 casue array starts at 0
 			break;
 		case Globals::kRETURN:
-			return_pressed = true;
+			if (option_selected > -1) {
+				return_pressed = true;
+			}
 			break;
 		default:
 			break;
@@ -334,8 +336,8 @@ void MainMenu::Template(MenuTemplates menu_template)
 		is_horizontal = false;
 		show_instructions = false;
 		show_icon = true;
-		new_index = 10;
-		exit_index = -1;
+		new_index = 9;
+		exit_index = 10;
 		first_draw = true;
 		option_selected = -1;
 		menu_title =  "\n   EDIT SCENE OPTIONS\n";
