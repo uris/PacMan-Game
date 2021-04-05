@@ -62,27 +62,26 @@ Ghost::Ghost(Ghosts ghost)
 }
 
 // methods
-int Ghost::DistanceToPlayer(Coord ghost_position, Coord player_current_position)
-{
-    // overload to return the distance to a coord with a specified modifier
-    return (abs(ghost_position.col - (player_current_position.col + chase_modifier.col)) + abs(ghost_position.row - (player_current_position.row + chase_modifier.row)));
-}
+//int Ghost::DistanceToPlayer(Coord ghost_position, Coord player_current_position)
+//{
+//    return (abs(ghost_position.col - (player_current_position.col + chase_modifier.col)) + abs(ghost_position.row - (player_current_position.row + chase_modifier.row)));
+//}
+//
+//int Ghost::DistanceToRoamTarget(Coord ghost_position)
+//{
+//    // overload to return the distance to a coord with a specified modifier
+//    return ( abs(ghost_position.col - roam_target.col) + abs(ghost_position.row - roam_target.row) );
+//}
+//
+//int Ghost::DistanceToSpawnTarget(Coord ghost_position)
+//{
+//    // overload to return the distance to a coord with a specified modifier
+//    return (abs(ghost_position.col - spawn_target.col) + abs(ghost_position.row - spawn_target.row));
+//}
 
-int Ghost::DistanceToRoamTarget(Coord ghost_position)
+bool Ghost::PlayerCollision()
 {
-    // overload to return the distance to a coord with a specified modifier
-    return ( abs(ghost_position.col - roam_target.col) + abs(ghost_position.row - roam_target.row) );
-}
-
-int Ghost::DistanceToSpawnTarget(Coord ghost_position)
-{
-    // overload to return the distance to a coord with a specified modifier
-    return (abs(ghost_position.col - spawn_target.col) + abs(ghost_position.row - spawn_target.row));
-}
-
-bool Ghost::PlayerCollision(Coord player_coord)
-{
-    return (current_position.row == player_coord.row && current_position.col == player_coord.col) ? true : false;
+    return current_position == p_game->p_player->GetCurrentPosition();
         
 }
 
@@ -90,7 +89,7 @@ int Ghost::MakeGhostMove()
 {
     Direction best_move = Direction::NONE; // will store the next move
     
-    if (skip_turn || p_game->IsGameOver() || PlayerCollision(p_game->p_player->GetCurrentPosition()))
+    if (skip_turn || p_game->IsGameOver() || PlayerCollision())
     {
         return 0; // next ghost (no move)
     }
@@ -105,7 +104,7 @@ int Ghost::MakeGhostMove()
     {
         best_move = RandomGhostMove(); // get the random move
         char map_content = GhostContentNow(best_move);
-        MoveGhost(p_game->p_player->GetCurrentPosition(), best_move, map_content); // make the move
+        MoveGhost(best_move, map_content); // make the move
         return 0;
     }
 
@@ -146,7 +145,7 @@ int Ghost::MakeGhostMove()
         }
 
         char map_content = GhostContentNow(best_move); // if the content is a ghosts set the contnet value of the gohst to the other ghosts content
-        MoveGhost(p_game->p_player->GetCurrentPosition(), best_move, map_content); // do the move
+        MoveGhost(best_move, map_content); // do the move
         return 0;
     }
     return 0; // clean exit
@@ -154,6 +153,7 @@ int Ghost::MakeGhostMove()
 
 int Ghost::GetBestMove(Coord current_position, Direction current_direction, int depth)
 {
+    Coord player_position = p_game->p_player->GetCurrentPosition();
     
     //if on teleport do the teleport
     Teleport(current_position, current_direction);
@@ -162,22 +162,22 @@ int Ghost::GetBestMove(Coord current_position, Direction current_direction, int 
     switch (mode)
     {
     case Mode::CHASE: // redude distance to player
-        if (DistanceToPlayer(current_position, p_game->p_player->GetCurrentPosition()) == 0) { // if player and ghost collide return 0 + depth as score
+        if (current_position % (player_position + chase_modifier) == 0) { // if player and ghost collide return 0 + depth as score
             return 0 + depth; // add depth to get fastest path
         }
         if (depth == Globals::look_ahead) { // if depth X return the distance score, increase this to make the ghost look forward more
-            return (DistanceToPlayer(current_position, p_game->p_player->GetCurrentPosition()) + depth); // add depth to get fastest path
+            return ((current_position % player_position) + depth); // add depth to get fastest path
         }
         break;
     case Mode::ROAM: // reduce distance to the ghost's roam target
         if (depth == Globals::look_ahead) {
-            return DistanceToRoamTarget(current_position);
+            return current_position % roam_target;
         }
         break;
     case Mode::SPAWN: // target is above the exit area
-        if (DistanceToSpawnTarget(current_position) == 0)
+        if (current_position % spawn_target == 0)
             mode = (p_game->p_level->level_mode == Mode::RUN ? Mode::CHASE : p_game->p_level->level_mode);
-        return DistanceToSpawnTarget(current_position);
+        return current_position % spawn_target;
         break;
     }
 
@@ -295,7 +295,7 @@ char Ghost::GhostContentNow(Direction best_move)
     }
 }
 
-void Ghost::MoveGhost(const Coord player_coord, const Direction direction, const char map_content)
+void Ghost::MoveGhost(const Direction direction, const char map_content)
 {
     previous_position = current_position;
     square_content_prior = square_content_now;
@@ -327,7 +327,7 @@ void Ghost::MoveGhost(const Coord player_coord, const Direction direction, const
     square_content_prior == Globals::player ? square_content_prior = ' ' : square_content_prior;
 
     // if the mosnter is over the player save a blank space to buffer
-    PlayerCollision(player_coord) ? square_content_now = ' ' : square_content_now;
+    PlayerCollision() ? square_content_now = ' ' : square_content_now;
 
 }
 

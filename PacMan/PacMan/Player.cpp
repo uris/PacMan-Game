@@ -134,7 +134,7 @@ void Player::MovePlayer()
 
 bool Player::PayerGhostCollision(int ghost_index)
 {
-	return (current_position.IsSame(p_game->p_ghosts[ghost_index]->GetCurrentPosition()));
+	return (current_position == p_game->p_ghosts[ghost_index]->GetCurrentPosition());
 }
 
 

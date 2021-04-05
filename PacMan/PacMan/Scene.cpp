@@ -34,6 +34,12 @@ Scene::~Scene()
 }
 
 // Public Methods
+std::ostream& operator<<(std::ostream& left, const Coord right)
+{
+    left << "{" << right.row << "," << right.col << "}";
+    return left;
+}
+
 void Scene::CreateLevelScene(int& current_scene)
 {
     // load level info and map from scenes file using games current level
@@ -263,7 +269,7 @@ void Scene::DrawLevel()
         {
 
             // if this is the cursor current pos place it there
-            if (p_editor->p_cursor->GetCurrentPosition().IsSame(Coord{ r,c }))
+            if (p_editor->p_cursor->GetCurrentPosition() == Coord{ r,c })
             {
                 p_editor->p_cursor->content_now = p_map[p_editor->p_cursor->GetCurrentRow()][p_editor->p_cursor->GetCurrentCol()];
                 p_map[r][c] = char(Globals::cursor);
@@ -1081,28 +1087,28 @@ bool Scene::AlPelletsReacheable()
     for (int dir = 0; dir < 4; dir++)
     {
         // set the new position
-        switch (dir)
+        switch (static_cast<Direction>(dir))
         {
-        case 0:
-            if(new_position.row > 0)
-            new_position.row--;
+        case Direction::UP:
+            if (new_position.row > 0)
+                new_position = current_position + Direction::UP;
             break;
-        case 1:
+        case  Direction::RIGHT:
             if (new_position.col < cols - 1)
-            new_position.col++;
+                new_position = current_position + Direction::RIGHT;
             break;
-        case 2:
+        case  Direction::DOWN:
             if (new_position.row < rows - 1)
-            new_position.row++;
+                new_position = current_position + Direction::DOWN;
             break;
-        case 3:
+        case  Direction::LEFT:
             if (new_position.col > 0)
-            new_position.col--;
+                new_position = current_position + Direction::LEFT;
             break;
         }
 
         // if the new position is the same then no place to go so continue
-        if (new_position.IsSame(current_position))
+        if (new_position == current_position)
         {
             continue;
         }
@@ -1173,28 +1179,28 @@ void Scene::SetPositionToAccessible(Coord new_position, char** temp)
     for (int dir = 0; dir < 4; dir++)
     {
         // set the new position
-        switch (dir)
+        switch (static_cast<Direction>(dir))
         {
-        case 0: // up
+        case Direction::UP:
             if (new_position.row > 0)
-                new_position.row--;
+                new_position = current_position + Direction::UP;
             break;
-        case 1: // right
+        case Direction::RIGHT:
             if (new_position.col < cols - 1)
-                new_position.col++;
+                new_position = current_position + Direction::RIGHT;
             break;
-        case 2: // bottom
+        case  Direction::DOWN:
             if (new_position.row < rows - 1)
-                new_position.row++;
+                new_position = current_position + Direction::DOWN;
             break;
-        case 3: // left
+        case  Direction::LEFT:
             if (new_position.col > 0)
-                new_position.col--;
+                new_position = current_position + Direction::LEFT;
             break;
         }
 
         // if the new position is the same then no place to go so continue
-        if (new_position.IsSame(current_position))
+        if (new_position == current_position)
         {
             continue;
         }

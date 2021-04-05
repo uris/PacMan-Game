@@ -28,6 +28,7 @@ Level::~Level()
 }
 
 // Public Methods
+
 void Level::SetupLevel(int& current_scene)
 {
     // reset initial state of key level variables
@@ -292,7 +293,6 @@ Coord Level::MapSize(const string& map)
 
 void Level::DrawLevel()
 {
-
     // set the content of the sqaure the player is moving into - will use this to play the appropriate sound
     p_game->p_player->SetMovedIntoSquareContents(p_map[p_game->p_player->GetCurrentRow()][p_game->p_player->GetCurrentCol()]);
 
@@ -321,15 +321,15 @@ void Level::DrawLevel()
     Draw::CursorTopLeft(rows + 5); // + 5 for title and status
 
     // remove player from map at last position if they are different
-    if (!p_game->p_player->GetPreviousPosition().IsSame(p_game->p_player->GetCurrentPosition()))
+    if (!(p_game->p_player->GetPreviousPosition() == p_game->p_player->GetCurrentPosition()))
         p_map[p_game->p_player->GetPreviousRow()][p_game->p_player->GetPreviousCol()] = Globals::space;
 
     // player in tunnel
-    if (p_game->p_player->GetCurrentPosition().IsSame(tp_1)) {
+    if (p_game->p_player->GetCurrentPosition() == tp_1) {
         p_map[p_game->p_player->GetCurrentRow()][p_game->p_player->GetCurrentCol()] = Globals::teleport;
         p_game->p_player->SetCurrentPosition(tp_2);
     }
-    else if (p_game->p_player->GetCurrentPosition().IsSame(tp_2)) {
+    else if (p_game->p_player->GetCurrentPosition() == tp_2) {
         p_map[p_game->p_player->GetCurrentRow()][p_game->p_player->GetCurrentCol()] = Globals::teleport;
         p_game->p_player->SetCurrentPosition(tp_1);
     }
@@ -337,17 +337,17 @@ void Level::DrawLevel()
     for (int g = 0; g < Globals::total_ghosts; g++) // loop through ghots
     {
         // remove ghosts from map at last position if they are different
-        if (p_game->p_ghosts[g]->GetPreviousPosition().IsSame(p_game->p_ghosts[g]->GetCurrentPosition()))
+        if (p_game->p_ghosts[g]->GetPreviousPosition() == p_game->p_ghosts[g]->GetCurrentPosition())
             p_map[p_game->p_ghosts[g]->GetPreviousRow()][p_game->p_ghosts[g]->GetPreviousCol()] = Globals::space;
 
         // ghost in tunnel
         if (!p_game->p_ghosts[g]->SkipTurn())
         {
-            if (p_game->p_ghosts[g]->GetCurrentPosition().IsSame(tp_1)) {
+            if (p_game->p_ghosts[g]->GetCurrentPosition() == tp_1) {
                 p_map[p_game->p_ghosts[g]->GetCurrentRow()][p_game->p_ghosts[g]->GetCurrentCol()] = Globals::teleport;
                 p_game->p_ghosts[g]->SetCurrentPosition(tp_2);
             }
-            else if (p_game->p_ghosts[g]->GetCurrentPosition().IsSame(tp_2)) {
+            else if (p_game->p_ghosts[g]->GetCurrentPosition() == tp_2) {
                 p_map[p_game->p_ghosts[g]->GetCurrentRow()][p_game->p_ghosts[g]->GetCurrentCol()] = Globals::teleport;
                 p_game->p_ghosts[g]->SetCurrentPosition(tp_1);
             }
@@ -375,20 +375,20 @@ void Level::DrawLevel()
             //characters[0]->DrawCharacter();
 
             // position player
-            if (p_game->p_player->GetCurrentPosition().IsSame(Coord(r, c)))
+            if (p_game->p_player->GetCurrentPosition() == Coord(r, c))
                 p_map[r][c] = Globals::player;
 
             for (int g = 0; g < Globals::total_ghosts; g++) // loop through ghots
             {
                 // position ghost
-                if (p_game->p_ghosts[g]->GetCurrentPosition().IsSame(Coord(r, c)))
+                if (p_game->p_ghosts[g]->GetCurrentPosition() == Coord(r, c))
                     p_map[r][c] = p_game->p_ghosts[g]->GhostChar();
 
                 // if the ghost moved from the last position
-                if (!p_game->p_ghosts[g]->GetPreviousPosition().IsSame(p_game->p_ghosts[g]->GetCurrentPosition()))
+                if (!(p_game->p_ghosts[g]->GetPreviousPosition() == p_game->p_ghosts[g]->GetCurrentPosition()))
                 {
                     // put back the content of the square the ghost was last at
-                    if (p_game->p_ghosts[g]->GetPreviousPosition().IsSame(Coord(r, c)))
+                    if (p_game->p_ghosts[g]->GetPreviousPosition() == Coord(r, c))
                         p_map[r][c] = p_game->p_ghosts[g]->GetPreviousSqaureContent();
                 }
             }

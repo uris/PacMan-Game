@@ -5,7 +5,7 @@
 
 int main()
 {
-   
+
     do
     {
         // play opening credits and choose edit/play

@@ -264,7 +264,7 @@ void Game::PlayerMonsterCollision()
 
     for (int g = 0; g < Globals::total_ghosts; g++) // loop ghosts
     {
-        if (p_player->GetCurrentPosition().IsSame(p_ghosts[g]->GetCurrentPosition()))
+        if (p_player->GetCurrentPosition() == p_ghosts[g]->GetCurrentPosition())
         {
             DrawLevel(); // print the move immediately
             if (p_ghosts[g]->IsEdible()) // ghost dies
@@ -439,7 +439,7 @@ void Game::SetGhostMode()
     case Mode::SPAWN:
         for (int g = 0; g < Globals::total_ghosts; g++)
         {
-            if (p_ghosts[g]->GetCurrentPosition().IsSame(p_level->ghost_spawn))
+            if (p_ghosts[g]->GetCurrentPosition() == p_level->ghost_spawn)
             {
                 p_ghosts[g]->SetMode(Mode::CHASE);
             }

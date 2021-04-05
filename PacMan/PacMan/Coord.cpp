@@ -1,4 +1,5 @@
 #include "Coord.h"
+#include <algorithm>
 
 // constructors
 Coord::Coord()
@@ -36,11 +37,47 @@ Coord::Coord(Coord coord, Direction direction)
 	}
 }
 
-// methods
-bool Coord::IsSame(const Coord& coord)
+bool Coord::operator==(const Coord& coord) const
 {
 	return(coord.row == row && coord.col == col ? true : false);
 }
+
+Coord Coord::operator+(const Coord& coord) const
+{
+	return Coord(row + coord.row, col + coord.col);
+}
+
+Coord Coord::operator-(const Coord& coord) const
+{
+	return Coord(row - coord.row, col - coord.col);
+}
+
+int Coord::operator%(const Coord& coord) const
+{
+	return (abs(row - coord.row) + abs(col - coord.col));
+}
+
+Coord Coord::operator+(const Direction& direction) const
+{
+	switch (direction)
+	{
+	case Direction::UP:
+		return Coord(row-1, col);
+		break;
+	case Direction::RIGHT:
+		return Coord(row, col + 1);
+		break;
+	case Direction::DOWN:
+		return Coord(row + 1, col);
+		break;
+	case Direction::LEFT:
+		return Coord(row, col - 1);
+	default:
+		return Coord(row, col);
+	}
+}
+
+// methods
 
 void Coord::SetTo(const Coord& coord)
 {

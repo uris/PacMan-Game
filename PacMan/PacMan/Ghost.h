@@ -37,12 +37,9 @@ public:
     Ghost(Ghosts ghost);
 
     // methods
-    int DistanceToPlayer(Coord ghost_position, Coord player_current_position);
-    int DistanceToRoamTarget(Coord ghost_position);
-    int DistanceToSpawnTarget(Coord ghost_position);
-    bool PlayerCollision(Coord player_coord);
+    bool PlayerCollision();
     void DecreaseWait();
-    void MoveGhost(const Coord player_coord, const Direction direction, const char map_content);
+    void MoveGhost(const Direction direction, const char map_content);
     int MakeGhostMove();
     int GetBestMove(Coord current_position, Direction current_direction, int depth);
     Direction RandomGhostMove();

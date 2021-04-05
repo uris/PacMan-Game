@@ -13,7 +13,12 @@ public:
 	Coord(Coord coord, Direction direction);
 
 	// methods
-	bool IsSame(const Coord& coord);
+	/*bool IsSame(const Coord& coord);*/
 	void SetTo(const Coord& coord);
 	void SetTo(const Coord& coord, const Direction direction);
+	bool operator==(const Coord& coord) const;
+	Coord operator+(const Coord& coord) const;
+	Coord operator+(const Direction& coord) const;
+	Coord operator-(const Coord& coord) const;
+	int operator%(const Coord& coord) const;
 };
