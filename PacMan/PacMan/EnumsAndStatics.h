@@ -1,5 +1,12 @@
 #pragma once
 
+enum class ValueType {
+    TITLE, TEXT = 0,
+    CHAR, CHARACTER = 1,
+    INT, WHOLE_NUMBER = 2,
+    DOUBLE = 3
+};
+
 enum class MenuTemplates {
     LIST_SCENES = 0,
     EDIT_SCENE_OPTIONS = 1,

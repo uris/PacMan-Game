@@ -2,6 +2,8 @@
 #include <algorithm>
 #include <string>
 #include <fstream>
+#include <iostream>
+#include <conio.h>
 
 using namespace std;
 
@@ -56,7 +58,7 @@ string Utility::Spacer(const string& format, const int block_width)
     return spaces;
 }
 
-string Utility::GetMenuFromFile(string file_name)
+string Utility::GetMenuFromFile(const string& file_name)
 {
     ifstream file(file_name);
     string file_line, marker, content = "false";
@@ -99,7 +101,7 @@ string Utility::GetMenuFromFile(string file_name)
     return to_string(number_options) + "\n" + content;
 }
 
-string Utility::GetTemplateFromFile(string file_name)
+string Utility::GetTemplateFromFile(const string& file_name)
 {
     ifstream file(file_name);
     string file_line, marker, content = "false";
@@ -132,4 +134,58 @@ string Utility::GetTemplateFromFile(string file_name)
 
     return content;
 
+}
+
+template <typename Type, bool number>
+Type Utility::ProcessOption(string label)
+{
+    if (number)
+    {
+        do
+        {
+            int int_input;
+            cout << endl;
+            cout << label;
+            cin >> int_input;
+
+            if (cin.fail()) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "  You need to enter a vlaid number!" << endl;
+                cout << "  Press a any key to continue.";
+                int input = _getch();
+                system("cls");
+            }
+            else
+            {
+                return int_input;
+            }
+
+        } while (true);
+    }
+    else
+    {
+        do
+        {
+            string string_input;
+            cout << endl;
+            cout << label;
+            getline(cin, string_input);
+
+            if (string_input.length() < 1) {
+                cout << "  You need to enter valid valid text!" << endl;
+                cout << "  Press a any key to continue.";
+                int input = _getch();
+                system("cls");
+            }
+            else
+            {
+                return string_input;
+            }
+
+        } while (true);
+    }
+    
+    return 0;
+    
 }

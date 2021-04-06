@@ -323,11 +323,13 @@ int Editor::UpdateValue(string option)
     string spacer = "  ";
 
     if (option == "0") { //scen #
-        p_scene->this_scene = ProcessNumberOption(spacer +"Enter the new scene number : ");
+       // p_scene->this_scene = Utility::ProcessOption<int>("Enter the new scene number : ");
+       p_scene->this_scene = ProcessNumberOption(spacer +"Enter the new scene number : ");
         return 0;
     }
 
     if (option == "1") { // title
+        //p_scene->title = Utility::ProcessOption<string, false>("Enter the new title: ");
         p_scene->title = ProcessTextOption(spacer + "Enter the new title: ");
         return 0;
     }
