@@ -130,5 +130,5 @@ struct Globals
     // Game delay / speed defaults
     static constexpr int gobble_delay = 750; // wait in milliseconds
     static constexpr int player_beat_delay = 1000; // wait in milliseconds
-    static constexpr int refresh_delay = 60; //milliseconds
+    static constexpr int refresh_delay = 0; //milliseconds
 }; 
