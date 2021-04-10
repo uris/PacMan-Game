@@ -196,6 +196,9 @@
   <ItemGroup>
     <Font Include="consola_pacman.ttf" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="pacman_chars.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
