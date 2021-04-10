@@ -42,6 +42,11 @@ bool Coord::operator==(const Coord& coord) const
 	return(coord.row == row && coord.col == col ? true : false);
 }
 
+bool Coord::operator!=(const Coord& coord) const
+{
+	return(coord.row == row && coord.col == col ? false : true);
+}
+
 Coord Coord::operator+(const Coord& coord) const
 {
 	return Coord(row + coord.row, col + coord.col);

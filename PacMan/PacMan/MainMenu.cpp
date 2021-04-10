@@ -381,6 +381,17 @@ void MainMenu::Template(MenuTemplates menu_template)
 		menu_title += "   Start from scratch with a blank template.\n";
 		menu_title += "   ----------------- \n\n";
 		break;
+	case MenuTemplates::DISPLAY_RESOLUTION:
+		is_horizontal = false;
+		show_instructions = true;
+		show_icon = true;
+		option_selected = -1;
+		del_index = -1;
+		menu_title = "\n   SET GAME RESOLUTION\n";
+		menu_title += "   Choose resolution size from the options.\n";
+		menu_title += "   This dwfinws the overall size of charcaters.\n";
+		menu_title += "   ----------------- \n\n";
+		break;
 	default: // case none
 		is_horizontal = false;
 		show_instructions = true;

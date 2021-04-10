@@ -17,6 +17,7 @@ public:
 	void SetTo(const Coord& coord);
 	void SetTo(const Coord& coord, const Direction direction);
 	bool operator==(const Coord& coord) const;
+	bool operator!=(const Coord& coord) const;
 	Coord operator+(const Coord& coord) const;
 	Coord operator+(const Direction& coord) const;
 	Coord operator-(const Coord& coord) const;

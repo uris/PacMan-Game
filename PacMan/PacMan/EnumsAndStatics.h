@@ -3,7 +3,7 @@
 enum class Resolution {
     TINY = 12,
     SMALL = 16,
-    DEFAULT, NORMAL = 20,
+    NORMAL = 20,
     LARGE = 24,
     EXTRA_LARGE = 28,
     HUGE = 36
@@ -14,17 +14,18 @@ enum class MenuTemplates {
     EDIT_SCENE_OPTIONS = 1,
     CHOOSE_EDIT_PLAY = 2,
     LIST_TEMPLATES = 3,
-    NONE = 4,
+    DISPLAY_RESOLUTION = 4,
+    NONE = 5
 };
 
 enum class Menu {
     EDIT = 0,
-    OTHER = 1,
+    OTHER = 1
 };
 
 enum class EditMode {
     EDIT = 0,
-    HOVER = 1,
+    HOVER = 1
 };
 
 enum class Direction {
@@ -32,14 +33,14 @@ enum class Direction {
     RIGHT = 1,
     DOWN = 2,
     LEFT = 3,
-    NONE = -1,
+    NONE = -1
 };
 
 enum class Mode {
     CHASE = 0,
     ROAM = 1,
     RUN = 2,
-    SPAWN = -1,
+    SPAWN = -1
 };
 
 enum class Play {
@@ -53,7 +54,7 @@ enum class Play {
     DEATH,
     CREDIT,
     POWER_UP,
-    NONE,
+    NONE
 };
 
 enum class Ghosts
@@ -61,7 +62,7 @@ enum class Ghosts
     RED = 0,
     YELLOW = 1,
     BLUE = 2,
-    PINK = 3,
+    PINK = 3
 };
 
 struct Globals
@@ -157,5 +158,5 @@ struct Globals
     // Game delay / speed defaults
     static constexpr int gobble_delay = 750; // wait in milliseconds
     static constexpr int player_beat_delay = 1000; // wait in milliseconds
-    static constexpr int refresh_delay = 0; //milliseconds
+    static constexpr int refresh_delay = 65; //milliseconds
 }; 

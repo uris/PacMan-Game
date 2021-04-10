@@ -127,6 +127,9 @@ void Game::RunGame()
 
 void Game::SetupGame()
 {
+    // set console font to pacman font
+    Draw::SetConsoleFont(true);
+    
     // if restarting the game then reset player lives and game over state
     game_over ? p_player->SetLives(3) : p_player->SetLives();
     p_player->ClearEatenGohsts(); // clear the ghosts eaten in a row

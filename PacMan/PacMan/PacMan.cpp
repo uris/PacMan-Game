@@ -6,25 +6,29 @@
 int main()
 {
     //Draw::ShowColors(500);
+    Draw startup;
     do
     {
         // play opening credits and choose edit/play
-        string option = Draw::Credits();
-
-        // run edit, play or quit based on selection
-        if (option == "#play")
+        string option = startup.Credits();
+        
+        if (option == "#play") // play game
         {
             system("cls");
             Game game;
             game.RunGame();
         }
-        else if (option == "#edit")
+        else if (option == "#edit") // edit levels
         {
             system("cls");
             Editor editor;
             editor.EditScenes();
         }
-        else
+        else if (option == "#res") // set display resolution
+        {
+            continue;
+        }
+        else // quit
         {
             break;
         }
