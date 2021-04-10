@@ -156,6 +156,9 @@
     <None Include="pacman_console.vfc">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="PacMan Font Characters.ai">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Font Include="consola_pacman.ttf">

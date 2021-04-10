@@ -159,6 +159,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="PacMan - Copy.scenes" />
+    <None Include="PacMan Font Characters.ai" />
     <None Include="PacMan.scenes" />
     <None Include="pacman_console.vfc" />
   </ItemGroup>
