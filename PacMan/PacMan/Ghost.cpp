@@ -26,28 +26,28 @@ Ghost::Ghost(Ghosts ghost)
         name = Ghosts::RED;
         chase_modifier = { 0, 0 };
         this->ghost = 'R';
-        color = 71;
+        color = Globals::cRED;
         wait = 15;
         break;
     case Ghosts::YELLOW:
         name = Ghosts::YELLOW;
         chase_modifier = { 0, 3 };
         this->ghost = 'Y';
-        color = 367;
+        color = Globals::cYELLOW;
         wait = 30;
         break;
     case Ghosts::BLUE:
         name = Ghosts::BLUE;
         chase_modifier = { 0, -3 };
         this->ghost = 'B';
-        color = 435;
+        color = Globals::cBLUE;
         wait = 45;
         break;
     case Ghosts::PINK:
         name = Ghosts::PINK;
         chase_modifier = { -3, 0 };
         this->ghost = 'P';
-        color = 479;
+        color = Globals::cPINK;
         wait = 60;
         break;
     default:
@@ -55,7 +55,7 @@ Ghost::Ghost(Ghosts ghost)
         chase_modifier = { 0, 0 };
         name = Ghosts::RED;
         this->ghost = 'R';
-        color = 71;
+        color = Globals::cRED;
         wait = 15;
         break;
     }
@@ -530,4 +530,35 @@ Coord Ghost::GetRoamTarget()
 Ghosts Ghost::Name()
 {
     return name;
+}
+
+void Ghost::CoutGhost()
+{
+    if (is_edible) { // flashing effect - signals edible sate of ghost
+        color_on ? Draw::SetColor(Globals::cGHOST_ON) : Draw::SetColor(Globals::cGHOST_OFF);
+        color_on = !color_on;
+        cout << char(Globals::ghost_run);
+    }
+    else // solid color
+    { 
+        Draw::SetColor(color);
+        switch (current_direction)
+        {
+        case Direction::UP:
+            cout << char(Globals::ghost_up);
+            break;
+        case Direction::RIGHT:
+            cout << char(Globals::ghost_right);
+            break;
+        case Direction::DOWN:
+            cout << char(Globals::ghost_down);
+            break;
+        case Direction::LEFT:
+            cout << char(Globals::ghost_left);
+            break;
+        default:
+            cout << char(Globals::ghost_down);
+            break;
+        }
+    }
 }

@@ -137,6 +137,55 @@ bool Player::PayerGhostCollision(int ghost_index)
 	return (current_position == p_game->p_ghosts[ghost_index]->GetCurrentPosition());
 }
 
+void Player::CoutPlayer()
+{
+	Draw::SetColor(Globals::cPLAYER);
+	if (chomp) { // mouth closed
+		
+		switch (previous_direction)
+		{
+		case Direction::UP:
+			cout << char(Globals::pacman_up_closed);
+			break;
+		case Direction::RIGHT:
+			cout << char(Globals::pacman_right_closed);
+			break;
+		case Direction::DOWN:
+			cout << char(Globals::pacman_down_closed);
+			break;
+		case Direction::LEFT:
+			cout << char(Globals::pacman_left_closed);
+			break;
+		default:
+			cout << char(Globals::pacman_left_closed);
+			break;
+		}
+		chomp = !chomp;
+	}
+	else // mouth open
+	{
+		switch (previous_direction)
+		{
+		case Direction::UP:
+			cout << char(Globals::pacman_up_open);
+			break;
+		case Direction::RIGHT:
+			cout << char(Globals::pacman_right_open);
+			break;
+		case Direction::DOWN:
+			cout << char(Globals::pacman_down_open);
+			break;
+		case Direction::LEFT:
+			cout << char(Globals::pacman_left_open);
+			break;
+		default:
+			cout << char(Globals::pacman_left_open);
+			break;
+		}
+		player_move_content == ' ' ? chomp = false : chomp = !chomp;
+	}
+}
+
 
 // getters
 int Player::Lives()

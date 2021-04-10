@@ -45,6 +45,7 @@ public:
     Direction RandomGhostMove();
     char GhostContentNow(Direction best_move);
     void Teleport(Coord& ghost_position, Direction& ghost_direction);
+    void CoutGhost();
 
     // Getters
     Coord GetChaseModifier();

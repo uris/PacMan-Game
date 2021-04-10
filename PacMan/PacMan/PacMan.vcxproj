@@ -160,6 +160,7 @@
   <ItemGroup>
     <None Include="PacMan - Copy.scenes" />
     <None Include="PacMan.scenes" />
+    <None Include="pacman_console.vfc" />
   </ItemGroup>
   <ItemGroup>
     <Media Include="sfx_bonus.wav" />
@@ -191,6 +192,9 @@
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Stage.h" />
     <ClInclude Include="Utility.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="consola_pacman.ttf" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -66,6 +66,8 @@ string Draw::WriteEmptyLine(int height, int length)
 }
 string Draw::Credits()
 {
+  
+    Draw::SetConsoleFont(true, Resolution::HUGE);
     string ghost;
     Draw::ShowConsoleCursor(false);
 
@@ -111,4 +113,57 @@ string Draw::Credits()
     choose.Create(options, 3);
     return choose.Show();
 
+}
+bool Draw::SetConsoleFont(const bool pacman_font, const Resolution resolution)
+{
+    int result;
+
+
+    CONSOLE_FONT_INFOEX info = { 0 };
+    info.cbSize = sizeof(info);
+    info.dwFontSize.Y = (int)resolution; // leave X as zero
+    info.FontWeight = FW_NORMAL;
+    if (!pacman_font)
+        wcscpy_s(info.FaceName, L"Consolas");
+    else
+        wcscpy_s(info.FaceName, L"PacMan Console");
+
+    result = SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), NULL, &info);
+    
+    if (result)
+        Draw::SetConsoleSize(resolution);
+
+    return true;
+}
+void Draw::SetConsoleSize(const Resolution resolution)
+{
+    Coord console_size;
+  
+    switch (resolution)
+    {
+    case Resolution::TINY:
+        console_size = {410, 400};
+        break;
+    case Resolution::SMALL:
+        console_size = { 598, 510 };
+        break;
+    case Resolution::DEFAULT:
+    case Resolution::NORMAL:
+        console_size = { 692, 650 };
+        break;
+    case Resolution::LARGE:
+        console_size = { 880, 760 };
+        break;
+    case Resolution::EXTRA_LARGE:
+        console_size = { 974, 860 };
+        break;
+    case Resolution::HUGE:
+        console_size = { 1256, 1100 };
+        break;
+    }
+
+    HWND console = GetConsoleWindow();
+    RECT ConsoleRect;
+    GetWindowRect(console, &ConsoleRect);
+    MoveWindow(console, 50, 50, console_size.row, console_size.col, TRUE);
 }

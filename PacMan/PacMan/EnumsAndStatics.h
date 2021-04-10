@@ -1,10 +1,12 @@
 #pragma once
 
-enum class ValueType {
-    TITLE, TEXT = 0,
-    CHAR, CHARACTER = 1,
-    INT, WHOLE_NUMBER = 2,
-    DOUBLE = 3
+enum class Resolution {
+    TINY = 12,
+    SMALL = 16,
+    DEFAULT, NORMAL = 20,
+    LARGE = 24,
+    EXTRA_LARGE = 28,
+    HUGE = 36
 };
 
 enum class MenuTemplates {
@@ -69,8 +71,19 @@ struct Globals
     static constexpr int cWHITE = 7; // white
     static constexpr int cPLAYER = 14; // yellow
     static constexpr int cWALLS = 392; // gray on gray text
-    static constexpr int cGHOST_ON = 275; // for ghost flash
-    static constexpr int cGHOST_OFF = 155; // for ghost flash
+    //static constexpr int cGHOST_ON = 275; // for ghost flash
+    //static constexpr int cGHOST_OFF = 155; // for ghost flash
+    static constexpr int cGHOST_ON = 7; // for ghost flash
+    static constexpr int cGHOST_OFF = 9; // for ghost flash
+    /*static constexpr int cRED = 71;
+    static constexpr int cYELLOW = 367;
+    static constexpr int cBLUE = 435;
+    static constexpr int cPINK = 479;*/
+    static constexpr int cRED = 4;
+    static constexpr int cYELLOW = 6;
+    static constexpr int cBLUE = 13;
+    static constexpr int cPINK = 10;
+    static constexpr int cPELLETS = 6;
 
     // Editor menu colors
     static constexpr int c_blackwhite = 7; // black bg, white text
@@ -110,6 +123,20 @@ struct Globals
     static constexpr char pink_ghost = 'P'; // pellet ascii
     static constexpr char player = 'C'; // pellet ascii
     static constexpr int fruit = 245; // pellet ascii
+
+    static constexpr int pacman_left_open = 1;
+    static constexpr int pacman_right_open = 2;
+    static constexpr int pacman_up_open = 11;
+    static constexpr int pacman_down_open = 12;
+    static constexpr int pacman_left_closed = 3;
+    static constexpr int pacman_right_closed = 4;
+    static constexpr int pacman_up_closed = 5;
+    static constexpr int pacman_down_closed = 6;
+    static constexpr int ghost_run = 186;
+    static constexpr int ghost_down = 206;
+    static constexpr int ghost_up = 185;
+    static constexpr int ghost_left = 204;
+    static constexpr int ghost_right = 202;
 
     // Movement and input keys
     static constexpr char kLEFT = 97; // 'a';

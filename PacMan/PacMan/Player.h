@@ -17,6 +17,7 @@ private:
     int score = 0;
     bool ghosts_eaten[4] = { false, false, false, false };
     char player_move_content = '.';
+    bool chomp = false;
 
 public:
     //constructors
@@ -33,6 +34,7 @@ public:
     bool HasNoLives();
     bool AllGhostsEaten();
     bool PayerGhostCollision(int ghost_index);
+    void CoutPlayer();
 
     // getters
     char GetMovedIntoSquareContents();

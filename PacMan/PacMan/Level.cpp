@@ -293,6 +293,8 @@ Coord Level::MapSize(const string& map)
 
 void Level::DrawLevel()
 {
+    Draw::ShowConsoleCursor(false);
+
     // set the content of the sqaure the player is moving into - will use this to play the appropriate sound
     p_game->p_player->SetMovedIntoSquareContents(p_map[p_game->p_player->GetCurrentRow()][p_game->p_player->GetCurrentCol()]);
 
@@ -401,61 +403,41 @@ void Level::DrawLevel()
             case Globals::space: // ' ' = empty space
             case Globals::one_way: // $ = one way door for ghost spawn area
                 Draw::SetColor(Globals::cINVISIBLE); // black on black = not visible
+                cout << p_map[r][c];
                 break;
             case (char)Globals::pellet: // . = pellet
                 current_pellets++;
-                Draw::SetColor(Globals::cWHITE); // gray for bullets
+                Draw::SetColor(Globals::cPELLETS); // gray for bullets
+                cout << p_map[r][c];
                 break;
             case (char)Globals::powerup: // o = power up
                 current_pellets++;
-                Draw::SetColor(Globals::cWHITE); // white for power ups
+                Draw::SetColor(Globals::cPELLETS); // white for power ups
+                cout << p_map[r][c];
                 break;
             case Globals::pink_ghost: // blue ghost
-                if (p_game->p_ghosts[3]->IsEdible()) { // flashing effect - signals edible sate of ghost
-                    p_game->p_ghosts[3]->FlashBlue() ? Draw::SetColor(Globals::cGHOST_ON) : Draw::SetColor(Globals::cGHOST_OFF);
-                    p_game->p_ghosts[3]->SetFlashBlue(!p_game->p_ghosts[0]->FlashBlue());
-                }
-                else { // solid color
-                    Draw::SetColor(p_game->p_ghosts[3]->GetColor());
-                }
+                p_game->p_ghosts[3]->CoutGhost();
                 break;
             case Globals::yellow_ghost: // yellow ghost
-                if (p_game->p_ghosts[1]->IsEdible()) { // flashing effect - signals edible sate of ghost
-                    p_game->p_ghosts[1]->FlashBlue() ? Draw::SetColor(Globals::cGHOST_ON) : Draw::SetColor(Globals::cGHOST_OFF);
-                    p_game->p_ghosts[1]->SetFlashBlue(!p_game->p_ghosts[0]->FlashBlue());
-                }
-                else { // solid color
-                    Draw::SetColor(p_game->p_ghosts[1]->GetColor());
-                }
+                p_game->p_ghosts[1]->CoutGhost();
                 break;
             case Globals::blue_ghost: // green ghost
-                if (p_game->p_ghosts[2]->IsEdible()) { // flashing effect - signals edible sate of ghost
-                    p_game->p_ghosts[2]->FlashBlue() ? Draw::SetColor(Globals::cGHOST_ON) : Draw::SetColor(Globals::cGHOST_OFF);
-                    p_game->p_ghosts[2]->SetFlashBlue(!p_game->p_ghosts[0]->FlashBlue());
-                }
-                else { // solid color
-                    Draw::SetColor(p_game->p_ghosts[2]->GetColor());
-                }
+                p_game->p_ghosts[2]->CoutGhost();
                 break;
             case Globals::red_ghost: // red ghost
-                if (p_game->p_ghosts[0]->IsEdible()) { // flashing effect - signals edible sate of ghost
-                    p_game->p_ghosts[0]->FlashBlue() ? Draw::SetColor(Globals::cGHOST_ON) : Draw::SetColor(Globals::cGHOST_OFF);
-                    p_game->p_ghosts[0]->SetFlashBlue(!p_game->p_ghosts[0]->FlashBlue());
-                }
-                else { // solid color
-                    Draw::SetColor(p_game->p_ghosts[0]->GetColor());
-                }
+                p_game->p_ghosts[0]->CoutGhost();
                 break;
             case Globals::player: // player
-                Draw::SetColor(Globals::cPLAYER);
+                p_game->p_player->CoutPlayer();
                 break;
             default:
                 Draw::SetColor(Globals::cWALLS); // gray bg on gray text for all other chars making them walls essentially
+                cout << p_map[r][c];
                 break;
             }
 
             // print char
-            cout << p_map[r][c];
+            //cout << p_map[r][c];
 
             // set color back to default
             Draw::SetColor(Globals::cWHITE);

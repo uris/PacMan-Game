@@ -153,5 +153,13 @@
     <None Include="PacMan - Copy.scenes">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="pacman_console.vfc">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="consola_pacman.ttf">
+      <Filter>Resource Files</Filter>
+    </Font>
   </ItemGroup>
 </Project>

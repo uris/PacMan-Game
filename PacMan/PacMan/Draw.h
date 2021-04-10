@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include "EnumsAndStatics.h"
+#include "Coord.h"
 
 using namespace std;
 
@@ -17,5 +19,6 @@ public:
     static string WriteEmptyLine(const int length);
     static string Credits();
     static string WriteEmptyLine(int height, int length);
-    
+    static bool SetConsoleFont(const bool pacman_font, const Resolution resolution);
+    static void SetConsoleSize(const Resolution resolution);
 };

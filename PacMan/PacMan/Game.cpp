@@ -341,17 +341,15 @@ void Game::PrintStatusBar()
     //Draw draw;
     //Utility utility;
     // get number of lives
-    string format = Utility::Spacer("LIVES:CCC    SCORE:00000000", p_level->cols);
+    string format = Utility::Spacer("C C C    SCORE:00000000", p_level->cols);
     string lives;
     for (int i = 0; i < 6; i++)
     {
-        i < p_player->Lives() ? lives = lives + Globals::player : lives = lives +  " ";
+        i < p_player->Lives() ? lives = lives + char(Globals::pacman_left_open) + " " : lives = lives +  " ";
     }
     p_player->SetScore(((p_level->eaten_pellets + 1) * p_level->points_pellet) + (p_level->eaten_ghosts * p_level->points_ghost) + (p_level->eaten_ghosts >= 4 ? p_level->all_ghost_bonus : 0));
     cout << endl;
     cout << format;
-    Draw::SetColor(7);
-    cout << "LIVES:";
     Draw::SetColor(14);
     cout << (!p_player->HasNoLives() ? lives : "-");
     Draw::SetColor(7);
