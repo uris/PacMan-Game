@@ -116,7 +116,7 @@ Coord Draw::GetConsoleSize()
 string Draw::Credits()
 {
     
-    SetConsoleFont(false);
+    SetPacManFont(false);
     system("cls");
     
     string ghost;
@@ -253,7 +253,7 @@ bool Draw::SetConsoleFont(const bool pacman_font, const Resolution resolution)
 
     return true;
 }
-bool Draw::SetConsoleFont(const bool pacman_font)
+bool Draw::SetPacManFont(const bool pacman_font)
 {
     Resolution resolution = GetResolution();
     SetConsoleFont(pacman_font, resolution);

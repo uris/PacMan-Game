@@ -20,7 +20,7 @@ public:
     static string Credits();
     static string WriteEmptyLine(int height, int length);
     static bool SetConsoleFont(const bool pacman_font, const Resolution resolution);
-    static bool SetConsoleFont(const bool pacman_font);
+    static bool SetPacManFont(const bool pacman_font);
     static void SetConsoleSize(const Resolution resolution, const int rows = 29, const int cols = 47);
     static Coord GetConsoleSize();
     static Resolution SetResolution();
