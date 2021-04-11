@@ -72,19 +72,16 @@ struct Globals
     static constexpr int cWHITE = 7; // white
     static constexpr int cPLAYER = 14; // yellow
     static constexpr int cWALLS = 392; // gray on gray text
-    //static constexpr int cGHOST_ON = 275; // for ghost flash
-    //static constexpr int cGHOST_OFF = 155; // for ghost flash
     static constexpr int cGHOST_ON = 7; // for ghost flash
     static constexpr int cGHOST_OFF = 9; // for ghost flash
-    /*static constexpr int cRED = 71;
-    static constexpr int cYELLOW = 367;
-    static constexpr int cBLUE = 435;
-    static constexpr int cPINK = 479;*/
+    static constexpr int cIMMOVABLE = 16;
+    static constexpr int cEDITABLE = 9;
     static constexpr int cRED = 4;
     static constexpr int cYELLOW = 6;
     static constexpr int cBLUE = 13;
     static constexpr int cPINK = 10;
     static constexpr int cPELLETS = 6;
+    static constexpr int cWALLS2 = 9;
 
     // Editor menu colors
     static constexpr int c_blackwhite = 7; // black bg, white text
@@ -100,6 +97,15 @@ struct Globals
     static constexpr int max_scene_cols = 77;
     static constexpr int min_scene_cols = 17;
 
+    //pacman
+    static constexpr int pacman_left_open = 1;
+    static constexpr int pacman_right_open = 2;
+    static constexpr int pacman_up_open = 11;
+    static constexpr int pacman_down_open = 12;
+    static constexpr int pacman_left_closed = 3;
+    static constexpr int pacman_right_closed = 4;
+    static constexpr int pacman_up_closed = 5;
+    static constexpr int pacman_down_closed = 6;
 
     // Ghosts
     static constexpr int gRED = 0;
@@ -108,6 +114,11 @@ struct Globals
     static constexpr int gPINK = 3;
     static constexpr int look_ahead = 4; // how far ahead the IA looks for player
     static constexpr int total_ghosts = 4;
+    static constexpr int ghost_run = 186;
+    static constexpr int ghost_down = 206;
+    static constexpr int ghost_up = 185;
+    static constexpr int ghost_left = 204;
+    static constexpr int ghost_right = 202;
 
     // Level Map
     static constexpr int powerup = 254; //extended set of ascii 
@@ -125,34 +136,58 @@ struct Globals
     static constexpr char player = 'C'; // pellet ascii
     static constexpr int fruit = 245; // pellet ascii
 
-    static constexpr int pacman_left_open = 1;
-    static constexpr int pacman_right_open = 2;
-    static constexpr int pacman_up_open = 11;
-    static constexpr int pacman_down_open = 12;
-    static constexpr int pacman_left_closed = 3;
-    static constexpr int pacman_right_closed = 4;
-    static constexpr int pacman_up_closed = 5;
-    static constexpr int pacman_down_closed = 6;
-    static constexpr int ghost_run = 186;
-    static constexpr int ghost_down = 206;
-    static constexpr int ghost_up = 185;
-    static constexpr int ghost_left = 204;
-    static constexpr int ghost_right = 202;
+    // long walls
+    static constexpr int lwall_184 = 184; // long wall up on left
+    static constexpr int lwall_213 = 213; // long wall up on right
+    static constexpr int lwall_212 = 212; // long wall across on top
+    static constexpr int lwall_209 = 209; // long wall across on bottom
+    static constexpr int lwall_187 = 187; // long wall top left corner
+    static constexpr int lwall_203 = 203; // long wall top right corner
+    static constexpr int lwall_188 = 188; // long wall bottom left corner
+    static constexpr int lwall_200 = 200; // long wall bottom right corner
+    static constexpr int lwall_155 = 155; // long wall bottom right cap
+    static constexpr int lwall_210 = 210; // long wall top left cap
+    static constexpr int lwall_183 = 183; // long wall bottom left cap
+    static constexpr int lwall_214 = 214; // long wall bottom right cap
+
+    // short walls
+    static constexpr int lwall_180 = 180; // Top Cap
+    static constexpr int lwall_192 = 192; // Right cap
+    static constexpr int lwall_197 = 197; // Bottom Cap
+    static constexpr int lwall_217 = 217; // Left Cap
+    static constexpr int lwall_193 = 193; // Horizontal Straight
+    static constexpr int lwall_195 = 195; // Vertical Straight
+    static constexpr int lwall_191 = 191; // bottom T
+    static constexpr int lwall_194 = 194; // Top T
+    static constexpr int lwall_196 = 196; // Left T
+    static constexpr int lwall_218 = 218; // Right T
+    static constexpr int lwall_179 = 179; // Intersection
+    static constexpr int lwall_190 = 190; // Island
+    static constexpr int lwall_181 = 181; // Bottom Right Corner
+    static constexpr int lwall_198 = 198; // Top Left Corner
+    static constexpr int lwall_207 = 207; // Top Right Corner
+    static constexpr int lwall_216 = 216; // Bottom Left Corner
+    static constexpr int lwall_201 = 201; // Inner Bottom Right Corner
+    static constexpr int lwall_205 = 205; // Inner Top Left Corner
+    static constexpr int lwall_215 = 215; // Inner Bottom Left Corner
+    static constexpr int lwall_182 = 182; // Inner Top Right  Corner
 
     // Movement and input keys
     static constexpr char kLEFT = 97; // 'a';
     static constexpr char kUP = 119; // 'w';
     static constexpr char kDOWN = 115; // 's';
     static constexpr char kRIGHT = 100; // 'd';
-    static constexpr char kARROW_UP = 72;
-    static constexpr char kARROW_DOWN = 80;
-    static constexpr char kARROW_LEFT = 75;
-    static constexpr char kARROW_RIGHT = 77;
-    static constexpr char kESCAPE = 27;
+    static constexpr char kARROW_UP = 72; // arrow up
+    static constexpr char kARROW_DOWN = 80; // arrow down
+    static constexpr char kARROW_LEFT = 75; // arrow left
+    static constexpr char kARROW_RIGHT = 77; // arrow right
+    static constexpr char kESCAPE = 27; // escape
     static constexpr char kYES = 121; // 'y'
     static constexpr char kNO = 110; // 'n'
-    static constexpr char kRETURN = 13;
-    static constexpr char kSPACE = 32;
+    static constexpr char kRETURN = 13; // return
+    static constexpr char kSPACE = 32; // space key
+    static constexpr char kAT = 64; // @
+    static constexpr char kHASH = 35; // @
     static constexpr char kN = 110; // 'n'
 
     // Game delay / speed defaults

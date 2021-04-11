@@ -6,11 +6,11 @@
 int main()
 {
     //Draw::ShowColors(500);
-    Draw startup;
+    //Draw startup;
     do
     {
         // play opening credits and choose edit/play
-        string option = startup.Credits();
+        string option = Draw::Credits();
         
         if (option == "#play") // play game
         {

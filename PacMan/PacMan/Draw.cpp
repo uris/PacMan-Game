@@ -116,6 +116,7 @@ Coord Draw::GetConsoleSize()
 string Draw::Credits()
 {
     
+    SetConsoleSize(GetResolution());
     SetPacManFont(false);
     system("cls");
     

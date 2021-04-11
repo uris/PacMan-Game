@@ -30,7 +30,7 @@ void Cursor::ChangeMode(bool reset_pen)
 {
 	if (reset_pen)
 	{
-		seleced_pen = '0';
+		selected_pen = '0';
 	}
 	mode == EditMode::HOVER ? mode = EditMode::EDIT : mode = EditMode::HOVER;
 	
@@ -130,7 +130,7 @@ void Cursor::SetEditor(Editor* p_editor)
 
 char Cursor::Pen()
 {
-	return seleced_pen;
+	return selected_pen;
 }
 
 void Cursor::SetPen(char pen)
@@ -138,16 +138,116 @@ void Cursor::SetPen(char pen)
 	switch (pen)
 	{
 	case 's':
-		seleced_pen = 'S';
+		selected_pen = 'S';
+		pen_is_walls = false;
+		pen_is_short_walls = false;
 		break;
 	case 't':
-		seleced_pen = 'T';
+		selected_pen = 'T';
+		pen_is_walls = false;
+		pen_is_short_walls = false;
+		break;
+	case char(Globals::kHASH):
+		pen_is_walls = true;
+		pen_is_short_walls = false;
+		index_wall_selected = -1;
+		CycleLongWalls();
+		break;
+	case char(Globals::kAT) :
+		pen_is_walls = false;
+		pen_is_short_walls = true;
+		index_short_wall_selected = -1;
+		CycleShortWalls();
 		break;
 	case '.':
-		seleced_pen = char(Globals::pellet);
+		selected_pen = char(Globals::pellet);
+		pen_is_walls = false;
+		pen_is_short_walls = false;
 		break;
 	default:
-		seleced_pen = pen;
+		selected_pen = pen;
+		pen_is_walls = false;
+		pen_is_short_walls = false;
 		break;
 	}
+}
+
+void Cursor::CycleLongWalls()
+{
+
+	if (index_wall_selected < 12)
+		index_wall_selected++;
+
+	if (index_wall_selected == 12)
+		index_wall_selected = 0;
+
+
+	char walls[12] = {
+		char(Globals::lwall_187),
+		char(Globals::lwall_188),
+		char(Globals::lwall_200),
+		char(Globals::lwall_203),
+		char(Globals::lwall_184),
+		char(Globals::lwall_213),
+		char(Globals::lwall_212),
+		char(Globals::lwall_209),
+		char(Globals::lwall_155),
+		char(Globals::lwall_210),
+		char(Globals::lwall_183),
+		char(Globals::lwall_214),
+	};
+
+	for (int i = 0; i < 12; i++)
+	{
+		if (index_wall_selected == i)
+		{
+			selected_pen = walls[i];
+			break;
+		}
+	}
+
+}
+
+void Cursor::CycleShortWalls()
+{
+
+	if (index_short_wall_selected < 20)
+		index_short_wall_selected++;
+
+	if (index_short_wall_selected == 20)
+		index_short_wall_selected = 0;
+
+
+	char walls[20] = {
+		char(Globals::lwall_180), // Top Cap
+		char(Globals::lwall_192), // Right cap
+		char(Globals::lwall_197), // Bottom Cap
+		char(Globals::lwall_217), // Left Cap
+		char(Globals::lwall_193), // Horizontal Straight
+		char(Globals::lwall_195), // Vertical Straight
+		char(Globals::lwall_191), // bottom T
+		char(Globals::lwall_194), // Top T
+		char(Globals::lwall_196), // Left T
+		char(Globals::lwall_218), // Right T
+		char(Globals::lwall_179), // Intersection
+		char(Globals::lwall_190), // Island
+		char(Globals::lwall_181), // Bottom Right Corner
+		char(Globals::lwall_198), // Top Left Corner
+		char(Globals::lwall_207), // Top Right Corner
+		char(Globals::lwall_216), // Bottom Left Corner
+		char(Globals::lwall_201), // Inner Bottom Right Corner
+		char(Globals::lwall_205), // Inner Top Left Corner
+		char(Globals::lwall_215), // Inner Bottom Left Corner
+		char(Globals::lwall_182), // Inner Top Right  Corner
+	};
+
+	for (int i = 0; i < 20; i++)
+	{
+		if (index_short_wall_selected == i)
+		{
+			selected_pen = walls[i];
+			break;
+		}
+	}
+
 }

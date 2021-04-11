@@ -95,6 +95,10 @@ void Editor::EditScenes()
         // do the editing of the selcted scene if not exiting
         do
         {
+            // set console font to pacman font
+            Draw::SetConsoleFont(true, Resolution::NORMAL);
+            Draw::SetConsoleSize(Resolution::NORMAL, 60, 80);
+            
             DoSceneEdit(load_scene);
             if (new_scene)
             {
@@ -277,7 +281,22 @@ void Editor::GetKeyboardInput()
                 done_editing = true;
             }
             break;
-        case '#':
+        case Globals::kRETURN:
+            if (p_cursor->pen_is_walls)
+                p_cursor->CycleLongWalls();
+            if (p_cursor->pen_is_short_walls)
+                p_cursor->CycleShortWalls();
+            break;
+        case Globals::kHASH:
+            if (p_cursor->IsEditing()) {
+                p_cursor->SetPen(char(input));
+            }
+            break;
+        case Globals::kAT:
+            if (p_cursor->IsEditing()) {
+                p_cursor->SetPen(char(input));
+            }
+            break;
         case '%':
         case '^':
         case '.':

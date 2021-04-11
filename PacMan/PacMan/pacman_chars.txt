@@ -8,10 +8,12 @@ To view the custom pacman characters, set the font (format menu option) to pacma
 ♠ :6
 ♂ :11
 ♀ :12
+¢ :155
 │ :179
 ┤ :180
 ╡ :181
 ╢ :182
+╖ :183
 ╕ :184
 ╣ :185
 ║ :186
@@ -38,9 +40,11 @@ To view the custom pacman characters, set the font (format menu option) to pacma
 ╧ :207
 ╨ :208
 ╤ :209
+╥ :210
 ╙ :211
 ╘ :212
 ╒ :213
+╓ :214
 ╫ :215
 ╪ :216
 ┘ :217

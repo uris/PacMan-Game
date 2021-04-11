@@ -9,12 +9,19 @@ class Cursor : public Character
 private:
 	EditMode mode = EditMode::HOVER;
 	bool blink_on = false;
-	char seleced_pen = '0';
+	char selected_pen = '0';
+	
 	
 	
 
 public:
 	char content_now =' ';
+	// long walls
+	bool pen_is_walls = false;
+	int index_wall_selected = -1;
+	// short walls
+	bool pen_is_short_walls = false;
+	int index_short_wall_selected = -1;
 	
 	// constructor
 	Cursor();
@@ -26,6 +33,8 @@ public:
 	void SpawnCursor(int map_width, int map_height);
 	bool IsEditable(Direction direction);
 	bool IsInBounds(Direction direction);
+	void CycleLongWalls();
+	void CycleShortWalls();
 
 	// Getters
 	bool IsEditing();

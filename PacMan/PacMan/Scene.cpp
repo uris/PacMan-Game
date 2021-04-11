@@ -201,17 +201,18 @@ Coord Scene::MapSize(const string& map)
     size_t rows = 0, cols = 0;
     size_t pos;
 
-    pos = map.find("+");
+    pos = map.find(char(Globals::lwall_187));
     if (pos != string::npos)
     {
-        pos = map.find("+", pos + 1);
+        pos = map.find(char(Globals::lwall_203), pos + 1);
         if (pos != string::npos)
         {
             cols = pos + 1;
-            pos = map.find("+", pos + 1);
+            rows = map.length() / cols;
+            /*pos = map.find("+", pos + 1);
             if (pos != string::npos) {
                 rows = (pos / cols) + 1;
-            }
+            }*/
         }
     }
     return { (int)rows, (int)cols };
@@ -233,8 +234,6 @@ void Scene::DrawLevel()
     cout << endl;
     cout << format << "PACMAN: " + Utility::TransformString(title, 0) << format;
     cout << endl << Draw::WriteEmptyLine(cols + 10) << endl;
-
-    total_pellets = 0;
 
     // remove cursor and replace with current content of the cursor
     for (int r = 0; r < rows; r++)
@@ -277,38 +276,112 @@ void Scene::DrawLevel()
                 
             
             // set color of map content at this position
+            
+            char print; // will hold the output char
+
             switch (p_map[r][c])
             {
+            
+                //long walls
+            case char(Globals::lwall_184):
+            case char(Globals::lwall_187):
+            case char(Globals::lwall_188):
+            case char(Globals::lwall_200):
+            case char(Globals::lwall_203):
+            case char(Globals::lwall_209):
+            case char(Globals::lwall_212):
+            case char(Globals::lwall_213):
+            case char(Globals::lwall_155):
+            case char(Globals::lwall_210):
+            case char(Globals::lwall_183):
+            case char(Globals::lwall_214):
+                print = p_map[r][c];
+                Draw::SetColor(Globals::cWALLS2);
+                break;
+
+            //short walls
+            case char(Globals::lwall_180) :
+            case char(Globals::lwall_192) :
+            case char(Globals::lwall_197) :
+            case char(Globals::lwall_217) :
+            case char(Globals::lwall_193) :
+            case char(Globals::lwall_195) :
+            case char(Globals::lwall_191) :
+            case char(Globals::lwall_194) :
+            case char(Globals::lwall_196) :
+            case char(Globals::lwall_218) :
+            case char(Globals::lwall_179) :
+            case char(Globals::lwall_190) :
+            case char(Globals::lwall_181) :
+            case char(Globals::lwall_198) :
+            case char(Globals::lwall_207) :
+            case char(Globals::lwall_216) :
+            case char(Globals::lwall_201) :
+            case char(Globals::lwall_205) :
+            case char(Globals::lwall_215) :
+            case char(Globals::lwall_182) :
+                print = p_map[r][c];
+                Draw::SetColor(Globals::cWALLS2);
+                break;
+
+            //pellets             
+            case '.':
+            case (char)Globals::pellet:
+                print = (char)Globals::pellet;
+                Draw::SetColor(Globals::cPELLETS);
+                break;
+
+            // powerups
             case 'o':
+            case (char)Globals::powerup:
+                print = (char)Globals::powerup;
+                Draw::SetColor(Globals::cPELLETS);
+                break;
+
             case Globals::player_start:
-            case Globals::ghost_spawn_target:
-            case Globals::invisible_wall: // % = invisible wall
-            case Globals::teleport: // T = portal
+                print = (char)Globals::pacman_left_open;
+                Draw::SetColor(Globals::cPLAYER);
+                break;
+
             case Globals::space: // ' ' = empty space
-            case Globals::one_way: // $ = one way door for ghost spawn area
+                print = p_map[r][c];
                 Draw::SetColor(Globals::cWHITE); // black on black = not visible
                 break;
-            case (char)Globals::pellet: // . = pellet
-                total_pellets++;
-                Draw::SetColor(Globals::cWHITE); // gray for bullets
+
+            case Globals::one_way: // T = portal
+                print = p_map[r][c];
+                Draw::SetColor(Globals::cIMMOVABLE); // black on black = not visible
                 break;
-            case (char)Globals::powerup: // o = power up
-                total_pellets++;
-                Draw::SetColor(Globals::cWHITE); // white for power ups
+
+            case Globals::ghost_spawn_target:
+            case Globals::invisible_wall: // % = invisible wall
+            case Globals::teleport: // $ = one way door for ghost spawn area
+                print = p_map[r][c];
+                Draw::SetColor(Globals::cEDITABLE); // black on black = not visible
                 break;
+            
             case Globals::pink_ghost: // blue ghost
-                Draw::SetColor(479);
-                break;
+                print = (char)Globals::ghost_down;
+                Draw::SetColor(Globals::cPINK);
+                break; 
+            
             case Globals::yellow_ghost: // yellow ghost
-                Draw::SetColor(367);
+                print = (char)Globals::ghost_down;
+                Draw::SetColor(Globals::cYELLOW);
                 break;
+            
             case Globals::blue_ghost: // green ghost
-                Draw::SetColor(435);
+                print = (char)Globals::ghost_down;
+                Draw::SetColor(Globals::cBLUE);
                 break;
+            
             case Globals::red_ghost: // red ghost
-                Draw::SetColor(71);
+                print = (char)Globals::ghost_down;
+                Draw::SetColor(Globals::cRED);
                 break;
+            
             case char(Globals::cursor): // red ghost
+                print = (char)Globals::cursor;
                 if (!p_editor->p_cursor->IsEditing()) { // flashing effect - signals edible sate of ghost
                     p_editor->p_cursor->Blink() ? Draw::SetColor(Globals::c_blackwhite) : Draw::SetColor(Globals::c_whiteblack);
                     p_editor->p_cursor->SetBlink();
@@ -317,13 +390,15 @@ void Scene::DrawLevel()
                     Draw::SetColor(Globals::c_bluewhite);
                 }
                 break;
+
             default:
+                print = p_map[r][c];
                 Draw::SetColor(Globals::cWALLS); // gray bg on gray text for all other chars making them walls essentially
                 break;
             }
 
             // print char
-            cout << p_map[r][c];
+            cout << print;
 
             // set color back to default
             Draw::SetColor(Globals::cWHITE);
@@ -603,7 +678,16 @@ void Scene::ShowKey()
             cout << Draw::WriteEmptyLine(70) << '\r';
             cout << " '.' pellet, 'o' powerup, ' ' space, 'S' Player start, 'R' resize" << endl;
             cout << Draw::WriteEmptyLine(70) << '\r';
-            cout << " '#' wall, '%' hidden wall, 'T' teleport, '^' Ghost spawn" << endl;
+            cout << " '#' / '@' walls, '%' hidden wall, 'T' teleport, '^' Ghost spawn" << endl;
+            top_left_modifier = 6;
+        }
+        else if (p_editor->p_cursor->pen_is_walls || p_editor->p_cursor->pen_is_short_walls)
+        {
+            format = Utility::Spacer("' ' pen. 'Esc' to swap. 'Space' disables. 'Return' cycles.", cols);
+            cout << endl;
+            cout << Draw::WriteEmptyLine(70) << '\r';
+            cout << format << "'" << p_editor->p_cursor->Pen() << "' pen. 'Esc' to swap. 'Space' disables. 'Return' cycles." << format << endl;
+            cout << Draw::WriteEmptyLine(70) << '\r';
             top_left_modifier = 6;
         }
         else
@@ -976,13 +1060,28 @@ bool Scene::HasOuterWalls(int row, int col)
 {
     if (col == 0 || col == cols || row == 0 || row == rows)
     {
-        if (p_map[row][col] == '+' || p_map[row][col] == '|' || p_map[row][col] == '-' || p_map[row][col] == '#' || (p_map[row][col] == Globals::teleport))
+        switch (p_map[row][col])
         {
+        //legacy walls
+        case '+':
+        case '|':
+        case '-':
+        case '#':
+        //long walls
+        case Globals::teleport:
+        case char(Globals::lwall_184):
+        case char(Globals::lwall_187):
+        case char(Globals::lwall_188):
+        case char(Globals::lwall_200):
+        case char(Globals::lwall_203):
+        case char(Globals::lwall_209):
+        case char(Globals::lwall_212):
+        case char(Globals::lwall_213):
+        case char(Globals::lwall_155):
+        case char(Globals::lwall_210):
+        case char(Globals::lwall_183):
+        case char(Globals::lwall_214):
             return true;
-        }
-        else
-        {
-            return false;
         }
     }
     return true;
