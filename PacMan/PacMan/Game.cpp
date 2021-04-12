@@ -285,7 +285,10 @@ void Game::PlayerMonsterCollision()
                 p_player->EatGhost(g);
                 if (p_player->AllGhostsEaten()) {
                     p_level->all_eaten_ghosts += 1;
+                    
                     SFX(Play::LIFE);
+                    p_player->EatGhostAnimate(g);
+
                     p_player->ClearEatenGohsts();
                     p_level->level_mode = Mode::CHASE;
                     p_level->chase_time_start = chrono::high_resolution_clock::now();
@@ -604,7 +607,7 @@ int Game::SFX(Play playSFX)
         break;
     case Play::LIFE:
         t_sfx = TEXT("sfx_xlife.wav");
-        params = SND_FILENAME | SND_SYNC;
+        params = SND_FILENAME | SND_ASYNC;
         break;
     case Play::EAT_GHOST:
         t_sfx = TEXT("sfx_eatghost.wav");
