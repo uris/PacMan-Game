@@ -30,6 +30,9 @@ Game::Game()
         p_ghosts[g]->SetGameRef(this);
     }
 
+    // get the current resolution and store this
+    res = Draw::GetResolution();
+
 };
 
 //destructors
@@ -127,9 +130,6 @@ void Game::RunGame()
 
 void Game::SetupGame()
 {
-    // set console font to pacman font
-    Draw::SetPacManFont(true);
-    
     // if restarting the game then reset player lives and game over state
     game_over ? p_player->SetLives(3) : p_player->SetLives();
     p_player->ClearEatenGohsts(); // clear the ghosts eaten in a row
@@ -140,6 +140,10 @@ void Game::SetupGame()
 
     // reset level, create scene and update player / level as needed
     p_level->SetupLevel(current_scene);
+
+    // set console font to pacman font
+    Draw::SetConsoleFont(true, res);
+    Draw::SetConsoleSize(res, p_level->rows + 7, p_level->cols + 2);
 }
 
 void Game::DrawLevel()
@@ -151,10 +155,10 @@ void Game::DrawLevel()
         // pause before starting the level
         if (p_level->level_paused) {
             // before start of level get any key to start
-            string format = Utility::Spacer("Press any key to start.", p_level->cols);
+            string format = Utility::Spacer("Press a key to start.", p_level->cols);
             cout << endl;
             cout << format;
-            cout << "Press any key to start.";
+            cout << "Press a key to start.";
             cout << format;
             SFX(Play::INTERMISSION);
             char input = _getch();
@@ -344,7 +348,7 @@ void Game::PrintStatusBar()
     //Draw draw;
     //Utility utility;
     // get number of lives
-    string format = Utility::Spacer("C C C    SCORE:00000000", p_level->cols);
+    string format = Utility::Spacer("C C C    00000000", p_level->cols);
     string lives;
     for (int i = 0; i < 6; i++)
     {
@@ -356,7 +360,7 @@ void Game::PrintStatusBar()
     Draw::SetColor(14);
     cout << (!p_player->HasNoLives() ? lives : "-");
     Draw::SetColor(7);
-    cout << " SCORE:";
+    cout << " ";
     Draw::SetColor(14);
     cout << setfill('0') << setw(8) << p_player->GetScore();
     Draw::SetColor(7);
@@ -366,16 +370,16 @@ void Game::PrintStatusBar()
     // message game over or level complete
     if (game_over)
     {
-        format = Utility::Spacer("Game Over! Press a key to continue.", p_level->cols);
+        format = Utility::Spacer("Game Over! Press a key.", p_level->cols);
         cout << format;
-        cout << "Game Over! Press a key to continue.";
+        cout << "Game Over! Press a key.";
         cout << format;
     }
     else if (p_level->is_complete)
     {
-        format = Utility::Spacer("Level complete! Press a key to continue.", p_level->cols);
+        format = Utility::Spacer("Level complete! Press a key.", p_level->cols);
         cout << format;
-        cout << "Level complete! Press a key to continue.";
+        cout << "Level complete! Press a key.";
         cout << format;
     }
 
@@ -505,10 +509,10 @@ bool Game::NextLevelRestartGame()
     if (game_over)
     {
 
-        string format = Utility::Spacer("play again? 'y' = yes, 'n' = no", p_level->cols);
+        string format = Utility::Spacer("play again? (y)es (n)o", p_level->cols);
         cout << "\r";
         cout << format;
-        cout << "play again? 'y' = yes, 'n' = no";
+        cout << "play again? (y)es (n)o";
         cout << format;
         char input = _getch();
         if (input == Globals::kNO)
@@ -659,4 +663,9 @@ void Game::SetCollisionDelay()
 bool Game::IsGameOver()
 {
     return game_over;
+}
+
+Resolution Game::GetResolution()
+{
+    return res;
 }

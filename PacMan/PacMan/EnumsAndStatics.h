@@ -72,7 +72,7 @@ struct Globals
     static constexpr int cWHITE = 7; // white
     static constexpr int cPLAYER = 14; // yellow
     static constexpr int cWALLS = 392; // gray on gray text
-    static constexpr int cGHOST_ON = 7; // for ghost flash
+    static constexpr int cGHOST_ON = 1; // for ghost flash
     static constexpr int cGHOST_OFF = 9; // for ghost flash
     static constexpr int cIMMOVABLE = 16;
     static constexpr int cEDITABLE = 9;
@@ -200,5 +200,5 @@ struct Globals
     // Game delay / speed defaults
     static constexpr int gobble_delay = 750; // wait in milliseconds
     static constexpr int player_beat_delay = 1000; // wait in milliseconds
-    static constexpr int refresh_delay = 65; //milliseconds
+    static constexpr int refresh_delay = 45; //milliseconds
 }; 

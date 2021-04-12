@@ -161,7 +161,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Font Include="consola_pacman.ttf">
+    <Font Include="pacman_console.ttf">
       <Filter>Resource Files</Filter>
     </Font>
   </ItemGroup>

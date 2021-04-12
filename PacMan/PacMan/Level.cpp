@@ -105,8 +105,7 @@ void Level::CreateLevelScene(int& current_scene)
         {
             ghost_spawn.row = row;
             ghost_spawn.col = col;
-            p_mapArray[row][col] = (char)Globals::pellet;
-            total_pellets++;
+            p_mapArray[row][col] = (char)Globals::space;
 
             // set ghosts spawn target
             for (int g = 0; g < Globals::total_ghosts; g++) // loop through ghosts
@@ -293,6 +292,10 @@ Coord Level::MapSize(const string& map)
 
 void Level::DrawLevel()
 {
+    // set console size to accomodayte changes in rows/cols
+    Draw::SetConsoleSize(p_game->GetResolution(), rows + 7, cols + 2);
+    
+    // remove cursor from screen to avoid the flicker
     Draw::ShowConsoleCursor(false);
 
     // set the content of the sqaure the player is moving into - will use this to play the appropriate sound
@@ -398,46 +401,104 @@ void Level::DrawLevel()
             // set color of map content at this position
             switch (p_map[r][c])
             {
+
+            //long walls
+            case char(Globals::lwall_184) :
+            case char(Globals::lwall_187) :
+            case char(Globals::lwall_188) :
+            case char(Globals::lwall_200) :
+            case char(Globals::lwall_203) :
+            case char(Globals::lwall_209) :
+            case char(Globals::lwall_212) :
+            case char(Globals::lwall_213) :
+            case char(Globals::lwall_155) :
+            case char(Globals::lwall_210) :
+            case char(Globals::lwall_183) :
+            case char(Globals::lwall_214) :
+            case char(Globals::lwall_220) :
+            case char(Globals::lwall_221) :
+            case char(Globals::lwall_222) :
+            case char(Globals::lwall_223) :
+                Draw::SetColor(Globals::cWALLS2);
+                cout << p_map[r][c];
+                break;
+
+            //short walls
+            case char(Globals::lwall_180) :
+            case char(Globals::lwall_192) :
+            case char(Globals::lwall_197) :
+            case char(Globals::lwall_217) :
+            case char(Globals::lwall_193) :
+            case char(Globals::lwall_195) :
+            case char(Globals::lwall_191) :
+            case char(Globals::lwall_194) :
+            case char(Globals::lwall_196) :
+            case char(Globals::lwall_218) :
+            case char(Globals::lwall_179) :
+            case char(Globals::lwall_190) :
+            case char(Globals::lwall_181) :
+            case char(Globals::lwall_198) :
+            case char(Globals::lwall_207) :
+            case char(Globals::lwall_216) :
+            case char(Globals::lwall_201) :
+            case char(Globals::lwall_205) :
+            case char(Globals::lwall_215) :
+            case char(Globals::lwall_182) :
+                Draw::SetColor(Globals::cWALLS2);
+                cout << p_map[r][c];
+                break;
+
+            //pellets             
+            case '.':
+            case (char)Globals::pellet:
+                current_pellets++;
+                Draw::SetColor(Globals::cPELLETS);
+                cout << (char)Globals::pellet;
+                break;
+
+            // powerups
+            case 'o':
+            case (char)Globals::powerup:
+                Draw::SetColor(Globals::cPELLETS);
+                current_pellets++;
+                cout << (char)Globals::powerup;
+                break;
+
             case Globals::invisible_wall: // % = invisible wall
+            case Globals::corner_marker: // + marker
             case Globals::teleport: // T = portal
             case Globals::space: // ' ' = empty space
             case Globals::one_way: // $ = one way door for ghost spawn area
                 Draw::SetColor(Globals::cINVISIBLE); // black on black = not visible
                 cout << p_map[r][c];
                 break;
-            case (char)Globals::pellet: // . = pellet
-                current_pellets++;
-                Draw::SetColor(Globals::cPELLETS); // gray for bullets
-                cout << p_map[r][c];
-                break;
-            case (char)Globals::powerup: // o = power up
-                current_pellets++;
-                Draw::SetColor(Globals::cPELLETS); // white for power ups
-                cout << p_map[r][c];
-                break;
+
+
             case Globals::pink_ghost: // blue ghost
                 p_game->p_ghosts[3]->CoutGhost();
                 break;
+
             case Globals::yellow_ghost: // yellow ghost
                 p_game->p_ghosts[1]->CoutGhost();
                 break;
+
             case Globals::blue_ghost: // green ghost
                 p_game->p_ghosts[2]->CoutGhost();
                 break;
+
             case Globals::red_ghost: // red ghost
                 p_game->p_ghosts[0]->CoutGhost();
                 break;
+
             case Globals::player: // player
                 p_game->p_player->CoutPlayer();
                 break;
+
             default:
                 Draw::SetColor(Globals::cWALLS); // gray bg on gray text for all other chars making them walls essentially
                 cout << p_map[r][c];
                 break;
             }
-
-            // print char
-            //cout << p_map[r][c];
 
             // set color back to default
             Draw::SetColor(Globals::cWHITE);
@@ -446,7 +507,6 @@ void Level::DrawLevel()
         cout << endl;
     }
 
-    // ********
     // BUG FIX - brute force - need to look at why we are dropping a few pellets
     eaten_pellets = eaten_pellets + (total_pellets - eaten_pellets - current_pellets);
 

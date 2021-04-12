@@ -195,7 +195,7 @@
     <ClInclude Include="Utility.h" />
   </ItemGroup>
   <ItemGroup>
-    <Font Include="consola_pacman.ttf" />
+    <Font Include="pacman_console.ttf" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="pacman_chars.txt" />

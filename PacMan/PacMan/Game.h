@@ -18,6 +18,7 @@ class Game
 
     // Game level
     int current_scene = 1;
+    Resolution res = Resolution::NORMAL;
 
     //SFX
     Play sfx = Play::NONE;
@@ -59,6 +60,7 @@ class Game
         void SetPlayerState();
         void SetGhostMode();
         void SetCollisionDelay();
-        void SetRefreshDelay();  
+        void SetRefreshDelay();
+        Resolution GetResolution();
         
 };
