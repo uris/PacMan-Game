@@ -1,14 +1,11 @@
 ﻿#include "Game.h"
 #include "Editor.h"
-#include "Draw.h"
-#include "MainMenu.h"
 
 int main()
 {
-    
     do
     {
-        // play opening credits and choose edit/play
+        // play opening credits and choose edit/play/res
         string option = Draw::Credits();
         
         if (option == "#play") // play game
@@ -23,7 +20,7 @@ int main()
             Editor editor;
             editor.EditScenes();
         }
-        else if (option == "#res") // set display resolution
+        else if (option == "#res") // display resolution was set
         {
             continue;
         }
@@ -34,7 +31,6 @@ int main()
 
     } while (true);
     
-
     //clean exit
     return 0;
 }
