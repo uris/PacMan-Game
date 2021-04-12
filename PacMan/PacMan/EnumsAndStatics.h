@@ -71,6 +71,7 @@ struct Globals
     static constexpr int cINVISIBLE = 0; // black on black
     static constexpr int cWHITE = 7; // white
     static constexpr int cPLAYER = 14; // yellow
+    static constexpr int cPLAYERFLASH = 9; // yellow
     static constexpr int cWALLS = 392; // gray on gray text
     static constexpr int cGHOST_ON = 1; // for ghost flash
     static constexpr int cGHOST_OFF = 9; // for ghost flash

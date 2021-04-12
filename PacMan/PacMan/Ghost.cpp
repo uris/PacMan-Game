@@ -536,7 +536,10 @@ void Ghost::CoutGhost()
 {
     if (is_edible) { // flashing effect - signals edible sate of ghost
         color_on ? Draw::SetColor(Globals::cGHOST_ON) : Draw::SetColor(Globals::cGHOST_OFF);
-        color_on = !color_on;
+        if (!p_game->p_player->GetEatGhostAnimate() && !p_game->p_player->GetDieAnimate())
+        {
+            color_on = !color_on;
+        }
         cout << char(Globals::ghost_run);
     }
     else // solid color

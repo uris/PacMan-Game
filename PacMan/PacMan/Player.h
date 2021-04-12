@@ -19,8 +19,11 @@ private:
     char player_move_content = '.';
     bool chomp = false;
     bool die_animation = false;
+    bool eat_ghost_animation = false;
+    bool player_flash = false;
 
 public:
+    
     //constructors
     Player();
 
@@ -36,7 +39,8 @@ public:
     bool AllGhostsEaten();
     bool PayerGhostCollision(int ghost_index);
     void CoutPlayer();
-    void DeathAnimate();
+    void DeathAnimate(int g);
+    void EatGhostAnimate(int g);
 
     // getters
     char GetMovedIntoSquareContents();
@@ -45,6 +49,8 @@ public:
     int GetScore();
     Coord GetCurrentPosition();
     bool GameRefIsSet();
+    bool GetEatGhostAnimate();
+    bool GetDieAnimate();
 
     // setters
     void SetLives();
@@ -53,4 +59,5 @@ public:
     void SetMovedIntoSquareContents(char ascii);
     void SetGameRef(Game* p_game);
     void SetDeathAnimation(const bool die_animation);
+    void SetEatGhostAnimate(const bool eat_ghost_animation);
 };

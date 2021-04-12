@@ -290,8 +290,10 @@ void Game::PlayerMonsterCollision()
                     p_level->level_mode = Mode::CHASE;
                     p_level->chase_time_start = chrono::high_resolution_clock::now();
                 }
-                else {
+                else
+                {
                     SFX(Play::EAT_GHOST);
+                    p_player->EatGhostAnimate(g);
                 }
 
             }
@@ -301,7 +303,7 @@ void Game::PlayerMonsterCollision()
                 if (!player_died && !game_over)
                 {
                     SFX(Play::DEATH);
-                    p_player->DeathAnimate();
+                    p_player->DeathAnimate(g);
                 }
                 // set player died to true
                 player_died = true;
@@ -606,7 +608,7 @@ int Game::SFX(Play playSFX)
         break;
     case Play::EAT_GHOST:
         t_sfx = TEXT("sfx_eatghost.wav");
-        params = SND_FILENAME | SND_SYNC;
+        params = SND_FILENAME | SND_ASYNC;
         break;
     case Play::EAT_FRUIT:
         t_sfx = TEXT("sfx_eatfruit.wav");

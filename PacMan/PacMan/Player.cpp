@@ -141,6 +141,12 @@ void Player::CoutPlayer()
 {
 	Draw::SetColor(Globals::cPLAYER);
 	
+	if (eat_ghost_animation)
+	{
+		player_flash ? Draw::SetColor(Globals::cPLAYERFLASH) : Draw::SetColor(Globals::cPLAYER);
+		player_flash = !player_flash;
+	}
+	
 	if (die_animation)
 	{
 		switch (previous_direction)
@@ -186,7 +192,7 @@ void Player::CoutPlayer()
 			cout << char(Globals::pacman_left_closed);
 			break;
 		}
-		if(current_position != previous_position)
+		if(!eat_ghost_animation && current_position != previous_position)
 		{
 			chomp = !chomp;
 		}
@@ -212,7 +218,7 @@ void Player::CoutPlayer()
 			cout << char(Globals::pacman_left_open);
 			break;
 		}
-		if (current_position != previous_position)
+		if (!eat_ghost_animation && current_position != previous_position)
 		{
 			player_move_content == ' ' ? chomp = false : chomp = !chomp;
 		}
@@ -279,7 +285,7 @@ void Player::SetGameRef(Game* p_game)
 	this->p_game = p_game;
 }
 
-void Player::DeathAnimate()
+void Player::DeathAnimate(int g)
 {
 	die_animation = true;
 	for (int i = 0; i < 48; i++)
@@ -291,10 +297,37 @@ void Player::DeathAnimate()
 	previous_direction = Direction::LEFT;
 	current_direction = Direction::LEFT;
 	p_game->p_level->DrawLevel(); //draw level directly bypassing all movement, etc..
-	p_game->p_level->p_map[current_position.row][current_position.col] = Globals::space;
+	p_game->p_level->p_map[current_position.row][current_position.col] = p_game->p_ghosts[g]->GhostChar();
+}
+
+void Player::EatGhostAnimate(int g)
+{
+	eat_ghost_animation = true;
+	for (int i = 0; i < 5; i++)
+	{
+		p_game->p_level->DrawLevel(); //draw level directly bypassing all movement, etc..
+		p_game->SetRefreshDelay();
+	}
+	eat_ghost_animation = false;
+	player_flash = false;
+}
+
+void Player::SetEatGhostAnimate(const bool eat_ghost_animation)
+{
+	this->eat_ghost_animation = eat_ghost_animation;
 }
 
 void Player::SetDeathAnimation(const bool die_animation)
 {
 	this->die_animation = die_animation;
+}
+
+bool Player::GetEatGhostAnimate()
+{
+	return eat_ghost_animation;
+}
+
+bool Player::GetDieAnimate()
+{
+	return die_animation;
 }
