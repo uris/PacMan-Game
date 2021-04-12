@@ -201,10 +201,10 @@ Coord Scene::MapSize(const string& map)
     size_t rows = 0, cols = 0;
     size_t pos;
 
-    pos = map.find(char(Globals::lwall_187));
+    pos = map.find(char(Globals::corner_marker));
     if (pos != string::npos)
     {
-        pos = map.find(char(Globals::lwall_203), pos + 1);
+        pos = map.find(char(Globals::corner_marker), pos + 1);
         if (pos != string::npos)
         {
             cols = pos + 1;
@@ -220,6 +220,10 @@ Coord Scene::MapSize(const string& map)
 
 void Scene::DrawLevel()
 {
+    // set console size to accomodayte changes in rows/cols
+    Draw::SetConsoleSize(Resolution::NORMAL, rows + 10, max(cols +3, 33));
+    
+    // remove cursor from screen to avoid the flicker
     Draw::ShowConsoleCursor(false);
     
     // place cursor on top left of console
@@ -233,7 +237,7 @@ void Scene::DrawLevel()
     Draw::SetColor(Globals::cWHITE);
     cout << endl;
     cout << format << "PACMAN: " + Utility::TransformString(title, 0) << format;
-    cout << endl << Draw::WriteEmptyLine(cols + 10) << endl;
+    cout << endl << Draw::WriteEmptyLine(31) << endl;
 
     // remove cursor and replace with current content of the cursor
     for (int r = 0; r < rows; r++)
@@ -282,7 +286,7 @@ void Scene::DrawLevel()
             switch (p_map[r][c])
             {
             
-                //long walls
+            //long walls
             case char(Globals::lwall_184):
             case char(Globals::lwall_187):
             case char(Globals::lwall_188):
@@ -295,6 +299,10 @@ void Scene::DrawLevel()
             case char(Globals::lwall_210):
             case char(Globals::lwall_183):
             case char(Globals::lwall_214):
+            case char(Globals::lwall_220):
+            case char(Globals::lwall_221):
+            case char(Globals::lwall_222):
+            case char(Globals::lwall_223):
                 print = p_map[r][c];
                 Draw::SetColor(Globals::cWALLS2);
                 break;
@@ -354,6 +362,7 @@ void Scene::DrawLevel()
                 break;
 
             case Globals::ghost_spawn_target:
+            case char(Globals::corner_marker): // '+'
             case Globals::invisible_wall: // % = invisible wall
             case Globals::teleport: // $ = one way door for ghost spawn area
                 print = p_map[r][c];
@@ -408,13 +417,10 @@ void Scene::DrawLevel()
         }
         // end of row ad line feed
         cout << endl;
-        cout << (r == rows -1 ? Draw::WriteEmptyLine(cols + 15) : "");
-        
         
     }
 
     ShowKey();
-    cout << Draw::WriteEmptyLine(cols+15);
 
 } 
 
@@ -474,8 +480,8 @@ int Scene::AddRemoveColumns(bool add)
             p_map_new[row][left ? new_cols - 2 : 1] = char(Globals::pellet);
         }
 
-        p_map_new[0][left ? new_cols - 2 : 1] = '-';
-        p_map_new[rows - 1][left ? new_cols - 2 : 1] = '-';
+        p_map_new[0][left ? new_cols - 2 : 1] = char(Globals::invisible_wall);
+        p_map_new[rows - 1][left ? new_cols - 2 : 1] = char(Globals::invisible_wall);
     }
     else
     {
@@ -485,13 +491,6 @@ int Scene::AddRemoveColumns(bool add)
             p_map_new[row][left ? new_cols - 1 : 0] = p_map[row][left ? cols - 1 : 0];
         }
     }
-
-
-    // place cursor on top left of console
-    Draw::CursorTopLeft(rows + top_left_modifier); // + x for cpations
-
-    // clean up screen
-    // system("cls");
     
     // delete the current p_map
     DeallocateMapArray();
@@ -567,8 +566,8 @@ int Scene::AddRemoveRows(bool add)
             p_map_new[left ? new_rows - 2 : 1][col] = char(Globals::pellet);
         }
 
-        p_map_new[left ? new_rows - 2 : 1][0] = '|';
-        p_map_new[left ? new_rows - 2 : 1][cols - 1] = '|';
+        p_map_new[left ? new_rows - 2 : 1][0] = char(Globals::invisible_wall);
+        p_map_new[left ? new_rows - 2 : 1][cols - 1] = char(Globals::invisible_wall);
     }
     else
     {
@@ -633,7 +632,6 @@ void Scene::ResizeScene()
     if (p_editor->p_cursor->GetCurrentCol() > cols - 1) {
         p_editor->p_cursor->SetCurrentPosition(p_editor->p_cursor->GetCurrentRow(), cols - 1);
     }
-
 }
 
 // setters
@@ -644,79 +642,79 @@ void Scene::SetEditor(Editor* p_editor)
 
 void Scene::ShowKey()
 {
-    string format = "";
+    int line_size = 31; string format = "";
+
+    //erase previous content - up to 4 lines - and bring cursor back up
+    for (int i = 0; i < 5; i++)
+    {
+        cout << Draw::WriteEmptyLine(line_size) << endl;
+    }
+    Draw::CursorTopLeft(6);
+    
+    // set cursor one line below scene
+    cout << endl << endl;
+    
+    // display the right caption based on cursor state, errors, etc.
     if (error_count > 0)
     {
-        format = Utility::Spacer(scene_errors, cols);
-        cout << endl;
-        cout << Draw::WriteEmptyLine(70) << '\r';
         cout << format << scene_errors;
-        cout << Draw::WriteEmptyLine(70) << '\r';
         top_left_modifier = 5;
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(3000)); // pause to slow game
-
+        // pause so use can read the error message
+        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+        // reset error states
         scene_errors = "";
         error_count = 0;
     }
     else if (resize_scene)
     {
-        format = Utility::Spacer("Left/Right arrows: +/- Columns (  )", cols);
-        string format2 = Utility::Spacer("Down/Up arrows: +/- Rows (  )", cols);
-        cout << endl;
-        cout << Draw::WriteEmptyLine(70) << '\r';
-        cout << format << "Left/Right arrows: +/- Columns (" + to_string(cols) + ")" << format << endl;
-        cout << Draw::WriteEmptyLine(70) << '\r';
-        cout << format2 << " Down/Up arrows: +/- Rows (" + to_string(rows) + ")" << format2 << endl;
+        cout << format << char(16) << char(17) << " adjust columns (" + to_string(cols) + ")" << endl;
+        cout << format << char(30) << char(31) << " adjust rows (" + to_string(rows) + ")" << endl;
         top_left_modifier = 6;
     }
     else if (p_editor->p_cursor->IsEditing())
     {
         if (p_editor->p_cursor->Pen() == '0' && !resize_scene)
         {
-            cout << endl;
-            cout << Draw::WriteEmptyLine(70) << '\r';
-            cout << " '.' pellet, 'o' powerup, ' ' space, 'S' Player start, 'R' resize" << endl;
-            cout << Draw::WriteEmptyLine(70) << '\r';
-            cout << " '#' / '@' walls, '%' hidden wall, 'T' teleport, '^' Ghost spawn" << endl;
-            top_left_modifier = 6;
+            cout << format << "#|@|& = walls,  R = resize" << endl;
+            cout << format << "T = teleport, ^ = spawn target" << endl;
+            cout << format << ". = pellet, o = power" << endl;
+            cout << format << "' ' = space, S = player" << endl;
+            top_left_modifier = 8;
         }
         else if (p_editor->p_cursor->pen_is_walls || p_editor->p_cursor->pen_is_short_walls)
         {
-            format = Utility::Spacer("' ' pen. 'Esc' to swap. 'Space' disables. 'Return' cycles.", cols);
-            cout << endl;
-            cout << Draw::WriteEmptyLine(70) << '\r';
-            cout << format << "'" << p_editor->p_cursor->Pen() << "' pen. 'Esc' to swap. 'Space' disables. 'Return' cycles." << format << endl;
-            cout << Draw::WriteEmptyLine(70) << '\r';
-            top_left_modifier = 6;
+            cout << format;
+            Draw::SetColor(Globals::c_bluewhite);
+            cout << p_editor->p_cursor->Pen();
+            Draw::SetColor(Globals::cWHITE);
+            cout << " active pen" << endl;
+            cout << format << "-|= cycle shapes" << endl;
+            cout << format << "Esc = swap pen" << endl;
+            cout << format << "Space = disable" << endl;
+            top_left_modifier = 8;
         }
         else
         {
-            format = Utility::Spacer("' ' pen. 'Esc' to swap. 'Space' disables.", cols);
-            cout << endl;
-            cout << Draw::WriteEmptyLine(70) << '\r';
-            cout << format << "'" << p_editor->p_cursor->Pen() << "' pen. 'Esc' to swap. 'Space' disables." << format << endl;
-            cout << Draw::WriteEmptyLine(70) << '\r';
-            top_left_modifier = 6;
+            cout << format;
+            Draw::SetColor(Globals::c_bluewhite);
+            cout << p_editor->p_cursor->Pen();
+            Draw::SetColor(Globals::cWHITE);
+            cout << " active pen" << endl;
+            cout << format << "Esc = swap pen" << endl;
+            cout << format << "Space = disable" << endl;
+            top_left_modifier = 7;
         }
         
     }
     else if (p_editor->IsDoneEditing())
     {
-        format = Utility::Spacer("Save? 'y' yes, 'n' no, 'esc' cancel", cols);
-        cout << endl;
-        cout << Draw::WriteEmptyLine(70) << '\r';
-        cout << format << "Save? 'y' yes, 'n' no, 'esc' cancel" << format << endl;
-        cout << Draw::WriteEmptyLine(70) << '\r';
-        top_left_modifier = 5;
+        cout << format << "Save? y = yes, n = no" << endl;
+        cout << format << "Esc = cancel" << endl;
+        top_left_modifier = 6;
     }
     else
     {
-        format = Utility::Spacer("'Space' to select pen. 'Esc' when done.", cols);
-        cout << endl;
-        cout << Draw::WriteEmptyLine(70) << '\r';
-        cout << format << "'Space' to select pen. 'Esc' when done." << format << endl;
-        cout << Draw::WriteEmptyLine(70) << '\r';
+        cout << format << "Space = choose pen" << endl;
         top_left_modifier = 5;
     }
 }
@@ -819,14 +817,16 @@ bool Scene::PenIsValid(char pen)
 
 bool Scene::SaveToFile()
 {
+    string file_line; // will use to load in the line from the file
+    string text_1 = ""; // will store text file lines until the point we need to insert
+    string text_2 = ""; // will store the text file lines after the point of insertion
+    string marker; // a string makrer for finding strings in strings
+    bool is_part2 = false; // flag to let me know if we're in the second part of the text
+    int scene_number = 0; // the scene number to use for the inserted scene
     
-
-    // get the text from file until we need to insert the update
-    ifstream read_scenes("PacMan.Scenes");
-    string file_line, text_1 = "", text_2 = "", marker;
-    bool is_part2 = false;
-    int scene_number = 0;
-
+    ifstream read_scenes("PacMan.Scenes"); // open the scenes text file
+    
+    // get the text lines from file until point where we need to insert the update
     if (read_scenes)
     {
         // file exists and is open 
@@ -897,32 +897,28 @@ bool Scene::SaveToFile()
         read_scenes.close();
     }
 
-    // create the scene updates string
+    // create a string with the edited scene contents
     string update = CreatesceneString(scene_number);
 
+    // add in the first part of the file before
+    // add the second part of the file after
     update = text_1 + update + text_2;
-
     
-    //std::ofstream outfile;
-    //outfile.open("test.txt", std::ios_base::app); // append instead of overwrite
-    //outfile << "Data";
-    //return 0;
-    
+    // update the file in one shot overwriting whatever is there
     ofstream scene_file("PacMan.scenes");
     scene_file << update;
+
+    // close the file
     scene_file.close();
 
-    /*string fileLine, section, map = "";
-    bool processLines = true;*/
-
+    // return success
     return true;
 
 }
 
 string Scene::CreatesceneString(int scene)
 {
-    // create the string to write
-    string map = "";
+    // set an update string with the scene variables that need to be saved
     string update = "";
     update += "#scene:" + to_string(this_scene != 0 ? this_scene : scene) + "\n";
     update += "title:" + title + "\n";
@@ -934,8 +930,17 @@ string Scene::CreatesceneString(int scene)
     update += "roam_duration:" + to_string(roam_for) + "\n";
     update += "roam_count:" + to_string(roam_count) + "\n";
     update += "level_map:\n";
-    // insert map array
     
+    // create a string with the scene
+    string map = "";
+
+    // start by setting the boundry markers to '+' so we can decode the map size
+    p_map[0][0] = char(Globals::corner_marker);
+    p_map[0][cols - 1] = char(Globals::corner_marker);
+    p_map[rows - 1][0] = char(Globals::corner_marker);
+    p_map[rows - 1][cols - 1] = char(Globals::corner_marker);
+
+    // add the map array content to the map string
     for (int row = 0; row < rows; row++)
     {
         for (int col = 0; col < cols; col++)
@@ -949,18 +954,14 @@ string Scene::CreatesceneString(int scene)
         map += "\n";
     }
 
-    // set the boundry markers to '+' so we can get size of the map
-    p_map[0][0] = '+';
-    p_map[0][cols - 1] = '+';
-    p_map[rows -1][0] = '+';
-    p_map[rows -1][cols - 1] = '+';
-
     // replace the full stop with pellet char
     Utility::ReplaceString(map, char(Globals::pellet), '.');
     
+    // combine the strings and add the end of scene marker
     update += map;
     update += "#end_scene\n";
 
+    // return the scene update string
     return update;
 }
 
@@ -1062,13 +1063,13 @@ bool Scene::HasOuterWalls(int row, int col)
     {
         switch (p_map[row][col])
         {
-        //legacy walls
-        case '+':
+        //special walls
+        case char(Globals::corner_marker):
         case '|':
         case '-':
         case '#':
+        case '%':
         //long walls
-        case Globals::teleport:
         case char(Globals::lwall_184):
         case char(Globals::lwall_187):
         case char(Globals::lwall_188):
@@ -1081,6 +1082,31 @@ bool Scene::HasOuterWalls(int row, int col)
         case char(Globals::lwall_210):
         case char(Globals::lwall_183):
         case char(Globals::lwall_214):
+        case char(Globals::lwall_220):
+        case char(Globals::lwall_221):
+        case char(Globals::lwall_222):
+        case char(Globals::lwall_223):
+        //short walls
+        case char(Globals::lwall_180):
+        case char(Globals::lwall_192):
+        case char(Globals::lwall_197):
+        case char(Globals::lwall_217):
+        case char(Globals::lwall_193):
+        case char(Globals::lwall_195):
+        case char(Globals::lwall_191):
+        case char(Globals::lwall_194):
+        case char(Globals::lwall_196):
+        case char(Globals::lwall_218):
+        case char(Globals::lwall_179):
+        case char(Globals::lwall_190):
+        case char(Globals::lwall_181):
+        case char(Globals::lwall_198):
+        case char(Globals::lwall_207):
+        case char(Globals::lwall_216):
+        case char(Globals::lwall_201):
+        case char(Globals::lwall_205):
+        case char(Globals::lwall_215):
+        case char(Globals::lwall_182):
             return true;
         }
     }

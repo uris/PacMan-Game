@@ -49,6 +49,10 @@ To view the custom pacman characters, set the font (format menu option) to pacma
 ╪ :216
 ┘ :217
 ┌ :218
+▄ :220
+▌ :221
+▐ :222
+▀ :223
 ■ :254
 ∙ :249
 · :250

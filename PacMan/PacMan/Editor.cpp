@@ -93,26 +93,27 @@ void Editor::EditScenes()
             
         
         // do the editing of the selcted scene if not exiting
+        
+        // set console font to pacman font
+        Draw::SetConsoleFont(true, Resolution::NORMAL);
         do
         {
-            // set console font to pacman font
-            Draw::SetConsoleFont(true, Resolution::NORMAL);
-            Draw::SetConsoleSize(Resolution::NORMAL, 60, 80);
-            
             DoSceneEdit(load_scene);
             if (new_scene)
             {
                 p_scene->this_scene = 0;
                 new_scene = false;
             }
-            
-
         } while (!exit_editing);
         
+        // set console font back to default
+        Draw::SetConsoleFont(false, Resolution::NORMAL);
+        Draw::SetConsoleSize(Resolution::NORMAL);
 
         // check cancel - restart edit loop if cancel is true
         if (cancel_edit) {
             std::system("cls");
+            p_scene->DeallocateMapArray();
             continue;
         }
 
@@ -134,6 +135,7 @@ void Editor::EditScenes()
             {
                 // do save
                 p_scene->SaveToFile();
+                p_scene->DeallocateMapArray();
                 is_saved = true;
                 break;
             }
@@ -141,6 +143,7 @@ void Editor::EditScenes()
             {
                 // cancel edit and return to main menu
                 system("cls");
+                p_scene->DeallocateMapArray();
                 is_saved = false;
                 break;
             }
@@ -286,6 +289,18 @@ void Editor::GetKeyboardInput()
                 p_cursor->CycleLongWalls();
             if (p_cursor->pen_is_short_walls)
                 p_cursor->CycleShortWalls();
+            break;
+        case Globals::kEQUALS:
+            if (p_cursor->pen_is_walls)
+                p_cursor->CycleLongWalls();
+            if (p_cursor->pen_is_short_walls)
+                p_cursor->CycleShortWalls();
+            break;
+        case Globals::kMINUS:
+            if (p_cursor->pen_is_walls)
+                p_cursor->CycleLongWalls(false);
+            if (p_cursor->pen_is_short_walls)
+                p_cursor->CycleShortWalls(false);
             break;
         case Globals::kHASH:
             if (p_cursor->IsEditing()) {

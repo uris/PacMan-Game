@@ -33,8 +33,8 @@ public:
 	void SpawnCursor(int map_width, int map_height);
 	bool IsEditable(Direction direction);
 	bool IsInBounds(Direction direction);
-	void CycleLongWalls();
-	void CycleShortWalls();
+	void CycleLongWalls(bool increment = true);
+	void CycleShortWalls(bool increment = true);
 
 	// Getters
 	bool IsEditing();

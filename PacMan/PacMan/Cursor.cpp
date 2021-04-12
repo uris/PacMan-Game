@@ -172,17 +172,27 @@ void Cursor::SetPen(char pen)
 	}
 }
 
-void Cursor::CycleLongWalls()
+void Cursor::CycleLongWalls(bool increment)
 {
 
-	if (index_wall_selected < 12)
-		index_wall_selected++;
+	if (increment)
+	{
+		if (index_wall_selected < 20)
+			index_wall_selected++;
 
-	if (index_wall_selected == 12)
-		index_wall_selected = 0;
+		if (index_wall_selected == 20)
+			index_wall_selected = 0;
+	}
+	else
+	{
+		if (index_wall_selected > 0)
+			index_wall_selected--;
 
+		if (index_wall_selected == 0)
+			index_wall_selected = 20;
+	}
 
-	char walls[12] = {
+	char walls[20] = {
 		char(Globals::lwall_187),
 		char(Globals::lwall_188),
 		char(Globals::lwall_200),
@@ -195,9 +205,17 @@ void Cursor::CycleLongWalls()
 		char(Globals::lwall_210),
 		char(Globals::lwall_183),
 		char(Globals::lwall_214),
+		char(Globals::lwall_220),
+		char(Globals::lwall_221),
+		char(Globals::lwall_222),
+		char(Globals::lwall_223),
+		char(Globals::lwall_201),
+		char(Globals::lwall_205),
+		char(Globals::lwall_215),
+		char(Globals::lwall_182),
 	};
 
-	for (int i = 0; i < 12; i++)
+	for (int i = 0; i < 20; i++)
 	{
 		if (index_wall_selected == i)
 		{
@@ -208,15 +226,24 @@ void Cursor::CycleLongWalls()
 
 }
 
-void Cursor::CycleShortWalls()
+void Cursor::CycleShortWalls(bool increment)
 {
+	if (increment)
+	{
+		if (index_short_wall_selected < 20)
+			index_short_wall_selected++;
 
-	if (index_short_wall_selected < 20)
-		index_short_wall_selected++;
+		if (index_short_wall_selected == 20)
+			index_short_wall_selected = 0;
+	}
+	else
+	{
+		if (index_short_wall_selected > 0)
+			index_short_wall_selected--;
 
-	if (index_short_wall_selected == 20)
-		index_short_wall_selected = 0;
-
+		if (index_short_wall_selected == 0)
+			index_short_wall_selected = 20;
+	}
 
 	char walls[20] = {
 		char(Globals::lwall_180), // Top Cap

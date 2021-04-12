@@ -6,7 +6,6 @@
 int main()
 {
     //Draw::ShowColors(500);
-    //Draw startup;
     do
     {
         // play opening credits and choose edit/play

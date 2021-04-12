@@ -90,7 +90,7 @@ struct Globals
     static constexpr int c_redwhite = 335; // white bg, black text
 
     /// Editor settings
-    static constexpr int editor_refresh_delay = 25; //milliseconds
+    static constexpr int editor_refresh_delay = 0; //milliseconds
     static constexpr int cursor = 240;
     static constexpr int max_scene_rows = 37;
     static constexpr int min_scene_rows = 10;
@@ -134,6 +134,7 @@ struct Globals
     static constexpr char blue_ghost = 'B'; // pellet ascii
     static constexpr char pink_ghost = 'P'; // pellet ascii
     static constexpr char player = 'C'; // pellet ascii
+    static constexpr char corner_marker = '+'; // pellet ascii
     static constexpr int fruit = 245; // pellet ascii
 
     // long walls
@@ -149,6 +150,10 @@ struct Globals
     static constexpr int lwall_210 = 210; // long wall top left cap
     static constexpr int lwall_183 = 183; // long wall bottom left cap
     static constexpr int lwall_214 = 214; // long wall bottom right cap
+    static constexpr int lwall_220 = 220; // Connector left
+    static constexpr int lwall_221 = 221; // Connector Up
+    static constexpr int lwall_222 = 222; // Connector right
+    static constexpr int lwall_223 = 223; // Connector down
 
     // short walls
     static constexpr int lwall_180 = 180; // Top Cap
@@ -185,6 +190,8 @@ struct Globals
     static constexpr char kYES = 121; // 'y'
     static constexpr char kNO = 110; // 'n'
     static constexpr char kRETURN = 13; // return
+    static constexpr char kEQUALS = 61; // equals key
+    static constexpr char kMINUS = 45; // minus key
     static constexpr char kSPACE = 32; // space key
     static constexpr char kAT = 64; // @
     static constexpr char kHASH = 35; // @

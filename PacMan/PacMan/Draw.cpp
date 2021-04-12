@@ -104,6 +104,7 @@ void Draw::SetConsoleSize(const Resolution resolution, const int rows, const int
     if (console_size != console_resize)
     {
         MoveWindow(console, ConsoleRect.left, ConsoleRect.top, console_resize.row, console_resize.col, TRUE);
+        system("cls");
     }
 }
 Coord Draw::GetConsoleSize()
