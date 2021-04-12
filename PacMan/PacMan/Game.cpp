@@ -287,7 +287,7 @@ void Game::PlayerMonsterCollision()
                     p_level->all_eaten_ghosts += 1;
                     
                     SFX(Play::LIFE);
-                    p_player->EatGhostAnimate(g);
+                    p_player->EatGhostAnimate(g, true);
 
                     p_player->ClearEatenGohsts();
                     p_level->level_mode = Mode::CHASE;
@@ -296,7 +296,7 @@ void Game::PlayerMonsterCollision()
                 else
                 {
                     SFX(Play::EAT_GHOST);
-                    p_player->EatGhostAnimate(g);
+                    p_player->EatGhostAnimate(g, false);
                 }
 
             }

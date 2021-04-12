@@ -40,7 +40,7 @@ public:
     bool PayerGhostCollision(int ghost_index);
     void CoutPlayer();
     void DeathAnimate(int g);
-    void EatGhostAnimate(int g);
+    void EatGhostAnimate(int g, bool life);
 
     // getters
     char GetMovedIntoSquareContents();

@@ -300,10 +300,11 @@ void Player::DeathAnimate(int g)
 	p_game->p_level->p_map[current_position.row][current_position.col] = p_game->p_ghosts[g]->GhostChar();
 }
 
-void Player::EatGhostAnimate(int g)
+void Player::EatGhostAnimate(int g, bool xtra_life)
 {
+	int iterations = xtra_life ? 10 : 5;
 	eat_ghost_animation = true;
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < iterations; i++)
 	{
 		p_game->p_level->DrawLevel(); //draw level directly bypassing all movement, etc..
 		p_game->SetRefreshDelay();
