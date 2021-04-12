@@ -287,6 +287,7 @@ void Player::DeathAnimate()
 		p_game->p_level->DrawLevel(); //draw level directly bypassing all movement, etc..
 	}
 	die_animation = false;
+	chomp = false;
 	previous_direction = Direction::LEFT;
 	current_direction = Direction::LEFT;
 	p_game->p_level->DrawLevel(); //draw level directly bypassing all movement, etc..
