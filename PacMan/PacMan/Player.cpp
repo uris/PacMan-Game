@@ -140,7 +140,33 @@ bool Player::PayerGhostCollision(int ghost_index)
 void Player::CoutPlayer()
 {
 	Draw::SetColor(Globals::cPLAYER);
-	if (chomp) { // mouth closed
+	
+	if (die_animation)
+	{
+		switch (previous_direction)
+		{
+		case Direction::UP:
+			previous_direction = Direction::RIGHT;
+			cout << char(Globals::pacman_up_open);
+			break;
+		case Direction::RIGHT:
+			previous_direction = Direction::DOWN;
+			cout << char(Globals::pacman_right_open);
+			break;
+		case Direction::DOWN:
+			previous_direction = Direction::LEFT;
+			cout << char(Globals::pacman_down_open);
+			break;
+		case Direction::LEFT:
+			previous_direction = Direction::UP;
+			cout << char(Globals::pacman_left_open);
+			break;
+		default:
+			cout << char(Globals::pacman_left_open);
+			break;
+		}
+	}
+	else if (chomp) { // mouth closed
 		
 		switch (previous_direction)
 		{
@@ -160,7 +186,11 @@ void Player::CoutPlayer()
 			cout << char(Globals::pacman_left_closed);
 			break;
 		}
-		chomp = !chomp;
+		if(current_position != previous_position)
+		{
+			chomp = !chomp;
+		}
+		
 	}
 	else // mouth open
 	{
@@ -182,7 +212,11 @@ void Player::CoutPlayer()
 			cout << char(Globals::pacman_left_open);
 			break;
 		}
-		player_move_content == ' ' ? chomp = false : chomp = !chomp;
+		if (current_position != previous_position)
+		{
+			player_move_content == ' ' ? chomp = false : chomp = !chomp;
+		}
+		
 	}
 }
 
@@ -243,4 +277,23 @@ void Player::SetMovedIntoSquareContents(char ascii)
 void Player::SetGameRef(Game* p_game)
 {
 	this->p_game = p_game;
+}
+
+void Player::DeathAnimate()
+{
+	die_animation = true;
+	for (int i = 0; i < 48; i++)
+	{
+		p_game->p_level->DrawLevel(); //draw level directly bypassing all movement, etc..
+	}
+	die_animation = false;
+	previous_direction = Direction::LEFT;
+	current_direction = Direction::LEFT;
+	p_game->p_level->DrawLevel(); //draw level directly bypassing all movement, etc..
+	p_game->p_level->p_map[current_position.row][current_position.col] = Globals::space;
+}
+
+void Player::SetDeathAnimation(const bool die_animation)
+{
+	this->die_animation = die_animation;
 }

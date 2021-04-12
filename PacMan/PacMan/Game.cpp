@@ -271,7 +271,7 @@ void Game::PlayerMonsterCollision()
 
     for (int g = 0; g < Globals::total_ghosts; g++) // loop ghosts
     {
-        if (p_player->GetCurrentPosition() == p_ghosts[g]->GetCurrentPosition())
+        if (p_player->PayerGhostCollision(g))
         {
             DrawLevel(); // print the move immediately
             if (p_ghosts[g]->IsEdible()) // ghost dies
@@ -297,7 +297,13 @@ void Game::PlayerMonsterCollision()
             }
             else
             {
-                // player dies
+                // player dead first times plays the player died animation
+                if (!player_died && !game_over)
+                {
+                    SFX(Play::DEATH);
+                    p_player->DeathAnimate();
+                }
+                // set player died to true
                 player_died = true;
             }
         }
@@ -305,6 +311,8 @@ void Game::PlayerMonsterCollision()
 
     if (player_died) {
 
+        
+        
         // rest the roam count by adding one back to the count
         p_level->level_mode == Mode::ROAM ? p_level->roam_count++ : p_level->roam_count;
 
@@ -324,12 +332,11 @@ void Game::PlayerMonsterCollision()
                 // respawn ghost
                 SpawnAllGhosts();
             }
-            SFX(Play::DEATH);
+            
         }
         else
         {
             game_over = true;
-            SFX(Play::DEATH);
         }
     }
 }
@@ -575,8 +582,10 @@ int Game::SFX(Play playSFX)
         params = SND_LOOP | SND_FILENAME | SND_ASYNC;
         break;
     case Play::DEATH:
+        if (sfx == Play::DEATH)
+            return 0;
         t_sfx = TEXT("sfx_death.wav");
-        params = SND_FILENAME | SND_SYNC;
+        params = SND_FILENAME | SND_ASYNC;
         break;
     case Play::CREDIT:
         t_sfx = TEXT("sfx_bonus.wav");

@@ -18,6 +18,7 @@ private:
     bool ghosts_eaten[4] = { false, false, false, false };
     char player_move_content = '.';
     bool chomp = false;
+    bool die_animation = false;
 
 public:
     //constructors
@@ -35,6 +36,7 @@ public:
     bool AllGhostsEaten();
     bool PayerGhostCollision(int ghost_index);
     void CoutPlayer();
+    void DeathAnimate();
 
     // getters
     char GetMovedIntoSquareContents();
@@ -50,4 +52,5 @@ public:
     void SetScore(int score);
     void SetMovedIntoSquareContents(char ascii);
     void SetGameRef(Game* p_game);
+    void SetDeathAnimation(const bool die_animation);
 };

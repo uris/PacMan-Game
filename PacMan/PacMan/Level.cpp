@@ -375,13 +375,6 @@ void Level::DrawLevel()
     {
         for (int c = 0; c < cols; c++)
         {
-            //Character* characters[5] = { Player, ghost1 };
-
-            //characters[0]->DrawCharacter();
-
-            // position player
-            if (p_game->p_player->GetCurrentPosition() == Coord(r, c))
-                p_map[r][c] = Globals::player;
 
             for (int g = 0; g < Globals::total_ghosts; g++) // loop through ghots
             {
@@ -397,6 +390,10 @@ void Level::DrawLevel()
                         p_map[r][c] = p_game->p_ghosts[g]->GetPreviousSqaureContent();
                 }
             }
+
+            // position player
+            if (p_game->p_player->GetCurrentPosition() == Coord(r, c))
+                p_map[r][c] = Globals::player;
 
             // set color of map content at this position
             switch (p_map[r][c])
@@ -473,6 +470,9 @@ void Level::DrawLevel()
                 cout << p_map[r][c];
                 break;
 
+            case Globals::player: // player
+                p_game->p_player->CoutPlayer();
+                break;
 
             case Globals::pink_ghost: // blue ghost
                 p_game->p_ghosts[3]->CoutGhost();
@@ -490,9 +490,6 @@ void Level::DrawLevel()
                 p_game->p_ghosts[0]->CoutGhost();
                 break;
 
-            case Globals::player: // player
-                p_game->p_player->CoutPlayer();
-                break;
 
             default:
                 Draw::SetColor(Globals::cWALLS); // gray bg on gray text for all other chars making them walls essentially
