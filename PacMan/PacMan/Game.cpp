@@ -31,7 +31,7 @@ Game::Game()
     }
 
     // get the current resolution and store this
-    res = Draw::GetResolution();
+    res = Draw::GetResolution(24);
 
 };
 

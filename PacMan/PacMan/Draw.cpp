@@ -117,8 +117,10 @@ Coord Draw::GetConsoleSize()
 string Draw::Credits()
 {
     
-    SetConsoleSize(GetResolution());
-    SetPacManFont(false);
+    
+    SetConsoleFont(false, GetResolution());
+    SetConsoleSize(GetResolution(), 24, 24);
+
     system("cls");
     
     string ghost;
@@ -191,7 +193,7 @@ Resolution Draw::SetResolution()
     resolution_options[3][0] = "#large";
     resolution_options[3][1] = "Large";
     resolution_options[4][0] = "#xl";
-    resolution_options[4][1] = "Estra Large";
+    resolution_options[4][1] = "Extra Large";
     resolution_options[5][0] = "#huge";
     resolution_options[5][1] = "Huge";
 
@@ -261,25 +263,51 @@ bool Draw::SetPacManFont(const bool pacman_font)
     SetConsoleFont(pacman_font, resolution);
     return true;
 }
-Resolution Draw::GetResolution()
+Resolution Draw::GetResolution(const int rows, const int cols)
 {
     Coord console_size = GetConsoleSize();
-    switch (console_size.row)
+
+    if (rows == 24)
     {
-    case 598:
-        return Resolution::TINY;
-    case 786:
-        return Resolution::SMALL;
-    case 974:
-        return Resolution::NORMAL;
-    case 1209:
-        return Resolution::LARGE;
-    case 1350:
-        return Resolution::EXTRA_LARGE;
-    case 1726:
-        return Resolution::HUGE;
-    default:
-        return Resolution::NORMAL;
+        switch (console_size.row)
+        {
+        case 305:
+            return Resolution::TINY;
+        case 401:
+            return Resolution::SMALL;
+        case 497:
+            return Resolution::NORMAL;
+        case 617:
+            return Resolution::LARGE;
+        case 689:
+            return Resolution::EXTRA_LARGE;
+        case 881:
+            return Resolution::HUGE;
+        default:
+            return Resolution::NORMAL;
+        }
     }
+
+    if (rows == 29)
+    {
+        switch (console_size.row)
+        {
+        case 598:
+            return Resolution::TINY;
+        case 786:
+            return Resolution::SMALL;
+        case 974:
+            return Resolution::NORMAL;
+        case 1209:
+            return Resolution::LARGE;
+        case 1350:
+            return Resolution::EXTRA_LARGE;
+        case 1726:
+            return Resolution::HUGE;
+        default:
+            return Resolution::NORMAL;
+        }
+    }
+    
     return Resolution::NORMAL;
 }

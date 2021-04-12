@@ -24,5 +24,5 @@ public:
     static void SetConsoleSize(const Resolution resolution, const int rows = 29, const int cols = 47);
     static Coord GetConsoleSize();
     static Resolution SetResolution();
-    static Resolution GetResolution();
+    static Resolution GetResolution(const int rows = 29, const int cols = 47);
 };
