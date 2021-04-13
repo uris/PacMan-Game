@@ -1,5 +1,5 @@
 #scene:1
-title:Scene I
+title:Scene One
 pellet_points:10
 ghost_points:250
 all_ghosts_bonus:1500
@@ -46,7 +46,7 @@ T      .   ¸ BRYP Õ   .      T
 #end_scene
 
 #scene:2
-title:Scene I, Part II
+title:Scene One, Part II
 pellet_points:10
 ghost_points:250
 all_ghosts_bonus:1500
@@ -54,7 +54,7 @@ chase_duration:16
 run_duration:15
 roam_duration:6
 roam_count:6
-fruit:cherry
+fruit:apple
 fruit_points:250
 level_map:
 +%%%%%%%%%%%%%%%%%%%%%%%%%%%%+

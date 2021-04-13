@@ -1,5 +1,14 @@
 #pragma once
 
+enum class Object {
+    FRUIT = 1,
+    PELLET = 2,
+    POWERUP = 3,
+    GHOST = 4,
+    ALL_GHOSTS = 5,
+    NONE = 0
+};
+
 enum class Resolution {
     TINY = 12,
     SMALL = 16,
@@ -78,9 +87,9 @@ struct Globals
 {
     // Fruis
     static constexpr int fCherry = 199;
-    static constexpr int fStrawberry = 199;
-    static constexpr int fApple = 199;
-    static constexpr int fPear = 199;
+    static constexpr int fStrawberry = 189;
+    static constexpr int fApple = 208;
+    static constexpr int fPear = 211;
     static constexpr int fSpawnRate = 60;
     static constexpr int fDelay = 1;
     
@@ -100,6 +109,10 @@ struct Globals
     static constexpr int cPINK = 10;
     static constexpr int cPELLETS = 6;
     static constexpr int cWALLS2 = 9;
+    static constexpr int cCHERRY = 12;
+    static constexpr int cSTRAWBERRY = 12;
+    static constexpr int cAPPLE = 10;
+    static constexpr int cPEAR = 6;
 
     // Editor menu colors
     static constexpr int c_blackwhite = 7; // black bg, white text
@@ -218,5 +231,5 @@ struct Globals
     // Game delay / speed defaults
     static constexpr int gobble_delay = 750; // wait in milliseconds
     static constexpr int player_beat_delay = 1000; // wait in milliseconds
-    static constexpr int refresh_delay = 45; //milliseconds
+    static constexpr int refresh_delay = 50; //milliseconds
 }; 

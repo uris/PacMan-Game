@@ -381,14 +381,14 @@ void Level::DrawLevel()
         p_map[p_game->p_fruit->GetPreviousRow()][p_game->p_fruit->GetPreviousCol()] = Globals::space;
 
     // fruit in tunnel
-    if (p_game->p_fruit->GetCurrentPosition() == tp_1) {
+    /*if (p_game->p_fruit->GetCurrentPosition() == tp_1) {
         p_map[p_game->p_fruit->GetCurrentRow()][p_game->p_fruit->GetCurrentCol()] = Globals::teleport;
         p_game->p_fruit->SetCurrentPosition(tp_2);
     }
     else if (p_game->p_fruit->GetCurrentPosition() == tp_2) {
         p_map[p_game->p_fruit->GetCurrentRow()][p_game->p_fruit->GetCurrentCol()] = Globals::teleport;
         p_game->p_fruit->SetCurrentPosition(tp_1);
-    }
+    }*/
 
     //**** GHOSTS
     for (int g = 0; g < Globals::total_ghosts; g++) // loop through ghots
@@ -414,12 +414,25 @@ void Level::DrawLevel()
 
 
     // Level Title
-    string format = Utility::Spacer(" PACMAN: " + Utility::TransformString(title, 0), cols);
+    string format = "";
     Draw::SetColor(Globals::cWHITE);
     cout << endl;
+
+
+    Draw::SetColor(Globals::cPELLETS);
+    format = Utility::Spacer("[{}", cols);
     cout << format;
-    cout << "PACMAN: " << Utility::TransformString(title, 0);
+    cout << "[{} ";
     cout << format;
+    
+    cout << endl;
+
+    Draw::SetColor(7);
+    format = Utility::Spacer(Utility::TransformString(title, 0), cols);
+    cout << format;
+    cout << Utility::TransformString(title, 0);
+    cout << format;
+
     cout << endl << endl;
 
     // draw current level map
@@ -433,6 +446,10 @@ void Level::DrawLevel()
             {
                 if (p_game->p_fruit->GetCurrentPosition() == Coord(r, c))
                     p_map[r][c] = Globals::fruit;
+
+                // put back the content of the square the fruit was last at
+                if (p_game->p_fruit->GetPreviousPosition() == Coord(r, c))
+                    p_map[r][c] = p_game->p_fruit->GetPreviousSqaureContent();
             }
 
             // position the ghosts

@@ -1,5 +1,6 @@
 To view the custom pacman characters, set the font (format menu option) to pacman console
 
+[{}
 ☺ :1
 ☻ :2
 ♥ :3

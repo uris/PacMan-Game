@@ -16,6 +16,7 @@ private:
     int lives = 3;
     int score = 0;
     bool ghosts_eaten[4] = { false, false, false, false };
+    int fruits_eaten[4] = { 0, 0, 0, 0 };
     char player_move_content = '.';
     bool chomp = false;
     bool die_animation = false;
@@ -40,10 +41,12 @@ public:
     void ClearEatenGohsts();
     bool HasNoLives();
     bool AllGhostsEaten();
-    bool PayerGhostCollision(int ghost_index);
+    bool PlayerGhostCollision(int ghost_index);
+    bool PlayerFruitCollision();
     void CoutPlayer();
     void DeathAnimate(int g);
     void EatGhostAnimate(int g, bool life);
+    void IncrementScore(const Object object_eaten);
 
     // getters
     char GetMovedIntoSquareContents();
@@ -54,13 +57,14 @@ public:
     bool GameRefIsSet();
     bool GetEatGhostAnimate();
     bool GetDieAnimate();
+    void CoutEatenFruits();
 
     // setters
     void SetLives();
     void SetLives(int number);
-    void SetScore(int score);
     void SetMovedIntoSquareContents(char ascii);
     void SetGameRef(Game* p_game);
     void SetDeathAnimation(const bool die_animation);
     void SetEatGhostAnimate(const bool eat_ghost_animation);
+    void AddEatenFruit(const Fruits fruit);
 };

@@ -41,18 +41,25 @@ void Fruit::SpawnFruit()
     current_direction = Direction::LEFT;
     previous_direction = Direction::LEFT;
     spawn_position = spawn_position;
+    move_count = 0;
     is_in_level = true;
     skip_turn = false;
     wait = 0;
     p_game->p_level->p_map[current_position.row][current_position.col] = Globals::fruit;
 }
 
-void Fruit::KillFruit()
+void Fruit::KillFruit(bool eaten)
 {
-    // remove the fruit from the map replacing with previous content
-    p_game->p_level->p_map[current_position.row][current_position.col] = square_content_prior;
-    is_in_level = false;
-    ticks = 0; // restart counter
+    if (is_in_level)
+    {
+        if (!eaten) {
+            // set map sqaure back to what it was
+            p_game->p_level->p_map[current_position.row][current_position.col] = square_content_prior;
+        }
+        is_in_level = false;
+        move_count = 0;
+        ticks = 0; // restart counter
+    }
 }
 
 void Fruit::ResetFruit()
@@ -106,15 +113,16 @@ void Fruit::MoveFruit(const Direction direction, const char map_content)
 Direction Fruit::RandomFruitMove()
 {
     Direction new_direction = Direction::NONE;
-    Coord next_move;
-
-    int unsigned seed = (int)(std::chrono::system_clock::now().time_since_epoch().count());
-    srand(seed);
 
     if (p_game->p_level->IsTeleport(current_position)) // if on teleportkeep the same direction
+    {
         current_direction == Direction::LEFT ? new_direction = Direction::LEFT : new_direction = Direction::RIGHT;
+    }
     else // else choose a valid random direction
     {
+        Coord next_move;
+        int unsigned seed = (int)(std::chrono::system_clock::now().time_since_epoch().count());
+        srand(seed);
         do
         {
             int random_number = rand() % 4; //generate random number to select from the 4 possible options
@@ -129,40 +137,57 @@ int Fruit::MakeFruitMove()
 {
     Direction best_move = Direction::NONE; // will store the next move
 
+    // if eaten already no more activity
+    if (!not_eaten)
+    {
+        return 0;
+    }
+
+    // if it is not in the level currently and has not been eaten, add ticks and spawn
     if (!is_in_level && not_eaten)
     {
-        ticks++;
-        if (ticks % Globals::fSpawnRate == 0 && spawn_count < max_spawns)
+        if (spawn_count < max_spawns)
         {
-            SpawnFruit();
+            ticks++;
+            if (ticks % Globals::fSpawnRate == 0)
+            {
+                SpawnFruit();
+            }
         }
         return 0;
     }
 
+    // game over or is eaten means it does not move
     if (p_game->IsGameOver() || current_position == p_game->p_player->GetCurrentPosition())
     {
         return 0; //  (no move)
     }
 
+    // if it's in a wait state, decrease wait and exit
     if (wait > 0)
     {
         wait--; //
         return 0; // delay the fruit move (will appear slower than every other character)
     }
 
+    // if it's in exit mode and has reached it's exit target
+    if (move_count >= max_moves && current_position == exit_target)
+    {
+        KillFruit();
+        return 0;
+    }
+
+    // if it's roaming randomly ie has not hit the max random moves
     if (move_count < max_moves) // make random moves for max moves number of times
     {
+        // Do teleport if on teleport
+        Teleport(current_position, current_direction);
+        
         best_move = RandomFruitMove(); // get the random move
         char map_content = FruitContentNow(best_move);
         MoveFruit(best_move, map_content); // make the move
         move_count++;
         wait = Globals::fDelay; // reset the delay to slow down the fruit by three ticks
-        return 0;
-    }
-
-    if (move_count >= max_moves && current_position == exit_target)
-    {
-        KillFruit();
         return 0;
     }
 
@@ -254,22 +279,26 @@ void Fruit::Teleport(Coord& fruit_position, Direction& fruit_direction)
 
 void Fruit::CoutFruit()
 {
-    Draw::SetColor(Globals::cRED);
     switch (fruit_type)
     {
     case Fruits::CHERRY:
+        Draw::SetColor(Globals::cCHERRY);
         cout << char(Globals::fCherry);
         break;
     case Fruits::STRAWBERRY:
+        Draw::SetColor(Globals::cSTRAWBERRY);
         cout << char(Globals::fStrawberry);
         break;
     case Fruits::APPLE:
+        Draw::SetColor(Globals::cAPPLE);
         cout << char(Globals::fApple);
         break;
     case Fruits::PEAR:
+        Draw::SetColor(Globals::cPEAR);
         cout << char(Globals::fPear);
         break;
     default:
+        Draw::SetColor(Globals::cCHERRY);
         cout << char(Globals::fCherry);
     }
 }
@@ -333,4 +362,9 @@ bool Fruit::FruitActive()
 void Fruit::SetFruitType(Fruits fruit_type)
 {
     this->fruit_type = fruit_type;
+}
+
+void Fruit::SetFruitEaten()
+{
+    not_eaten = false;
 }

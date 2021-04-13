@@ -137,9 +137,14 @@ void Player::MovePlayer()
 	current_position = next_position;
 }
 
-bool Player::PayerGhostCollision(int ghost_index)
+bool Player::PlayerGhostCollision(int ghost_index)
 {
 	return (current_position == p_game->p_ghosts[ghost_index]->GetCurrentPosition());
+}
+
+bool Player::PlayerFruitCollision()
+{
+	return (current_position == p_game->p_fruit->GetCurrentPosition());
 }
 
 void Player::CoutPlayer()
@@ -275,11 +280,6 @@ void Player::SetLives(int number)
 	lives = number;
 }
 
-void Player::SetScore(int score)
-{
-	this->score = score;
-}
-
 void Player::SetMovedIntoSquareContents(char ascii)
 {
 	player_move_content = ascii;
@@ -336,4 +336,87 @@ bool Player::GetEatGhostAnimate()
 bool Player::GetDieAnimate()
 {
 	return die_animation;
+}
+
+void Player::AddEatenFruit(const Fruits fruit)
+{
+	IncrementScore(Object::FRUIT);
+	switch (fruit)
+	{
+	case Fruits::CHERRY:
+		fruits_eaten[0] = fruits_eaten[0] + 1;
+		break;
+	case Fruits::STRAWBERRY:
+		fruits_eaten[1] = fruits_eaten[1] + 1;
+		break;
+	case Fruits::APPLE:
+		fruits_eaten[2] = fruits_eaten[2] + 1;
+		break;
+	case Fruits::PEAR:
+		fruits_eaten[3] = fruits_eaten[3] + 1;
+		break;
+	}
+}
+
+void Player::CoutEatenFruits()
+{
+	string spaces = "";
+	
+	for (int i = 0; i < 4; i++)
+	{
+		spaces += (fruits_eaten[i] == 0 ? " " : "");
+	}
+
+	cout << spaces;
+
+	if (fruits_eaten[0] > 0)
+	{
+		Draw::SetColor(Globals::cCHERRY);
+		cout << char(Globals::fCherry);
+	}
+
+	if (fruits_eaten[1] > 0)
+	{
+		Draw::SetColor(Globals::cSTRAWBERRY);
+		cout << char(Globals::fStrawberry);
+	}
+
+	if (fruits_eaten[2] > 0)
+	{
+		Draw::SetColor(Globals::cAPPLE);
+		cout << char(Globals::fApple);
+	}
+
+	if (fruits_eaten[3] > 0)
+	{
+		Draw::SetColor(Globals::cPEAR);
+		cout << char(Globals::fPear);
+	}
+
+	Draw::SetColor(7);
+}
+
+void Player::IncrementScore(const Object object_eaten)
+{
+	switch (object_eaten)
+	{
+	case Object::FRUIT:
+		score += p_game->p_level->fruit_points;
+		break;
+	case Object::PELLET:
+		score += p_game->p_level->points_pellet;
+		break;
+	case Object::POWERUP:
+		score += p_game->p_level->points_pellet;
+		break;
+	case Object::GHOST:
+		score += p_game->p_level->points_ghost;
+		break;
+	case Object::ALL_GHOSTS:
+		score += p_game->p_level->all_ghost_bonus;
+		break;
+	default:
+		score = score;
+		break;
+	}
 }

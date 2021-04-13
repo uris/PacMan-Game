@@ -87,7 +87,7 @@ void Game::RunGame()
             MovePlayer();
 
             // process any player / ghost collision
-            PlayerMonsterCollision();
+            CheckCollisions();
 
             // set ghost chase modes as approprite
             SetGhostMode();
@@ -96,7 +96,7 @@ void Game::RunGame()
             MoveGhosts();
 
             // process any player / ghost collision again
-            PlayerMonsterCollision();
+            CheckCollisions();
 
             // delay render if there's a collision
             SetCollisionDelay();
@@ -241,7 +241,7 @@ void Game::MovePlayer()
         // check collision with a ghost and set the ghosts previous row to the new player position
         for (int g = 0; g < Globals::total_ghosts; g++)
         {
-            if (p_player->PayerGhostCollision(g)) {
+            if (p_player->PlayerGhostCollision(g)) {
                 p_ghosts[g]->GetPreviousPosition().SetTo(p_player->GetCurrentPosition());
             }
         }
@@ -256,6 +256,7 @@ void Game::SetPlayerState()
     {
     case (char)Globals::pellet: // eat pellet
         p_level->eaten_pellets++;
+        p_player->IncrementScore(Object::PELLET);
         break;
     case (char)Globals::powerup: // eat power up
         for (int g = 0; g < Globals::total_ghosts; g++) // loop ghosts
@@ -269,30 +270,42 @@ void Game::SetPlayerState()
         p_level->level_mode = Mode::RUN;
         p_level->run_time_start = chrono::high_resolution_clock::now();
         p_level->eaten_pellets++;
+        p_player->IncrementScore(Object::PELLET);
         break;
     }
 }
 
-void Game::PlayerMonsterCollision()
+void Game::CheckCollisions()
 {
     bool player_died = false;
 
+
+    // process ghost colission
     for (int g = 0; g < Globals::total_ghosts; g++) // loop ghosts
     {
-        if (p_player->PayerGhostCollision(g))
+        if (p_player->PlayerGhostCollision(g))
         {
             DrawLevel(); // print the move immediately
             if (p_ghosts[g]->IsEdible()) // ghost dies
             {
                 // if the ghost was on a pellet/powerup sqaure need to count it up
                 if (p_ghosts[g]->GetContentCurrent() == (char)Globals::pellet || p_ghosts[g]->GetContentCurrent() == (char)Globals::powerup)
-                    p_level->eaten_pellets++;
+                {
+                    //p_level->eaten_pellets++; // TODO - remove
+                    p_player->IncrementScore(Object::PELLET);
+                }
+                    
+                
                 p_level->eaten_ghosts++; // increment ghosts eaten
+                p_player->IncrementScore(Object::ALL_GHOSTS);
+                
                 gobble_pause = true; // set small pause after eating ghost
                 p_ghosts[g]->SpawnGhost(p_ghosts[g]->Name(), false);
                 p_player->EatGhost(g);
                 if (p_player->AllGhostsEaten()) {
-                    p_level->all_eaten_ghosts += 1;
+                    
+                    //p_level->all_eaten_ghosts += 1; // TODO - remove
+                    p_player->IncrementScore(Object::ALL_GHOSTS);
                     
                     SFX(Play::LIFE);
                     p_player->EatGhostAnimate(g, true);
@@ -322,9 +335,25 @@ void Game::PlayerMonsterCollision()
         }
     }
 
+    if (p_player->PlayerFruitCollision() && p_fruit->FruitActive())
+    {
+        //DrawLevel(); // print the move immediately
+        p_fruit->SetFruitEaten();
+        SFX(Play::EAT_FRUIT);
+        p_fruit->KillFruit(true);
+        p_player->AddEatenFruit(p_fruit->FruitType());
+        if (p_fruit->GetContentCurrent() == (char)Globals::pellet || p_fruit->GetContentCurrent() == (char)Globals::powerup)
+        {
+            p_level->eaten_pellets++;
+            p_player->IncrementScore(Object::PELLET);
+        }
+        // TODO: if powerup need to set the game mode
+    }
+
     if (player_died) {
 
-        
+        // kill fruits is there are any
+        p_fruit->KillFruit();
         
         // rest the roam count by adding one back to the count
         p_level->level_mode == Mode::ROAM ? p_level->roam_count++ : p_level->roam_count;
@@ -344,8 +373,8 @@ void Game::PlayerMonsterCollision()
                 p_level->p_map[p_ghosts[g]->GetCurrentRow()][p_ghosts[g]->GetCurrentCol()] = ' ';
                 // respawn ghost
                 SpawnAllGhosts();
-                p_fruit->KillFruit();
             }
+            
             
         }
         else
@@ -373,22 +402,34 @@ void Game::PrintStatusBar()
     //Draw draw;
     //Utility utility;
     // get number of lives
-    string format = Utility::Spacer("C C C    00000000", p_level->cols);
+    string format = Utility::Spacer("CCC-----00000000----0000", p_level->cols);
     string lives;
-    for (int i = 0; i < 6; i++)
+    
+    for (int i = 0; i < 3; i++)
     {
-        i < p_player->Lives() ? lives = lives + char(Globals::pacman_left_open) + " " : lives = lives +  " ";
+        i < p_player->Lives() ? lives = lives + char(Globals::pacman_left_open) : lives = lives +  "-";
     }
-    p_player->SetScore(((p_level->eaten_pellets + 1) * p_level->points_pellet) + (p_level->eaten_ghosts * p_level->points_ghost) + (p_level->eaten_ghosts >= 4 ? p_level->all_ghost_bonus : 0));
+    
     cout << endl;
     cout << format;
+    
     Draw::SetColor(14);
     cout << (!p_player->HasNoLives() ? lives : "-");
     Draw::SetColor(7);
-    cout << " ";
+    
+    cout << "     ";
+    
     Draw::SetColor(14);
     cout << setfill('0') << setw(8) << p_player->GetScore();
     Draw::SetColor(7);
+
+    cout << "    ";
+    
+    p_player->CoutEatenFruits();
+    //Draw::SetColor(14);
+    //cout << "  " << p_fruit->ticks << ":" << p_fruit->spawn_count;
+    //Draw::SetColor(7);
+
     cout << format;
     cout << "\r";
 
@@ -415,7 +456,7 @@ void Game::SetGhostMode()
     switch (p_level->level_mode)
     {
 
-        // set chase mode stuff
+    // set chase mode stuff
     case Mode::CHASE:
         p_level->chase_duration = duration_cast<duration<double>>(p_level->chase_time_start - chrono::high_resolution_clock::now());
         if (abs(p_level->chase_duration.count()) > p_level->chase_for && p_level->roam_count > 0)
@@ -441,7 +482,7 @@ void Game::SetGhostMode()
         }
         break;
 
-        // set roam mode stuff
+     // set roam mode stuff
     case Mode::ROAM:
         p_level->roam_duration = duration_cast<duration<double>>(p_level->roam_time_start - chrono::high_resolution_clock::now());
 
@@ -465,7 +506,7 @@ void Game::SetGhostMode()
         }
         break;
 
-        // set run mode stuff
+    // set run mode stuff
     case Mode::SPAWN:
         for (int g = 0; g < Globals::total_ghosts; g++)
         {
@@ -476,7 +517,7 @@ void Game::SetGhostMode()
         }
         break;
 
-        // set run mode stuff
+    // set run mode stuff
     case Mode::RUN:
         p_level->run_duration = duration_cast<duration<double>>(p_level->run_time_start - chrono::high_resolution_clock::now());
         if (abs(p_level->run_duration.count()) > p_level->run_for) // end the run mode
@@ -627,7 +668,10 @@ int Game::SFX(Play playSFX)
         params = SND_FILENAME | SND_ASYNC;
         break;
     case Play::EAT_FRUIT:
+        if (sfx == Play::EAT_FRUIT)
+            return 0;
         t_sfx = TEXT("sfx_eatfruit.wav");
+        params = SND_FILENAME | SND_SYNC;
         break;
     default:
         t_sfx = NULL;
@@ -655,7 +699,7 @@ int Game::SFX(Play playSFX)
 
     if (playSFX != sfx)
     {
-        if (playSFX == Play::DEATH || playSFX == Play::EAT_GHOST || playSFX == Play::LIFE)
+        if (playSFX == Play::DEATH || playSFX == Play::EAT_GHOST || playSFX == Play::LIFE || playSFX == Play::EAT_FRUIT)
         {
             played = PlaySound(t_sfx, NULL, params);
             sfx = playSFX;

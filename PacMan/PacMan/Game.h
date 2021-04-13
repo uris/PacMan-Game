@@ -55,7 +55,7 @@ class Game
         bool IsGameOver();
         
         // game orchestration methods
-        void PlayerMonsterCollision();
+        void CheckCollisions();
         void CheckLevelComplete();
         void NextScene();
         void GetKeyboardInput();
