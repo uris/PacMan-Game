@@ -61,23 +61,10 @@ Ghost::Ghost(Ghosts ghost)
     }
 }
 
-// methods
-//int Ghost::DistanceToPlayer(Coord ghost_position, Coord player_current_position)
-//{
-//    return (abs(ghost_position.col - (player_current_position.col + chase_modifier.col)) + abs(ghost_position.row - (player_current_position.row + chase_modifier.row)));
-//}
-//
-//int Ghost::DistanceToRoamTarget(Coord ghost_position)
-//{
-//    // overload to return the distance to a coord with a specified modifier
-//    return ( abs(ghost_position.col - roam_target.col) + abs(ghost_position.row - roam_target.row) );
-//}
-//
-//int Ghost::DistanceToSpawnTarget(Coord ghost_position)
-//{
-//    // overload to return the distance to a coord with a specified modifier
-//    return (abs(ghost_position.col - spawn_target.col) + abs(ghost_position.row - spawn_target.row));
-//}
+Ghost::~Ghost()
+{
+    p_game = nullptr;
+}
 
 bool Ghost::PlayerCollision()
 {

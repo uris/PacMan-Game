@@ -17,11 +17,13 @@ public:
     // level map and scene
     char** p_map = nullptr;
     bool level_paused = true;
+    string fruit = "";
 
     // level stats
     int eaten_pellets = 0; // pellets consumed
     int eaten_ghosts = 0; // pellets consumed
     int all_eaten_ghosts = 0; // pellets consumed
+    int fruit_points = 0; // points for consuming the fruit
     bool is_complete = false;
 
     // Manange modes
@@ -50,6 +52,7 @@ public:
     bool NotWall(const Coord& move, const Direction& direction);
     void CheckLevelComplete();
     bool IsTeleport(const Coord& move);
+    Fruits GetFruitType(const string fruit);
 
     // getters
     bool GameRefIsSet();

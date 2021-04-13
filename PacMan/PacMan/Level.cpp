@@ -40,9 +40,14 @@ void Level::SetupLevel(int& current_scene)
     all_eaten_ghosts = 0;
     roam_count = 0;
     is_complete = false;
+    fruit = "";
+    fruit_points = 0;
 
     // create the scene map and set up player + ghosts accordingly
     CreateLevelScene(current_scene);
+
+    // set the fruit type
+    p_game->p_fruit->SetFruitType(GetFruitType(fruit));
 
     // start the chase timer
     chase_time_start = chrono::high_resolution_clock::now();
@@ -100,11 +105,20 @@ void Level::CreateLevelScene(int& current_scene)
             p_game->p_player->SetPositions(row, col);
         }
 
+        // Set fruit spawn location if char 'F'
+        if (map[i] == Globals::fruit)
+        {
+            fruit_spawn = { row, col };
+            p_game->p_fruit->SetSpawnPosition({ row, col });
+            p_game->p_fruit->SetCurrentPosition({ row, col });
+            p_game->p_fruit->SetPreviousPosition({ row, col });
+            p_mapArray[row][col] = (char)Globals::space;
+        }
+
         // Set ghost spawn target location
         if (map[i] == Globals::ghost_spawn_target)
         {
-            ghost_spawn.row = row;
-            ghost_spawn.col = col;
+            ghost_spawn = { row, col };
             p_mapArray[row][col] = (char)Globals::space;
 
             // set ghosts spawn target
@@ -232,6 +246,18 @@ string Level::LoadSceneFromFile(string filename, int scene_to_load)
                             continue;
                         }
 
+                        section = "fruit:";
+                        if (fileLine.find(Utility::TransformString(section, 1), 0) != std::string::npos) {
+                            fruit = fileLine.substr(Utility::TransformString(section, 1).size(), (fileLine.size() - section.size()));
+                            continue;
+                        }
+
+                        section = "fruit_points:";
+                        if (fileLine.find(Utility::TransformString(section, 1), 0) != std::string::npos) {
+                            fruit_points = stoi(fileLine.substr(Utility::TransformString(section, 1).size(), (fileLine.size() - section.size())));
+                            continue;
+                        }
+
                         section = "level_map:";
                         if (fileLine.find(Utility::TransformString(section, 1), 0) != std::string::npos) {
                             // get map info into the map string ending when you reach end of map
@@ -312,19 +338,29 @@ void Level::DrawLevel()
             {
             case Globals::red_ghost:
                 p_map[r][c] = p_game->p_ghosts[0]->GetPreviousSqaureContent();
+                break;
             case Globals::yellow_ghost:
                 p_map[r][c] = p_game->p_ghosts[1]->GetPreviousSqaureContent();
+                break;
             case Globals::blue_ghost:
                 p_map[r][c] = p_game->p_ghosts[2]->GetPreviousSqaureContent();
+                break;
             case Globals::pink_ghost:
                 p_map[r][c] = p_game->p_ghosts[3]->GetPreviousSqaureContent();
+                break;
+            case Globals::fruit:
+                p_map[r][c] = p_game->p_fruit->GetPreviousSqaureContent();
+                break;
             }
+            
         }
     }
 
     // place cursor on top left of console
     Draw::CursorTopLeft(rows + 5); // + 5 for title and status
 
+
+    //**** PLAYER
     // remove player from map at last position if they are different
     if (!(p_game->p_player->GetPreviousPosition() == p_game->p_player->GetCurrentPosition()))
         p_map[p_game->p_player->GetPreviousRow()][p_game->p_player->GetPreviousCol()] = Globals::space;
@@ -339,6 +375,22 @@ void Level::DrawLevel()
         p_game->p_player->SetCurrentPosition(tp_1);
     }
 
+    //**** FRUIT
+    // remove fruit from map at last position if they are different
+    if (!(p_game->p_fruit->GetPreviousPosition() == p_game->p_fruit->GetCurrentPosition()))
+        p_map[p_game->p_fruit->GetPreviousRow()][p_game->p_fruit->GetPreviousCol()] = Globals::space;
+
+    // fruit in tunnel
+    if (p_game->p_fruit->GetCurrentPosition() == tp_1) {
+        p_map[p_game->p_fruit->GetCurrentRow()][p_game->p_fruit->GetCurrentCol()] = Globals::teleport;
+        p_game->p_fruit->SetCurrentPosition(tp_2);
+    }
+    else if (p_game->p_fruit->GetCurrentPosition() == tp_2) {
+        p_map[p_game->p_fruit->GetCurrentRow()][p_game->p_fruit->GetCurrentCol()] = Globals::teleport;
+        p_game->p_fruit->SetCurrentPosition(tp_1);
+    }
+
+    //**** GHOSTS
     for (int g = 0; g < Globals::total_ghosts; g++) // loop through ghots
     {
         // remove ghosts from map at last position if they are different
@@ -376,6 +428,14 @@ void Level::DrawLevel()
         for (int c = 0; c < cols; c++)
         {
 
+            // position fruit
+            if (p_game->p_fruit->FruitActive())
+            {
+                if (p_game->p_fruit->GetCurrentPosition() == Coord(r, c))
+                    p_map[r][c] = Globals::fruit;
+            }
+
+            // position the ghosts
             for (int g = 0; g < Globals::total_ghosts; g++) // loop through ghots
             {
                 // position ghost
@@ -490,6 +550,9 @@ void Level::DrawLevel()
                 p_game->p_ghosts[0]->CoutGhost();
                 break;
 
+            case Globals::fruit: // fruit
+                p_game->p_fruit->CoutFruit();
+                break;
 
             default:
                 Draw::SetColor(Globals::cWALLS); // gray bg on gray text for all other chars making them walls essentially
@@ -522,6 +585,7 @@ bool Level::NotWall(const Coord& move, const Direction& direction)
     case Globals::blue_ghost:
     case Globals::pink_ghost:
     case Globals::player:
+    case Globals::fruit:
         return true;
         break;
     case Globals::one_way: // one way move to exit ghost spawn area
@@ -555,4 +619,21 @@ bool Level::GameRefIsSet()
 void Level::SetGameRef(Game* p_game)
 {
     this->p_game = p_game;
+}
+
+Fruits Level::GetFruitType(const string fruit)
+{
+    if (Utility::TransformString(fruit, 1) == "cherry")
+        return Fruits::CHERRY;
+
+    if (Utility::TransformString(fruit,1) == "strawberry")
+        return Fruits::STRAWBERRY;
+
+    if (Utility::TransformString(fruit,1) == "apple")
+        return Fruits::APPLE;
+
+    if (Utility::TransformString(fruit,1) == "pear")
+        return Fruits::PEAR;
+
+    return Fruits::NONE;
 }

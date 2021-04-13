@@ -5,6 +5,7 @@
 #include "Level.h"
 #include "Utility.h"
 #include "Draw.h"
+#include "Fruit.h"
 #include <chrono>
 
 using namespace std::chrono;
@@ -33,6 +34,9 @@ class Game
 
         // ghosts -- public for class forwarding
         Ghost** p_ghosts = nullptr;
+
+        // fruit -- public for class forwarding
+        Fruit* p_fruit = nullptr;
         
         // game constructors
         Game();

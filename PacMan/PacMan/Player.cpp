@@ -5,6 +5,11 @@ Player::Player()
 
 };
 
+Player::~Player()
+{
+	p_game = nullptr;
+}
+
 
 // methods
 void Player::AddLives(int number)

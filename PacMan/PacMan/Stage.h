@@ -13,6 +13,7 @@ public:
     int rows = 23;
     int cols = 47;
     Coord ghost_spawn;
+    Coord fruit_spawn;
 
     // teleport coords and direction
     Coord tp_1, tp_2;

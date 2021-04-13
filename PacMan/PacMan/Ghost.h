@@ -32,9 +32,13 @@ private:
 
 public:
     bool exit_teleport = false;
+    
     // constructors
     Ghost();
     Ghost(Ghosts ghost);
+
+    //destructor
+    ~Ghost();
 
     // methods
     bool PlayerCollision();

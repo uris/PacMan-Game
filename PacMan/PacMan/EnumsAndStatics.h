@@ -65,8 +65,25 @@ enum class Ghosts
     PINK = 3
 };
 
+enum class Fruits
+{
+    CHERRY = 0,
+    STRAWBERRY = 1,
+    APPLE = 2,
+    PEAR = 4,
+    NONE = -1,
+};
+
 struct Globals
 {
+    // Fruis
+    static constexpr int fCherry = 199;
+    static constexpr int fStrawberry = 199;
+    static constexpr int fApple = 199;
+    static constexpr int fPear = 199;
+    static constexpr int fSpawnRate = 60;
+    static constexpr int fDelay = 1;
+    
     // Game Colors
     static constexpr int cINVISIBLE = 0; // black on black
     static constexpr int cWHITE = 7; // white
@@ -135,8 +152,8 @@ struct Globals
     static constexpr char blue_ghost = 'B'; // pellet ascii
     static constexpr char pink_ghost = 'P'; // pellet ascii
     static constexpr char player = 'C'; // pellet ascii
+    static constexpr char fruit = 'F'; // pellet ascii
     static constexpr char corner_marker = '+'; // pellet ascii
-    static constexpr int fruit = 245; // pellet ascii
 
     // long walls
     static constexpr int lwall_184 = 184; // long wall up on left

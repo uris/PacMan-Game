@@ -30,6 +30,11 @@ Game::Game()
         p_ghosts[g]->SetGameRef(this);
     }
 
+    // create player object and pass it the game ref
+    p_fruit = new Fruit;
+    p_fruit->SetGameRef(this);
+
+
     // get the current resolution and store this
     res = Draw::GetResolution(24);
 
@@ -140,6 +145,9 @@ void Game::SetupGame()
 
     // reset level, create scene and update player / level as needed
     p_level->SetupLevel(current_scene);
+
+    // reset fruit
+    p_fruit->ResetFruit();
 
     // set console font to pacman font
     Draw::SetConsoleFont(true, res);
@@ -336,6 +344,7 @@ void Game::PlayerMonsterCollision()
                 p_level->p_map[p_ghosts[g]->GetCurrentRow()][p_ghosts[g]->GetCurrentCol()] = ' ';
                 // respawn ghost
                 SpawnAllGhosts();
+                p_fruit->KillFruit();
             }
             
         }
@@ -352,6 +361,10 @@ void Game::MoveGhosts()
     {
         if(p_ghosts[g]->GameRefIsSet())
             p_ghosts[g]->MakeGhostMove();
+    }
+    if (p_fruit->GameRefIsSet())
+    {
+        p_fruit->MakeFruitMove();
     }
 }
 
