@@ -61,11 +61,6 @@ Ghost::Ghost(Ghosts ghost)
     }
 }
 
-Ghost::~Ghost()
-{
-    p_game = nullptr;
-}
-
 bool Ghost::PlayerCollision()
 {
     return current_position == p_game->p_player->GetCurrentPosition();

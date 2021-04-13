@@ -43,16 +43,12 @@ Game::Game()
 //destructors
 Game::~Game()
 {
-    // delete ghosts array and set pointer to null
-    if (p_ghosts) {
-        for (int i = 0; i < Globals::total_ghosts; i++)
-        {
-            delete[] p_ghosts[i];
-        }
-        delete[] p_ghosts;
-        p_ghosts = nullptr;
+    // fruit pointer to null
+    if (p_fruit) {
+        delete p_fruit;
+        p_fruit = nullptr;
     }
-    
+
     // player pointer to null
     if (p_player) {
         delete p_player;
@@ -63,6 +59,16 @@ Game::~Game()
     if (p_level) {
         delete p_level;
         p_level = nullptr;
+    }
+
+    // delete ghosts array and set pointer to null
+    if (p_ghosts) {
+        for (int i = 0; i < Globals::total_ghosts; i++)
+        {
+            delete[] p_ghosts[i];
+        }
+        delete[] p_ghosts;
+        p_ghosts = nullptr;
     }
 };
  

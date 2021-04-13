@@ -37,9 +37,6 @@ public:
     Ghost();
     Ghost(Ghosts ghost);
 
-    //destructor
-    ~Ghost();
-
     // methods
     bool PlayerCollision();
     void DecreaseWait();
