@@ -236,7 +236,7 @@ Coord Scene::MapSize(const string& map)
 void Scene::DrawLevel()
 {
     // set console size to accomodayte changes in rows/cols
-    Draw::SetConsoleSize(Resolution::NORMAL, rows + 10, max(cols +3, 33));
+    Draw::SetConsoleSize(Resolution::NORMAL, rows + 10, max(cols +3, 34));
     
     // remove cursor from screen to avoid the flicker
     Draw::ShowConsoleCursor(false);
