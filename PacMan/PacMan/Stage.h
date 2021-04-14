@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include "Coord.h"
+#include "Fruit.h"
 
 using namespace std;
 
@@ -14,6 +15,7 @@ public:
     int cols = 47;
     Coord ghost_spawn;
     Coord fruit_spawn;
+    Fruits fruit = Fruits::NONE;
 
     // teleport coords and direction
     Coord tp_1, tp_2;
@@ -24,6 +26,7 @@ public:
     int points_pellet = 10;
     int points_ghost = 250;
     int all_ghost_bonus = 2600;
+    int fruit_points = 0; // points for consuming the fruit
 
     // Manange modes
     int roam_count = 8;

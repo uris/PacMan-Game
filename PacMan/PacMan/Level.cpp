@@ -40,14 +40,12 @@ void Level::SetupLevel(int& current_scene)
     all_eaten_ghosts = 0;
     roam_count = 0;
     is_complete = false;
-    fruit = "";
-    fruit_points = 0;
 
     // create the scene map and set up player + ghosts accordingly
     CreateLevelScene(current_scene);
 
     // set the fruit type
-    p_game->p_fruit->SetFruitType(GetFruitType(fruit));
+    p_game->p_fruit->SetFruitType(fruit);
 
     // start the chase timer
     chase_time_start = chrono::high_resolution_clock::now();
@@ -248,7 +246,7 @@ string Level::LoadSceneFromFile(string filename, int scene_to_load)
 
                         section = "fruit:";
                         if (fileLine.find(Utility::TransformString(section, 1), 0) != std::string::npos) {
-                            fruit = fileLine.substr(Utility::TransformString(section, 1).size(), (fileLine.size() - section.size()));
+                            fruit = GetFruitType(fileLine.substr(Utility::TransformString(section, 1).size(), (fileLine.size() - section.size())));
                             continue;
                         }
 

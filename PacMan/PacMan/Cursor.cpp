@@ -141,23 +141,34 @@ void Cursor::SetPen(char pen)
 		selected_pen = 'S';
 		pen_is_walls = false;
 		pen_is_short_walls = false;
+		pen_is_fruits = false;
 		break;
 	case 't':
 		selected_pen = 'T';
 		pen_is_walls = false;
 		pen_is_short_walls = false;
+		pen_is_fruits = false;
 		break;
 	case char(Globals::kHASH):
 		pen_is_walls = true;
 		pen_is_short_walls = false;
+		pen_is_fruits = false;
 		index_wall_selected = -1;
 		CycleLongWalls();
 		break;
 	case char(Globals::kAT) :
 		pen_is_walls = false;
 		pen_is_short_walls = true;
+		pen_is_fruits = false;
 		index_short_wall_selected = -1;
 		CycleShortWalls();
+		break;
+	case char(Globals::kF) :
+		pen_is_walls = false;
+		pen_is_short_walls = false;
+		pen_is_fruits = true;
+		index_fruits = -1;
+		CycleFruits();
 		break;
 	case '.':
 		selected_pen = char(Globals::pellet);
@@ -273,6 +284,43 @@ void Cursor::CycleShortWalls(bool increment)
 		if (index_short_wall_selected == i)
 		{
 			selected_pen = walls[i];
+			break;
+		}
+	}
+
+}
+
+void Cursor::CycleFruits(bool increment)
+{
+	if (increment)
+	{
+		if (index_fruits < 4)
+			index_fruits++;
+
+		if (index_fruits == 4)
+			index_fruits = 0;
+	}
+	else
+	{
+		if (index_fruits > 0)
+			index_fruits--;
+
+		if (index_fruits == 0)
+			index_fruits = 4;
+	}
+
+	char fruits[4] = {
+		char(Globals::fCherry), // Top Cap
+		char(Globals::fStrawberry), // Right cap
+		char(Globals::fApple), // Bottom Cap
+		char(Globals::fPear), // Left Cap
+	};
+
+	for (int i = 0; i < 4; i++)
+	{
+		if (index_fruits == i)
+		{
+			selected_pen = fruits[i];
 			break;
 		}
 	}

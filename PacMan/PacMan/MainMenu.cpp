@@ -338,8 +338,8 @@ void MainMenu::Template(MenuTemplates menu_template)
 		is_horizontal = false;
 		show_instructions = false;
 		show_icon = true;
-		new_index = 9;
-		exit_index = 10;
+		new_index = 10;
+		exit_index = 11;
 		del_index = -1;
 		first_draw = true;
 		option_selected = -1;

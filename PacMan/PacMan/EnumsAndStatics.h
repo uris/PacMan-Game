@@ -213,6 +213,7 @@ struct Globals
     static constexpr char kUP = 119; // 'w';
     static constexpr char kDOWN = 115; // 's';
     static constexpr char kRIGHT = 100; // 'd';
+    static constexpr char kF = 102; // 'f';
     static constexpr char kARROW_UP = 72; // arrow up
     static constexpr char kARROW_DOWN = 80; // arrow down
     static constexpr char kARROW_LEFT = 75; // arrow left

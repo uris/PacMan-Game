@@ -17,13 +17,11 @@ public:
     // level map and scene
     char** p_map = nullptr;
     bool level_paused = true;
-    string fruit = "";
 
     // level stats
     int eaten_pellets = 0; // pellets consumed
     int eaten_ghosts = 0; // pellets consumed
     int all_eaten_ghosts = 0; // pellets consumed
-    int fruit_points = 0; // points for consuming the fruit
     bool is_complete = false;
 
     // Manange modes

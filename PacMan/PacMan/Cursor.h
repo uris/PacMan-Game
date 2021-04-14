@@ -22,6 +22,9 @@ public:
 	// short walls
 	bool pen_is_short_walls = false;
 	int index_short_wall_selected = -1;
+	// fruits
+	int index_fruits = -1;
+	bool pen_is_fruits = false;
 	
 	// constructor
 	Cursor();
@@ -35,6 +38,7 @@ public:
 	bool IsInBounds(Direction direction);
 	void CycleLongWalls(bool increment = true);
 	void CycleShortWalls(bool increment = true);
+	void CycleFruits(bool increment = true);
 
 	// Getters
 	bool IsEditing();

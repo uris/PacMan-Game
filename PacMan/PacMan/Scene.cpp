@@ -54,7 +54,10 @@ void Scene::CreateLevelScene(int& current_scene)
     }
 
     // parse through string to replace pellt and powerup markers to their ascii code
-    Utility::ReplaceString(map, ".", char(Globals::pellet));
+    Utility::ReplaceString(map, ".", Globals::pellet);
+
+    // replace the fruit marker with the fruit character
+    Utility::ReplaceString(map, "F", GetFruitChar());
 
     // create dynamic two dimension pointer array to hold map
     Coord size = MapSize(map); // get width and height of the map
@@ -156,6 +159,18 @@ string Scene::LoadSceneFromFile(string filename, int scene_to_load)
                         section = "roam_count:";
                         if (fileLine.find(Utility::TransformString(section, 1), 0) != std::string::npos) {
                             roam_count = stoi(fileLine.substr(Utility::TransformString(section, 1).size(), (fileLine.size() - section.size())));
+                            continue;
+                        }
+
+                        section = "fruit:";
+                        if (fileLine.find(Utility::TransformString(section, 1), 0) != std::string::npos) {
+                            fruit = GetFruitType(fileLine.substr(Utility::TransformString(section, 1).size(), (fileLine.size() - section.size())));
+                            continue;
+                        }
+
+                        section = "fruit_points:";
+                        if (fileLine.find(Utility::TransformString(section, 1), 0) != std::string::npos) {
+                            fruit_points = stoi(fileLine.substr(Utility::TransformString(section, 1).size(), (fileLine.size() - section.size())));
                             continue;
                         }
 
@@ -351,6 +366,19 @@ void Scene::DrawLevel()
                 Draw::SetColor(Globals::cPLAYER);
                 break;
 
+            case Globals::fruit: // fruit general
+                print = GetFruitChar();
+                Draw::SetColor(GetFruitColor());
+                break;
+
+            case char(Globals::fCherry): // fruit
+            case char(Globals::fStrawberry): // fruit
+            case char(Globals::fApple): // fruit
+            case char(Globals::fPear): // fruit
+                print = p_map[r][c];
+                Draw::SetColor(GetFruitColor(p_map[r][c]));
+                break;
+
             case Globals::space: // ' ' = empty space
                 print = p_map[r][c];
                 Draw::SetColor(Globals::cWHITE); // black on black = not visible
@@ -389,7 +417,7 @@ void Scene::DrawLevel()
                 Draw::SetColor(Globals::cRED);
                 break;
             
-            case char(Globals::cursor): // red ghost
+            case char(Globals::cursor): // cursor
                 print = (char)Globals::cursor;
                 if (!p_editor->p_cursor->IsEditing()) { // flashing effect - signals edible sate of ghost
                     p_editor->p_cursor->Blink() ? Draw::SetColor(Globals::c_blackwhite) : Draw::SetColor(Globals::c_whiteblack);
@@ -677,7 +705,7 @@ void Scene::ShowKey()
         {
             cout << format << "#|@|& = walls,  R = resize" << endl;
             cout << format << "T = teleport, ^ = spawn target" << endl;
-            cout << format << ". = pellet, o = power" << endl;
+            cout << format << ". = pellet, o = power, F = fruit" << endl;
             cout << format << "' ' = space, S = player" << endl;
             top_left_modifier = 8;
         }
@@ -685,6 +713,18 @@ void Scene::ShowKey()
         {
             cout << format;
             Draw::SetColor(Globals::c_bluewhite);
+            cout << p_editor->p_cursor->Pen();
+            Draw::SetColor(Globals::cWHITE);
+            cout << " active pen" << endl;
+            cout << format << "-|= cycle shapes" << endl;
+            cout << format << "Esc = swap pen" << endl;
+            cout << format << "Space = disable" << endl;
+            top_left_modifier = 8;
+        }
+        else if (p_editor->p_cursor->pen_is_fruits)
+        {
+            cout << format;
+            Draw::SetColor(GetFruitColor(p_editor->p_cursor->Pen()));
             cout << p_editor->p_cursor->Pen();
             Draw::SetColor(Globals::cWHITE);
             cout << " active pen" << endl;
@@ -726,8 +766,8 @@ string** Scene::GetSceneValues()
     DeleteOptions();
     
     // create the options array
-    p_options = new string * [11];
-    for (int i = 0; i < 11; i++)
+    p_options = new string * [12];
+    for (int i = 0; i < 12; i++)
     {
         p_options[i] = new string[2];
     }
@@ -746,23 +786,26 @@ string** Scene::GetSceneValues()
     p_options[4][0] = "4";
     p_options[4][1] = "Points all ghosts: " + to_string(all_ghost_bonus);
 
-    p_options[5][0] = "5";
-    p_options[5][1] = "Chase mode duration: " + to_string(chase_for);
+    p_options[5][0] = "9";
+    p_options[5][1] = "Fruit points: " + to_string(fruit_points);
+
+    p_options[6][0] = "5";
+    p_options[6][1] = "Chase mode duration: " + to_string(chase_for);
     
-    p_options[6][0] = "6";
-    p_options[6][1] = "Run mode duration: " + to_string(run_for);
+    p_options[7][0] = "6";
+    p_options[7][1] = "Run mode duration: " + to_string(run_for);
     
-    p_options[7][0] = "7";
-    p_options[7][1] = "Roam mode duration: " + to_string(roam_for);
+    p_options[8][0] = "7";
+    p_options[8][1] = "Roam mode duration: " + to_string(roam_for);
 
-    p_options[8][0] = "8";
-    p_options[8][1] = "Roam count: " + to_string(roam_count);
+    p_options[9][0] = "8";
+    p_options[9][1] = "Roam count: " + to_string(roam_count);
 
-    p_options[9][0] = "#save";
-    p_options[9][1] = "SAVE";
+    p_options[10][0] = "#save";
+    p_options[10][1] = "SAVE";
 
-    p_options[10][0] = "#cancel";
-    p_options[10][1] = "CANCEL";
+    p_options[11][0] = "#cancel";
+    p_options[11][1] = "CANCEL";
 
     return p_options;
  }
@@ -918,19 +961,6 @@ bool Scene::SaveToFile()
 
 string Scene::CreatesceneString(int scene)
 {
-    // set an update string with the scene variables that need to be saved
-    string update = "";
-    update += "#scene:" + to_string(this_scene != 0 ? this_scene : scene) + "\n";
-    update += "title:" + title + "\n";
-    update += "pellet_points:" + to_string(points_pellet) + "\n";
-    update += "ghost_points:" + to_string(points_ghost) + "\n";
-    update += "all_ghosts_bonus:" + to_string(all_ghost_bonus) + "\n";
-    update += "chase_duration:" + to_string(chase_for) + "\n";
-    update += "run_duration:" + to_string(run_for) + "\n";
-    update += "roam_duration:" + to_string(roam_for) + "\n";
-    update += "roam_count:" + to_string(roam_count) + "\n";
-    update += "level_map:\n";
-    
     // create a string with the scene
     string map = "";
 
@@ -945,10 +975,30 @@ string Scene::CreatesceneString(int scene)
     {
         for (int col = 0; col < cols; col++)
         {
-            if (p_map[row][col] == char(Globals::cursor))
+            //replace the pen character witht the right content
+            switch (p_map[row][col])
             {
-                p_map[row][col] = p_editor->p_cursor->content_now;
+                case char(Globals::cursor) :
+                    p_map[row][col] = p_editor->p_cursor->content_now;
+                    break;
+                case char(Globals::fCherry):
+                    p_map[row][col] = Globals::fruit;
+                    fruit = Fruits::CHERRY;
+                    break;
+                case char(Globals::fStrawberry) :
+                    p_map[row][col] = Globals::fruit;
+                    fruit = Fruits::STRAWBERRY;
+                    break;
+                case char(Globals::fApple) :
+                    p_map[row][col] = Globals::fruit;
+                    fruit = Fruits::APPLE;
+                    break;
+                case char(Globals::fPear) :
+                    p_map[row][col] = Globals::fruit;
+                    fruit = Fruits::PEAR;
+                    break;
             }
+
             map += p_map[row][col];
         }
         map += "\n";
@@ -956,6 +1006,23 @@ string Scene::CreatesceneString(int scene)
 
     // replace the full stop with pellet char
     Utility::ReplaceString(map, char(Globals::pellet), '.');
+
+
+    // set an update string with the scene variables that need to be saved
+    string update = "";
+    update += "#scene:" + to_string(this_scene != 0 ? this_scene : scene) + "\n";
+    update += "title:" + title + "\n";
+    update += "pellet_points:" + to_string(points_pellet) + "\n";
+    update += "ghost_points:" + to_string(points_ghost) + "\n";
+    update += "all_ghosts_bonus:" + to_string(all_ghost_bonus) + "\n";
+    update += "chase_duration:" + to_string(chase_for) + "\n";
+    update += "run_duration:" + to_string(run_for) + "\n";
+    update += "roam_duration:" + to_string(roam_for) + "\n";
+    update += "roam_count:" + to_string(roam_count) + "\n";
+    update += "fruit:" + GetFruitString() + "\n";
+    update += "fruit_points:" + to_string(fruit_points) + "\n";
+    update += "level_map:\n";
+
     
     // combine the strings and add the end of scene marker
     update += map;
@@ -968,7 +1035,7 @@ string Scene::CreatesceneString(int scene)
 bool Scene::ValiditeScene()
 {
         
-    int teleport = 0, player_start = 0, ghost_spawn_target = 0;
+    int teleport = 0, player_start = 0, ghost_spawn_target = 0, scene_fruit = 0;
     bool no_dead_ends = true, has_outer_walls = true, all_pellets_reacheable, is_valid_scene = true;
     scene_errors = "";
 
@@ -987,6 +1054,12 @@ bool Scene::ValiditeScene()
                 break;
             case char(Globals::ghost_spawn_target):
                 ghost_spawn_target++;
+                break;
+            case char(Globals::fCherry):
+            case char(Globals::fStrawberry) :
+            case char(Globals::fApple) :
+            case char(Globals::fPear) :
+                scene_fruit++;
                 break;
             }
 
@@ -1024,6 +1097,14 @@ bool Scene::ValiditeScene()
     if (ghost_spawn_target > 1 || ghost_spawn_target < 1)
     {
         scene_errors = "You need one ghosts spawn target.\n";
+        is_valid_scene = false;
+        error_count++;
+        return false;
+    }
+
+    if (scene_fruit > 1 || scene_fruit < 1)
+    {
+        scene_errors = "You need one fruit spawn.\n";
         is_valid_scene = false;
         error_count++;
         return false;
@@ -1156,6 +1237,7 @@ bool Scene::HasNoDeadEnd(int row, int col)
                 case 'o':
                 case char(Globals::player_start):
                 case char(Globals::ghost_spawn_target):
+                case char(Globals::fruit):
                     route_count++;
                     break;
                 default:
@@ -1250,6 +1332,7 @@ bool Scene::AlPelletsReacheable()
             case char(Globals::player_start):
             case char(Globals::ghost_spawn_target):
             case char(Globals::space):
+            case char(Globals::fruit):
                 is_match = true;
                 break;
             default:
@@ -1342,6 +1425,7 @@ void Scene::SetPositionToAccessible(Coord new_position, char** temp)
             case char(Globals::player_start) :
             case char(Globals::ghost_spawn_target) :
             case char(Globals::space) :
+            case char(Globals::fruit) :
                 is_match = true;
                 break;
             default:
@@ -1374,4 +1458,89 @@ void Scene::DeallocateMapArray()
         p_map = nullptr;
     }
 
+}
+
+Fruits Scene::GetFruitType(const string fruit)
+{
+    if (Utility::TransformString(fruit, 1) == "cherry")
+        return Fruits::CHERRY;
+
+    if (Utility::TransformString(fruit, 1) == "strawberry")
+        return Fruits::STRAWBERRY;
+
+    if (Utility::TransformString(fruit, 1) == "apple")
+        return Fruits::APPLE;
+
+    if (Utility::TransformString(fruit, 1) == "pear")
+        return Fruits::PEAR;
+
+    return Fruits::NONE;
+}
+
+char Scene::GetFruitChar()
+{
+    if (fruit == Fruits::CHERRY)
+        return char(Globals::fCherry);
+
+    if (fruit == Fruits::STRAWBERRY)
+        return char(Globals::fStrawberry);
+
+    if(fruit == Fruits::APPLE)
+        return char(Globals::fApple);
+
+    if (fruit == Fruits::PEAR)
+        return char(Globals::fPear);
+
+    return char(Globals::fCherry);
+}
+
+string Scene::GetFruitString()
+{
+    if (fruit == Fruits::CHERRY)
+        return "cherry";
+
+    if (fruit == Fruits::STRAWBERRY)
+        return "strawberry";
+
+    if (fruit == Fruits::APPLE)
+        return "apple";
+
+    if(fruit == Fruits::PEAR)
+        return "pear";
+
+    return "cherry";
+}
+
+int Scene::GetFruitColor()
+{
+    if (fruit == Fruits::CHERRY)
+        return char(Globals::cCHERRY);
+
+    if (fruit == Fruits::STRAWBERRY)
+        return char(Globals::cSTRAWBERRY);
+
+    if (fruit == Fruits::APPLE)
+        return char(Globals::cAPPLE);
+
+    if (fruit == Fruits::PEAR)
+        return char(Globals::cPEAR);
+
+    return char(Globals::cCHERRY);
+}
+
+int Scene::GetFruitColor(const char fruit_pen)
+{
+    if (fruit_pen == char(Globals::fCherry))
+        return char(Globals::cCHERRY);
+
+    if (fruit_pen == char(Globals::fStrawberry))
+        return char(Globals::cSTRAWBERRY);
+
+    if (fruit_pen == char(Globals::fApple))
+        return char(Globals::cAPPLE);
+
+    if (fruit_pen == char(Globals::fPear))
+        return char(Globals::cPEAR);
+
+    return char(Globals::cCHERRY);
 }

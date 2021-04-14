@@ -126,7 +126,7 @@ void Editor::EditScenes()
         while (selected_option != "#save")
         {
             // show the menu of options
-            options.Create(p_scene->GetSceneValues(), 11);
+            options.Create(p_scene->GetSceneValues(), 12);
             options.Template(MenuTemplates::EDIT_SCENE_OPTIONS);
             string selected_option = options.Show();
 
@@ -289,29 +289,28 @@ void Editor::GetKeyboardInput()
                 p_cursor->CycleLongWalls();
             if (p_cursor->pen_is_short_walls)
                 p_cursor->CycleShortWalls();
+            if (p_cursor->pen_is_fruits)
+                p_cursor->CycleFruits();
             break;
         case Globals::kEQUALS:
             if (p_cursor->pen_is_walls)
                 p_cursor->CycleLongWalls();
             if (p_cursor->pen_is_short_walls)
                 p_cursor->CycleShortWalls();
+            if (p_cursor->pen_is_fruits)
+                p_cursor->CycleFruits();
             break;
         case Globals::kMINUS:
             if (p_cursor->pen_is_walls)
                 p_cursor->CycleLongWalls(false);
             if (p_cursor->pen_is_short_walls)
                 p_cursor->CycleShortWalls(false);
+            if (p_cursor->pen_is_fruits)
+                p_cursor->CycleFruits(false);
             break;
         case Globals::kHASH:
-            if (p_cursor->IsEditing()) {
-                p_cursor->SetPen(char(input));
-            }
-            break;
         case Globals::kAT:
-            if (p_cursor->IsEditing()) {
-                p_cursor->SetPen(char(input));
-            }
-            break;
+        case Globals::kF:
         case '%':
         case '^':
         case '.':
@@ -400,6 +399,11 @@ int Editor::UpdateValue(string option)
 
     if (option == "8") { // roam count
         p_scene->roam_count = ProcessNumberOption(spacer + "Roam count: ");
+        return 0;
+    }
+
+    if (option == "9") { // fuit value
+        p_scene->fruit_points = ProcessNumberOption(spacer + "Points for fruit: ");
         return 0;
     }
 

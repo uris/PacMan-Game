@@ -50,6 +50,11 @@ public:
     void DeallocateMapArray();
     bool AlPelletsReacheable();
     void SetPositionToAccessible(Coord new_position, char** temp);
+    Fruits GetFruitType(const string fruit);
+    char GetFruitChar();
+    int GetFruitColor();
+    int GetFruitColor(const char fruit_pen);
+    string GetFruitString();
 
     // setters
     void SetEditor(Editor* p_editor);
