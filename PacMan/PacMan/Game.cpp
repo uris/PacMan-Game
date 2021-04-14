@@ -343,7 +343,7 @@ void Game::CheckCollisions()
 
     if (p_player->PlayerFruitCollision() && p_fruit->FruitActive())
     {
-        //DrawLevel(); // print the move immediately
+        DrawLevel(); // print the move immediately
         p_fruit->SetFruitEaten();
         SFX(Play::EAT_FRUIT);
         p_fruit->KillFruit(true);
