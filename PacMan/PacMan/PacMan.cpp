@@ -1,8 +1,10 @@
 ﻿#include "Game.h"
 #include "Editor.h"
 
+
 int main()
 {
+    
     //Draw::ShowColors(500);
     do
     {

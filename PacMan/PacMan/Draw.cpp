@@ -104,6 +104,7 @@ void Draw::SetConsoleSize(const Resolution resolution, const int rows, const int
     if (console_size != console_resize)
     {
         MoveWindow(console, ConsoleRect.left, ConsoleRect.top, console_resize.row, console_resize.col, TRUE);
+        SetWindowLong(console, GWL_STYLE, GetWindowLong(console, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX);
         system("cls");
     }
 }

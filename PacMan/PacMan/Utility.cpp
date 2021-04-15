@@ -77,7 +77,7 @@ string Utility::GetMenuFromFile(const string& file_name)
             {
 
                 // set the scene number
-                int this_scene = stoi(file_line.substr(Utility::TransformString(marker, 1).size(), 2));
+                this_scene = stoi(file_line.substr(Utility::TransformString(marker, 1).size(), 2));
 
                 if (this_scene != 0) {
 

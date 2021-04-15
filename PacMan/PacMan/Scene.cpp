@@ -54,7 +54,7 @@ void Scene::CreateLevelScene(int& current_scene)
     }
 
     // parse through string to replace pellt and powerup markers to their ascii code
-    Utility::ReplaceString(map, ".", Globals::pellet);
+    Utility::ReplaceString(map, ".", char(Globals::pellet));
 
     // replace the fruit marker with the fruit character
     Utility::ReplaceString(map, "F", GetFruitChar());
@@ -236,7 +236,7 @@ Coord Scene::MapSize(const string& map)
 void Scene::DrawLevel()
 {
     // set console size to accomodayte changes in rows/cols
-    Draw::SetConsoleSize(Resolution::NORMAL, rows + 10, max(cols +3, 34));
+    Draw::SetConsoleSize(Resolution::NORMAL, rows + 11, max(cols +4, 35));
     
     // remove cursor from screen to avoid the flicker
     Draw::ShowConsoleCursor(false);
@@ -489,11 +489,18 @@ int Scene::AddRemoveColumns(bool add)
         {
             if (add)
             {
-                p_map_new[row][left ? col : col + 1] = p_map[row][col];
+                
+                if (new_cols > 2) // fixes potential error warning on dynamic array
+                {
+                    p_map_new[row][left ? col : col + 1] = p_map[row][col];
+                }
             }
             else
             {
-                p_map_new[row][col] = p_map[row][left ? col : col + 1];
+                if (col + 1 <= new_cols) // fixes potential error warning on dynamic array
+                {
+                    p_map_new[row][col] = p_map[row][left ? col : col + 1];
+                }
             }
         }
     }
@@ -504,12 +511,21 @@ int Scene::AddRemoveColumns(bool add)
         // shift the walls left or right and set pellets in preior state
         for (int row = 0; row < rows; row++)
         {
-            p_map_new[row][left ? new_cols - 1 : 0] = p_map[row][left ? cols - 1 : 0];
-            p_map_new[row][left ? new_cols - 2 : 1] = char(Globals::pellet);
-        }
+            row == NULL ? row = 0 : row = row; // this fixed it;
+            if (new_cols > 2) // this fixed it;
+            {
+                p_map_new[row][left ? new_cols - 1 : 0] = p_map[row][left ? cols - 1 : 0];
+                p_map_new[row][left ? new_cols - 2 : 1] = char(Globals::pellet);
+            }
+            
+        } 
 
-        p_map_new[0][left ? new_cols - 2 : 1] = char(Globals::invisible_wall);
-        p_map_new[rows - 1][left ? new_cols - 2 : 1] = char(Globals::invisible_wall);
+        rows == NULL ? rows = 0 : rows = rows; // this fixed it;
+        if (new_cols > 2) // this fixed it;
+        {
+            p_map_new[0][left ? new_cols - 2 : 1] = char(Globals::invisible_wall);
+            p_map_new[rows - 1][left ? new_cols - 2 : 1] = char(Globals::invisible_wall);
+        }
     }
     else
     {
@@ -574,11 +590,17 @@ int Scene::AddRemoveRows(bool add)
         {
             if (add)
             {
-                p_map_new[left ? row : row + 1][col] = p_map[row][col];
+                if (new_rows > 2) // fxes potential dynamic array warning
+                {
+                    p_map_new[left ? row : row + 1][col] = p_map[row][col];
+                }
             }
             else
             {
-                p_map_new[row][col] = p_map[left ? row : row + 1][col];
+                if (new_rows > 2) // fxes potential dynamic array warning
+                {
+                    p_map_new[row][col] = p_map[left ? row : row + 1][col];
+                }
             }
         }
     }
@@ -590,12 +612,19 @@ int Scene::AddRemoveRows(bool add)
         // shift the walls left or right and set pellets in preior state
         for (int col = 0; col < cols; col++)
         {
-            p_map_new[left ? new_rows - 1 : 0][col] = p_map[left ? rows - 1 : 0][col];
-            p_map_new[left ? new_rows - 2 : 1][col] = char(Globals::pellet);
+            if (new_rows > 2) // fxes potential dynamic array warning
+            {
+                p_map_new[left ? new_rows - 1 : 0][col] = p_map[left ? rows - 1 : 0][col];
+                p_map_new[left ? new_rows - 2 : 1][col] = char(Globals::pellet);
+            }
         }
 
-        p_map_new[left ? new_rows - 2 : 1][0] = char(Globals::invisible_wall);
-        p_map_new[left ? new_rows - 2 : 1][cols - 1] = char(Globals::invisible_wall);
+        if (new_rows > 2 && cols > 2) // fxes potential dynamic array warning
+        {
+            p_map_new[left ? new_rows - 2 : 1][0] = char(Globals::invisible_wall);
+            p_map_new[left ? new_rows - 2 : 1][cols - 1] = char(Globals::invisible_wall);
+        }
+        
     }
     else
     {

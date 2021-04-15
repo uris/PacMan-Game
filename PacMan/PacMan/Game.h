@@ -6,6 +6,7 @@
 #include "Utility.h"
 #include "Draw.h"
 #include "Fruit.h"
+#include "CXBOXController.h"
 #include <chrono>
 
 using namespace std::chrono;
@@ -24,6 +25,9 @@ class Game
     //SFX
     Play sfx = Play::NONE;
     high_resolution_clock::time_point sfx_start = std::chrono::high_resolution_clock::now();
+
+    // xbox controller -- will use this to get player direction
+    CXBOXController* p_controller = nullptr;
 
     public:
         // level - public for class forwarding
