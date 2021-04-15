@@ -70,6 +70,11 @@ Game::~Game()
         delete[] p_ghosts;
         p_ghosts = nullptr;
     }
+
+    if (p_controller) {
+        delete p_controller;
+        p_controller = nullptr;
+    }
 };
  
 //game flow
@@ -85,7 +90,7 @@ void Game::RunGame()
         DrawLevel();
 
         // start a thread to get input while the main program executes
-        thread inputThread(&Game::GetKeyboardInput, this); // new the ref() wrapper to pass by ref into thread
+        thread inputThread(&Game::GetUserInput, this); // new the ref() wrapper to pass by ref into thread
 
         do
         {
@@ -199,16 +204,20 @@ void Game::DrawLevel()
     
 }
 
-void Game::GetKeyboardInput()
+void Game::GetUserInput()
 {
     p_controller = new CXBOXController(1);
-    
     int input, magnitude = 32767; // magintude is the value each stick can move max by
-    float controllerX, controllerY;
-
+    float controllerX, controllerY; // will hold how far the stick is pushed on x/y axis
 
     do
     {
+        if (p_controller && !p_controller->IsConnected())
+        {
+            delete p_controller;
+            p_controller = new CXBOXController(1);
+        }
+
         if (p_controller->IsConnected())
         {
             

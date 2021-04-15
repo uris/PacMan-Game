@@ -62,7 +62,7 @@ class Game
         void CheckCollisions();
         void CheckLevelComplete();
         void NextScene();
-        void GetKeyboardInput();
+        void GetUserInput();
         void SpawnAllGhosts();
         int SFX(Play playSFX);
         void SetPlayerState();
