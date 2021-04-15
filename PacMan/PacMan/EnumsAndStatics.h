@@ -150,6 +150,8 @@ struct Globals
     static constexpr int ghost_up = 185;
     static constexpr int ghost_left = 204;
     static constexpr int ghost_right = 202;
+    static constexpr int spawn_delay = 20;
+    static constexpr int spawn_stagger = 20;
 
     // Level Map
     static constexpr int powerup = 254; //extended set of ascii 

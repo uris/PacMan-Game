@@ -7,7 +7,7 @@ chase_duration:16
 run_duration:16
 roam_duration:6
 roam_count:6
-fruit:apple
+fruit:cherry
 fruit_points:250
 level_map:
 +%%%%%%%%%%%%%%%%%%%%%%%%%%%%+
@@ -54,7 +54,7 @@ chase_duration:16
 run_duration:15
 roam_duration:6
 roam_count:6
-fruit:apple
+fruit:cherry
 fruit_points:250
 level_map:
 +%%%%%%%%%%%%%%%%%%%%%%%%%%%%+

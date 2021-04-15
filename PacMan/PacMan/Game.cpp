@@ -193,7 +193,7 @@ void Game::DrawLevel()
                 
                 if (p_controller->IsConnected())
                 {
-                    if (p_controller->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_A)
+                    if (p_controller->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_A || abs(p_controller->GetState().Gamepad.sThumbLX) > 2500 || abs(p_controller->GetState().Gamepad.sThumbLY) > 2500)
                         break;
                 }
                 else
@@ -680,67 +680,65 @@ bool Game::NextLevelRestartGame()
         cout << format;
         cout << "play again? (y)es (n)o";
         cout << format;
+    }
 
-        CXBOXController* p_controller = new CXBOXController(1);
-        
+    CXBOXController* p_controller = new CXBOXController(1);
 
-        do
+    do
+    {
+        if (!p_controller->IsConnected())
         {
-            if (!p_controller->IsConnected())
+            // try to connect again
+            delete p_controller;
+            p_controller = nullptr;
+            p_controller = new CXBOXController(1);
+        }
+
+        if (p_controller->IsConnected())
+        {
+            if (game_over && p_controller->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_X)
             {
-                // try to connect again
-                delete p_controller;
-                p_controller = nullptr;
-                p_controller = new CXBOXController(1);
+                Draw::ShowConsoleCursor(false);
+                continue_play = false;
+                break;
+            }
+                    
+            if (p_controller->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_A)
+            {
+                system("cls");
+                current_scene = 1;
+                continue_play = true;
+                break;
             }
 
-            if (p_controller->IsConnected())
+        }
+        else
+        {
+            char input = _getch();
+            if (game_over && input == Globals::kNO)
             {
-                if (p_controller->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_X)
-                {
-                    Draw::ShowConsoleCursor(false);
-                    continue_play = false;
-                    break;
-                }
-                    
-                if (p_controller->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_A)
-                {
-                    system("cls");
-                    current_scene = 1;
-                    continue_play = true;
-                    break;
-                }
-
+                Draw::ShowConsoleCursor(false);
+                continue_play = false;
+                break;
             }
             else
             {
-                char input = _getch();
-                if (input == Globals::kNO)
-                {
-                    Draw::ShowConsoleCursor(false);
-                    continue_play = false;
-                    break;
-                }
-                else
-                {
-                    system("cls");
-                    current_scene = 1;
-                    continue_play = true;
-                    break;
-                }
+                system("cls");
+                continue_play = true;
+                break;
             }
-
-        } while (true);
-        
-        // delete controller if it exists
-        if (p_controller)
-        {
-            delete p_controller;
-            p_controller = nullptr;
         }
+
+    } while (true);
         
+    // delete controller if it exists
+    if (p_controller)
+    {
+        delete p_controller;
+        p_controller = nullptr;
     }
-    current_scene++;
+    
+    game_over ? current_scene = 1 : current_scene++;
     return continue_play;
 }
 

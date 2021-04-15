@@ -34,21 +34,21 @@ Ghost::Ghost(Ghosts ghost)
         chase_modifier = { 0, 3 };
         this->ghost = 'Y';
         color = Globals::cYELLOW;
-        wait = 30;
+        wait = 35;
         break;
     case Ghosts::BLUE:
         name = Ghosts::BLUE;
         chase_modifier = { 0, -3 };
         this->ghost = 'B';
         color = Globals::cBLUE;
-        wait = 45;
+        wait = 55;
         break;
     case Ghosts::PINK:
         name = Ghosts::PINK;
         chase_modifier = { -3, 0 };
         this->ghost = 'P';
         color = Globals::cPINK;
-        wait = 60;
+        wait = 75;
         break;
     default:
         name = Ghosts::RED;
@@ -439,16 +439,16 @@ void Ghost::SpawnGhost(Ghosts name, bool player_died)
     switch (name)
     {
     case Ghosts::RED:
-        wait = 15;
+        wait = player_died ? Globals::spawn_stagger : Globals::spawn_delay;
         break;
     case Ghosts::YELLOW:
-        wait = player_died ? 30 : 15;
+        wait = player_died ? Globals::spawn_stagger * 2 : Globals::spawn_delay;
         break;
     case Ghosts::BLUE:
-        wait = player_died ? 45 : 15;
+        wait = player_died ? Globals::spawn_stagger * 3 : Globals::spawn_delay;
         break;
     case Ghosts::PINK:
-        wait = player_died ? 60 : 15;
+        wait = player_died ? Globals::spawn_stagger * 4 : Globals::spawn_delay;
         break;
     default:
         wait = 15;
