@@ -1,7 +1,6 @@
 ﻿#include "Game.h"
 #include "Editor.h"
 
-
 int main()
 {
     

@@ -1,5 +1,6 @@
 #include "CXBOXController.h"
 #include <Xinput.h>
+#include <Windows.h>
 
 CXBOXController::CXBOXController(int playerNumber)
 {
@@ -52,4 +53,19 @@ void CXBOXController::Vibrate(int leftVal, int rightVal)
 
 	// Vibrate the controller
 	XInputSetState(_controllerNum, &Vibration);
+}
+
+bool CXBOXController::NotIsRepeat()
+{
+	if (lastPress == 0)
+	{
+		lastPress = GetTickCount64();
+		return true;
+	}
+	if (GetTickCount64() - lastPress > tick_interval)
+	{
+		lastPress = GetTickCount64();
+		return true;
+	}
+	return false;
 }

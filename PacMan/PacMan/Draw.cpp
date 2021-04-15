@@ -167,8 +167,8 @@ string Draw::Credits()
     options[3][1] = "Quit";
 
     MainMenu choose;
-    choose.Template(MenuTemplates::CHOOSE_EDIT_PLAY);
     choose.Create(options, 4);
+    choose.Template(MenuTemplates::CHOOSE_EDIT_PLAY);
     
     string selection = choose.Show();
     if (selection == "#res")

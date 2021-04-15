@@ -3,6 +3,7 @@
 #include "Utility.h"
 #include "Draw.h"
 #include <conio.h>
+#include "CXBOXController.h"
 
 using namespace std;
 
@@ -226,6 +227,9 @@ string MainMenu::Show()
 
 	int input;
 	bool return_pressed = false;
+	CXBOXController* p_controller = new CXBOXController(1);
+	int magnitude = 32767; // magintude is the value each stick can move max by
+	float controllerX, controllerY, pushLevel; // will hold how far the stick is pushed on x/y axis
 
 	do
 	{
@@ -237,49 +241,125 @@ string MainMenu::Show()
 			cout << "   arrows + return to select.";
 		}
 		
-
-		input = _getch();
-
-		//if special character then get special key into input
-		(input && input == 224) ? input = _getch() : input;
-
-		switch (input)
+		if (p_controller && !p_controller->IsConnected())
 		{
-		case Globals::kARROW_LEFT:
-		case Globals::kARROW_UP:
-			option_selected >= 1 ? option_selected = option_selected - 1 : option_selected;
-			break;
-		case Globals::kARROW_RIGHT:
-		case Globals::kARROW_DOWN:
-			option_selected < menu_options_size-1 ? option_selected = option_selected + 1 : option_selected;
-			break;
-		case Globals::kESCAPE:
-			option_selected = exit_index;
-			break;
-		case Globals::kN:
-			option_selected = new_index;
-			break;
-		case 49:
-		case 50:
-		case 51:
-		case 52:
-		case 53:
-		case 54:
-		case 55:
-		case 56:
-		case 57:
-			if (input - 49 >= 0 && input - 49 <= menu_options_size -1)
-				option_selected = input - 48 - 1; // 48 = '0', -1 casue array starts at 0
-			break;
-		case Globals::kRETURN:
-			if (option_selected > -1) {
-				return_pressed = true;
-			}
-			break;
-		default:
-			break;
+			delete p_controller;
+			p_controller = nullptr;
+			p_controller = new CXBOXController(1);
 		}
+
+		if (p_controller->IsConnected())
+		{
+
+			// get the x / y of the left control stick
+			controllerX = p_controller->GetState().Gamepad.sThumbLX;
+			controllerY = p_controller->GetState().Gamepad.sThumbLY;
+			pushLevel = max(abs(controllerY), abs(controllerX));
+
+			if (pushLevel > (magnitude / 2.0f) && p_controller->NotIsRepeat())
+			{
+				if (abs(controllerY) > abs(controllerX)) // do up or down
+				{
+					if (controllerY > (magnitude / 2.0f))
+						option_selected >= 1 ? option_selected = option_selected - 1 : option_selected;
+					else if (controllerY < -(magnitude / 2.0f))
+						option_selected < menu_options_size - 1 ? option_selected = option_selected + 1 : option_selected;
+				}
+				else // do left or right
+				{
+					if (controllerX > (magnitude / 2.0f))
+						option_selected < menu_options_size - 1 ? option_selected = option_selected + 1 : option_selected;
+					else if (controllerX < -(magnitude / 2.0f))
+						option_selected >= 1 ? option_selected = option_selected - 1 : option_selected;
+				}
+			}
+			
+
+			if (p_controller->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP && p_controller->NotIsRepeat())
+				option_selected >= 1 ? option_selected = option_selected - 1 : option_selected;
+
+			if (p_controller->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT && p_controller->NotIsRepeat())
+				option_selected < menu_options_size - 1 ? option_selected = option_selected + 1 : option_selected;
+
+			if (p_controller->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN && p_controller->NotIsRepeat())
+			{
+				option_selected < menu_options_size - 1 ? option_selected = option_selected + 1 : option_selected;
+			}
+			if (p_controller->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT && p_controller->NotIsRepeat())
+				option_selected >= 1 ? option_selected = option_selected - 1 : option_selected;
+
+			if (p_controller->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_A && p_controller->NotIsRepeat())
+			{
+				if (option_selected > -1) {
+					return_pressed = true;
+				}
+			}
+
+			if (p_controller->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_X && p_controller->NotIsRepeat())
+			{
+				option_selected = exit_index;
+				if (option_selected > -1) {
+					return_pressed = true;
+				}
+			}
+				
+
+		}
+
+		else
+
+		{
+			input = _getch();
+
+			//if special character then get special key into input
+			(input && input == 224) ? input = _getch() : input;
+
+			switch (input)
+			{
+			case Globals::kARROW_LEFT:
+			case Globals::kARROW_UP:
+				option_selected >= 1 ? option_selected = option_selected - 1 : option_selected;
+				break;
+			case Globals::kARROW_RIGHT:
+			case Globals::kARROW_DOWN:
+				option_selected < menu_options_size - 1 ? option_selected = option_selected + 1 : option_selected;
+				break;
+			case Globals::kESCAPE:
+				option_selected = exit_index;
+				break;
+			case Globals::kN:
+				option_selected = new_index;
+				break;
+			case 49:
+			case 50:
+			case 51:
+			case 52:
+			case 53:
+			case 54:
+			case 55:
+			case 56:
+			case 57:
+				if (input - 49 >= 0 && input - 49 <= menu_options_size - 1)
+					option_selected = input - 48 - 1; // 48 = '0', -1 casue array starts at 0
+				break;
+			case Globals::kRETURN:
+				if (option_selected > -1) {
+					return_pressed = true;
+				}
+				break;
+			default:
+				break;
+			}
+		}
+		
 	} while (!return_pressed);
+
+	// delete controller if it exists
+	if (p_controller)
+	{
+		delete p_controller;
+		p_controller = nullptr;
+	}
 
 	// so that next time the menu is show it gets reset
 	first_draw = true;
@@ -353,7 +433,7 @@ void MainMenu::Template(MenuTemplates menu_template)
 		show_instructions = false;
 		show_icon = false;
 		new_index = -1;
-		exit_index = -1;
+		exit_index = 3;
 		del_index = -1;
 		first_draw = true;
 		option_selected = 0;

@@ -179,8 +179,39 @@ void Game::DrawLevel()
             cout << format;
             cout << "Press a key to start.";
             cout << format;
+            CXBOXController* p_controller = new CXBOXController(1);
             SFX(Play::INTERMISSION);
-            char input = _getch();
+            do
+            {
+                if (!p_controller->IsConnected())
+                {
+                    // try to connect again
+                    delete p_controller;
+                    p_controller = nullptr;
+                    p_controller = new CXBOXController(1);
+                }
+                
+                if (p_controller->IsConnected())
+                {
+                    if (p_controller->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_A)
+                        break;
+                }
+                else
+                {
+                    char input = _getch();
+                    break;
+                }
+                
+
+            } while (true);
+            
+            // delete controller if it exists
+            if (p_controller)
+            {
+                delete p_controller;
+                p_controller = nullptr;
+            }
+
             p_level->level_paused = false;
         }
         else
@@ -215,6 +246,7 @@ void Game::GetUserInput()
         if (p_controller && !p_controller->IsConnected())
         {
             delete p_controller;
+            p_controller = nullptr;
             p_controller = new CXBOXController(1);
         }
 
@@ -286,38 +318,13 @@ void Game::GetUserInput()
         
     } while (!p_level->is_complete && !game_over);
 
-    /*
-    These are the buttons and controls of the xbox controller
-    https://docs.microsoft.com/en-us/windows/win32/api/xinput/ns-xinput-xinput_gamepad?redirectedfrom=MSDN
-    
-    XINPUT_GAMEPAD_DPAD_UP          0x00000001
-    XINPUT_GAMEPAD_DPAD_DOWN        0x00000002
-    XINPUT_GAMEPAD_DPAD_LEFT        0x00000004
-    XINPUT_GAMEPAD_DPAD_RIGHT       0x00000008
-    XINPUT_GAMEPAD_START            0x00000010
-    XINPUT_GAMEPAD_BACK             0x00000020
-    XINPUT_GAMEPAD_LEFT_THUMB       0x00000040
-    XINPUT_GAMEPAD_RIGHT_THUMB      0x00000080
-    XINPUT_GAMEPAD_LEFT_SHOULDER    0x0100
-    XINPUT_GAMEPAD_RIGHT_SHOULDER   0x0200
-    XINPUT_GAMEPAD_A                0x1000
-    XINPUT_GAMEPAD_B                0x2000
-    XINPUT_GAMEPAD_X                0x4000
-    XINPUT_GAMEPAD_Y                0x8000
+    // delete controller if it exists
+    if (p_controller)
+    {
+        delete p_controller;
+        p_controller = nullptr;
+    }
 
-    sThumbLX
-    Left thumbstick x-axis value. Each of the thumbstick axis members is a signed value between -32768 and 32767 describing the position of the thumbstick. A value of 0 is centered. Negative values signify down or to the left. Positive values signify up or to the right. The constants XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE or XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE can be used as a positive and negative value to filter a thumbstick input.
-
-    sThumbLY
-    Left thumbstick y-axis value. The value is between -32768 and 32767.
-
-    sThumbRX
-    Right thumbstick x-axis value. The value is between -32768 and 32767.
-
-    sThumbRY
-    Right thumbstick y-axis value. The value is between -32768 and 32767.
-
-    */
 }
 
 void Game::MovePlayer()
@@ -664,29 +671,77 @@ void Game::SetRefreshDelay()
 
 bool Game::NextLevelRestartGame()
 {
+    bool continue_play = true;
+    
     if (game_over)
     {
-
         string format = Utility::Spacer("play again? (y)es (n)o", p_level->cols);
         cout << "\r";
         cout << format;
         cout << "play again? (y)es (n)o";
         cout << format;
-        char input = _getch();
-        if (input == Globals::kNO)
+
+        CXBOXController* p_controller = new CXBOXController(1);
+        
+
+        do
         {
-            Draw::ShowConsoleCursor(false);
-            return false;
-        }
-        else
+            if (!p_controller->IsConnected())
+            {
+                // try to connect again
+                delete p_controller;
+                p_controller = nullptr;
+                p_controller = new CXBOXController(1);
+            }
+
+            if (p_controller->IsConnected())
+            {
+                if (p_controller->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_X)
+                {
+                    Draw::ShowConsoleCursor(false);
+                    continue_play = false;
+                    break;
+                }
+                    
+                if (p_controller->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_A)
+                {
+                    system("cls");
+                    current_scene = 1;
+                    continue_play = true;
+                    break;
+                }
+
+            }
+            else
+            {
+                char input = _getch();
+                if (input == Globals::kNO)
+                {
+                    Draw::ShowConsoleCursor(false);
+                    continue_play = false;
+                    break;
+                }
+                else
+                {
+                    system("cls");
+                    current_scene = 1;
+                    continue_play = true;
+                    break;
+                }
+            }
+
+        } while (true);
+        
+        // delete controller if it exists
+        if (p_controller)
         {
-            system("cls");
-            current_scene = 1;
-            return true;
+            delete p_controller;
+            p_controller = nullptr;
         }
+        
     }
     current_scene++;
-    return true;
+    return continue_play;
 }
 
 
