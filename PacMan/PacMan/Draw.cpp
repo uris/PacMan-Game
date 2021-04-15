@@ -4,6 +4,7 @@
 #include <conio.h>
 #include <iostream> // base input / output
 #include <Windows.h> // used to output colors
+#include "Sound.h"
 
 using namespace std;
 
@@ -155,6 +156,9 @@ string Draw::Credits()
 
     // play intro
     PlaySound(TEXT("sfx_intro.wav"), NULL, SND_FILENAME | SND_SYNC);
+    //Wave intro("sfx_intro.WAV");
+    //intro.play(0);
+
 
     string options[4][2];
     options[0][0] = "#play";
