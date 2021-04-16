@@ -53,17 +53,19 @@ enum class Mode {
 };
 
 enum class Play {
-    MUNCH,
-    EAT_GHOST,
-    INTRO,
-    SIREN,
-    LIFE,
-    INTERMISSION,
-    EAT_FRUIT,
-    DEATH,
-    CREDIT,
-    POWER_UP,
-    NONE
+    MUNCH = 6,
+    LG_MUNCH = 7,
+    EAT_GHOST = 3,
+    INTRO = 5,
+    SIREN = 8,
+    LIFE = 11,
+    INTERMISSION = 4,
+    EAT_FRUIT = 2,
+    DEATH = 1,
+    POWER_UP = 10,
+    BONUS = 0,
+    CREDIT = 12,
+    NONE = -1
 };
 
 enum class Ghosts

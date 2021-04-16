@@ -6,6 +6,7 @@
 #include "Utility.h"
 #include "Draw.h"
 #include "Fruit.h"
+#include "SoundFX.h"
 #include "CXBOXController.h"
 #include <chrono>
 
@@ -41,6 +42,9 @@ class Game
 
         // fruit -- public for class forwarding
         Fruit* p_fruit = nullptr;
+
+        //// pointer to array of sounds stored in memory (faster playback)
+        //SoundFX** p_sounds = nullptr;
         
         // game constructors
         Game();

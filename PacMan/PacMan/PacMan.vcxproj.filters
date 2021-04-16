@@ -63,6 +63,9 @@
     <ClCompile Include="CXBOXController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SoundFX.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Media Include="sfx_bonus.wav">
@@ -151,7 +154,7 @@
     <ClInclude Include="CXBOXController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Sound.h">
+    <ClInclude Include="SoundFX.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

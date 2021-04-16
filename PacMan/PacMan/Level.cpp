@@ -25,6 +25,11 @@ Level::~Level()
         delete[] p_map;
         p_map = nullptr;
     }
+
+    if (p_game)
+    {
+        p_game = nullptr;
+    }
 }
 
 // Public Methods

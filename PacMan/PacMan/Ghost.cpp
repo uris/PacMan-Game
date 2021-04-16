@@ -17,6 +17,14 @@ Ghost::Ghost()
     wait = 15;
 };
 
+Ghost::~Ghost()
+{
+    if (p_game)
+    {
+        p_game = nullptr;
+    }
+}
+
 Ghost::Ghost(Ghosts ghost)
 {
     // todo: adjust roam target dynamically to size of level map

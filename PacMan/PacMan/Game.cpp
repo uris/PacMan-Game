@@ -34,6 +34,20 @@ Game::Game()
     p_fruit = new Fruit;
     p_fruit->SetGameRef(this);
 
+    // create the fx objects and set up sounds in memory
+    /*p_sounds = new SoundFX * [12] {};
+    p_sounds[0] = new SoundFX("sfx_bonus.wav");
+    p_sounds[1] = new SoundFX("sfx_death.wav");
+    p_sounds[2] = new SoundFX("sfx_eatfruit.wav");
+    p_sounds[3] = new SoundFX("sfx_eatghost.wav");
+    p_sounds[4] = new SoundFX("sfx_intermission.wav");
+    p_sounds[5] = new SoundFX("sfx_intro.wav");
+    p_sounds[6] = new SoundFX("sfx_munch.wav");
+    p_sounds[7] = new SoundFX("sfx_munch_lg.wav");
+    p_sounds[8] = new SoundFX("sfx_powerup.wav");
+    p_sounds[9] = new SoundFX("sfx_retreat.wav");
+    p_sounds[10] = new SoundFX("sfx_siren.wav");
+    p_sounds[11] = new SoundFX("sfx_xlife.wav");*/
 
     // get the current resolution and store this
     res = Draw::GetResolution(24);
@@ -65,7 +79,7 @@ Game::~Game()
     if (p_ghosts) {
         for (int i = 0; i < Globals::total_ghosts; i++)
         {
-            delete[] p_ghosts[i];
+            delete p_ghosts[i];
         }
         delete[] p_ghosts;
         p_ghosts = nullptr;
@@ -75,6 +89,20 @@ Game::~Game()
         delete p_controller;
         p_controller = nullptr;
     }
+
+    // delete the sounds array and set to null
+    /*if (p_sounds) {
+        for (int i = 0; i < 12; i++)
+        {
+            if (p_sounds[i])
+            {
+                delete p_sounds[i];
+            }
+  
+        }
+        delete[] p_sounds;
+        p_sounds = nullptr;
+    }*/
 };
  
 //game flow

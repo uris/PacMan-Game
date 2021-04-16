@@ -36,6 +36,7 @@ public:
     // constructors
     Ghost();
     Ghost(Ghosts ghost);
+    ~Ghost();
 
     // methods
     bool PlayerCollision();
