@@ -42,10 +42,10 @@ public:
     // methods
     void SpawnFruit();
     void KillFruit(const bool player_died = false);
-    void MoveFruit(const Direction direction, const char map_content);
+    void MoveFruit(const Direction direction);
     Direction RandomFruitMove();
     int MakeFruitMove();
-    char FruitContentNow(Direction best_move);
+    /*char FruitContentNow(Direction best_move);*/
     void Teleport(Coord& fruit_position, Direction& fruit_direction);
     void CoutFruit();
     void ResetFruit();

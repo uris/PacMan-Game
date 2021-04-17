@@ -38,7 +38,6 @@ void Level::SetupLevel(int& current_scene)
 {
     // reset initial state of key level variables
     level_paused = true;
-    level_paused = true;
     level_mode = Mode::CHASE;
     eaten_pellets = 0;
     eaten_ghosts = 0;
@@ -58,8 +57,6 @@ void Level::SetupLevel(int& current_scene)
 
 void Level::CreateLevelScene(int& current_scene)
 {
-    Utility utility;
-
     // load level info and map from scenes file using games current level
     string map = LoadSceneFromFile("PacMan.scenes", current_scene);
 
@@ -77,8 +74,8 @@ void Level::CreateLevelScene(int& current_scene)
 
     // create dynamic two dimension pointer array to hold map
     Coord size = MapSize(map); // get width and height of the map
-    cols = size.col; // set lsizes in level
-    rows = size.row; // set sizes in level
+    rows = size.row; // set the map size variables for the level
+    cols = size.col; // set the map size variables for the level
 
     char** p_mapArray = new char* [size.row];
     for (int i = 0; i < size.row; i++)
@@ -86,95 +83,82 @@ void Level::CreateLevelScene(int& current_scene)
         p_mapArray[i] = new char[size.col];
     }
 
-    int row = 0, col = 0, index = 0;
-
-    // iterate through the characters of the map string
-    for (string::size_type i = 0; i < map.size(); i++)
+    string::size_type map_index = 0;
+    for (int row = 0; row < rows; row++)
     {
-        row = abs((int)i / size.col);
-        col = size.col - ((((row + 1) * size.col) - (int)i));
-        row == NULL ? row = 0 : row = row; // this fixed it
-
-        // add to dynamic map array
-        p_mapArray[row][col] = map[i];
-
-        // count pellets that determine end game condition
-        if (map[i] == (char)Globals::pellet || map[i] == (char)Globals::powerup)
-            total_pellets++;
-
-        // Set player start to position 'S'
-        if (map[i] == Globals::player_start)
+        for (int col = 0; col < cols; col++)
         {
-            p_game->p_player->SetPositions(row, col);
-        }
+            // add to dynamic map array (will override certain marker chars so do this first)
+            p_mapArray[row][col] = map[map_index];
+            
+            // count pellets if map index is pellet or powerup
+            if (map[map_index] == (char)Globals::pellet || map[map_index] == (char)Globals::powerup)
+                total_pellets++;
+            
+            // Set player spawn if map char index is 'S'
+            if (map[map_index] == Globals::player_start)
+                p_game->p_player->SetPositions(row, col);
 
-        // Set fruit spawn location if char 'F'
-        if (map[i] == Globals::fruit)
-        {
-            fruit_spawn = { row, col };
-            p_game->p_fruit->SetSpawnPosition({ row, col });
-            p_game->p_fruit->SetCurrentPosition({ row, col });
-            p_game->p_fruit->SetPreviousPosition({ row, col });
-            p_mapArray[row][col] = (char)Globals::space;
-        }
-
-        // Set ghost spawn target location
-        if (map[i] == Globals::ghost_spawn_target)
-        {
-            ghost_spawn = { row, col };
-            p_mapArray[row][col] = (char)Globals::space;
-
-            // set ghosts spawn target
-            for (int g = 0; g < Globals::total_ghosts; g++) // loop through ghosts
+            // Set fruit spawn if map char index 'F'
+            if (map[map_index] == Globals::fruit)
             {
-                p_game->p_ghosts[g]->SetSpawnTarget(row, col);
+                p_game->p_fruit->SetPositions(row, col);
+                fruit_spawn = { row, col };
+                p_mapArray[row][col] = (char)Globals::space;
             }
-        }
 
-        // Set Ghost start position
-        int index = -1;
-        switch (map[i])
-        {
-        case Globals::red_ghost:
-            index = 0;
-            break;
-        case Globals::yellow_ghost:
-            index = 1;
-            break;
-        case Globals::blue_ghost:
-            index = 2;
-            break;
-        case Globals::pink_ghost:
-            index = 3;
-            break;
-        }
-        if (index >= 0 && index < 4) {
-            p_game->p_ghosts[index]->SetSpawnPosition(row, col);
-            p_game->p_ghosts[index]->SetCurrentPosition(row, col);
-            p_game->p_ghosts[index]->SetPreviousPosition(row, col);
-        }
+            // Set ghost spawn if map char is '^'
+            if (map[map_index] == Globals::ghost_spawn_target)
+            {
+                ghost_spawn = { row, col };
+                p_mapArray[row][col] = (char)Globals::space;
 
+                // set ghosts spawn target
+                for (int g = 0; g < Globals::total_ghosts; g++) // loop through ghosts
+                {
+                    p_game->p_ghosts[g]->SetSpawnTarget(row, col);
+                }
+            }
 
-        // Set teleport coords for T1 and T2
-        if (map[i] == Globals::teleport) {
-            if (row == 0 || col == 0) {
-                tp_1 = { row, col };
+            // set ghost start spawn if map char is R,Y,B,P
+            if (IsGhost(map[map_index]) != Ghosts::NONE)
+            {
+                p_game->p_ghosts[(int)IsGhost(map[map_index])]->SetPositions(row, col);
+                p_mapArray[row][col] = (char)Globals::space;
             }
-            else {
-                tp_2 = { row, col };
+
+            // Set teleport if map char is T
+            if (map[map_index] == Globals::teleport) {
+                col == 0 ? tp_1 = { row, col } : tp_2 = { row, col };
             }
-            // set teleport direction
-            if (col == 0) {
-                tp_row = true; // teleport across
-            }
-            else if (row == 0) {
-                tp_row = false; // teleport certically
-            }
+
+            // increment the map index
+            map_index++;
         }
     }
 
-    // return map array pointer
+    // push map array to pointer
     p_map = p_mapArray;
+}
+
+Ghosts Level::IsGhost(const char& map_char)
+{
+    switch (map_char)
+    {
+        case char(Globals::red_ghost) :
+            return Ghosts::RED;
+            break;
+        case char(Globals::yellow_ghost) :
+            return Ghosts::YELLOW;
+            break;
+        case char(Globals::blue_ghost) :
+            return Ghosts::BLUE;
+            break;
+        case char(Globals::pink_ghost) :
+            return Ghosts::PINK;
+            break;
+    }
+    return Ghosts::NONE;
 }
 
 string Level::LoadSceneFromFile(string filename, int scene_to_load)
@@ -327,100 +311,13 @@ void Level::DrawLevel()
     // remove cursor from screen to avoid the flicker
     Draw::ShowConsoleCursor(false);
 
-    // set the content of the sqaure the player is moving into - will use this to play the appropriate sound
-    p_game->p_player->SetMovedIntoSquareContents(p_map[p_game->p_player->GetCurrentRow()][p_game->p_player->GetCurrentCol()]);
-
-    int current_pellets = 0; // bug fix - loosing some pellets on map - will need to perma fix but this will do for now
-
-    // set the content of the sqaure the ghosts are currently back to what they moved over (pellet, power up or space)
-    for (int r = 0; r < rows; r++)
-    {
-        for (int c = 0; c < cols; c++)
-        {
-            switch (p_map[r][c])
-            {
-            case Globals::red_ghost:
-                p_map[r][c] = p_game->p_ghosts[0]->GetPreviousSqaureContent();
-                break;
-            case Globals::yellow_ghost:
-                p_map[r][c] = p_game->p_ghosts[1]->GetPreviousSqaureContent();
-                break;
-            case Globals::blue_ghost:
-                p_map[r][c] = p_game->p_ghosts[2]->GetPreviousSqaureContent();
-                break;
-            case Globals::pink_ghost:
-                p_map[r][c] = p_game->p_ghosts[3]->GetPreviousSqaureContent();
-                break;
-            case Globals::fruit:
-                p_map[r][c] = p_game->p_fruit->GetPreviousSqaureContent();
-                break;
-            }
-            
-        }
-    }
-
     // place cursor on top left of console
     Draw::CursorTopLeft(rows + 5); // + 5 for title and status
-
-
-    //**** PLAYER
-    // remove player from map at last position if they are different
-    if (!(p_game->p_player->GetPreviousPosition() == p_game->p_player->GetCurrentPosition()))
-        p_map[p_game->p_player->GetPreviousRow()][p_game->p_player->GetPreviousCol()] = Globals::space;
-
-    // player in tunnel
-    if (p_game->p_player->GetCurrentPosition() == tp_1) {
-        p_map[p_game->p_player->GetCurrentRow()][p_game->p_player->GetCurrentCol()] = Globals::teleport;
-        p_game->p_player->SetCurrentPosition(tp_2);
-    }
-    else if (p_game->p_player->GetCurrentPosition() == tp_2) {
-        p_map[p_game->p_player->GetCurrentRow()][p_game->p_player->GetCurrentCol()] = Globals::teleport;
-        p_game->p_player->SetCurrentPosition(tp_1);
-    }
-
-    //**** FRUIT
-    // remove fruit from map at last position if they are different
-    if (!(p_game->p_fruit->GetPreviousPosition() == p_game->p_fruit->GetCurrentPosition()))
-        p_map[p_game->p_fruit->GetPreviousRow()][p_game->p_fruit->GetPreviousCol()] = Globals::space;
-
-    // fruit in tunnel
-    /*if (p_game->p_fruit->GetCurrentPosition() == tp_1) {
-        p_map[p_game->p_fruit->GetCurrentRow()][p_game->p_fruit->GetCurrentCol()] = Globals::teleport;
-        p_game->p_fruit->SetCurrentPosition(tp_2);
-    }
-    else if (p_game->p_fruit->GetCurrentPosition() == tp_2) {
-        p_map[p_game->p_fruit->GetCurrentRow()][p_game->p_fruit->GetCurrentCol()] = Globals::teleport;
-        p_game->p_fruit->SetCurrentPosition(tp_1);
-    }*/
-
-    //**** GHOSTS
-    for (int g = 0; g < Globals::total_ghosts; g++) // loop through ghots
-    {
-        // remove ghosts from map at last position if they are different
-        if (p_game->p_ghosts[g]->GetPreviousPosition() == p_game->p_ghosts[g]->GetCurrentPosition())
-            p_map[p_game->p_ghosts[g]->GetPreviousRow()][p_game->p_ghosts[g]->GetPreviousCol()] = Globals::space;
-
-        // ghost in tunnel
-        if (!p_game->p_ghosts[g]->SkipTurn())
-        {
-            if (p_game->p_ghosts[g]->GetCurrentPosition() == tp_1) {
-                p_map[p_game->p_ghosts[g]->GetCurrentRow()][p_game->p_ghosts[g]->GetCurrentCol()] = Globals::teleport;
-                p_game->p_ghosts[g]->SetCurrentPosition(tp_2);
-            }
-            else if (p_game->p_ghosts[g]->GetCurrentPosition() == tp_2) {
-                p_map[p_game->p_ghosts[g]->GetCurrentRow()][p_game->p_ghosts[g]->GetCurrentCol()] = Globals::teleport;
-                p_game->p_ghosts[g]->SetCurrentPosition(tp_1);
-            }
-        }
-
-    }
-
 
     // Level Title
     string format = "";
     Draw::SetColor(Globals::cWHITE);
     cout << endl;
-
 
     Draw::SetColor(Globals::cPELLETS);
     format = Utility::Spacer("[{}", cols);
@@ -444,36 +341,49 @@ void Level::DrawLevel()
         for (int c = 0; c < cols; c++)
         {
 
-            // position fruit
-            if (p_game->p_fruit->FruitActive())
-            {
-                if (p_game->p_fruit->GetCurrentPosition() == Coord(r, c))
-                    p_map[r][c] = Globals::fruit;
-
-                // put back the content of the square the fruit was last at
-                if (p_game->p_fruit->GetPreviousPosition() == Coord(r, c))
-                    p_map[r][c] = p_game->p_fruit->GetPreviousSqaureContent();
-            }
-
-            // position the ghosts
-            for (int g = 0; g < Globals::total_ghosts; g++) // loop through ghots
-            {
-                // position ghost
-                if (p_game->p_ghosts[g]->GetCurrentPosition() == Coord(r, c))
-                    p_map[r][c] = p_game->p_ghosts[g]->GhostChar();
-
-                // if the ghost moved from the last position
-                if (!(p_game->p_ghosts[g]->GetPreviousPosition() == p_game->p_ghosts[g]->GetCurrentPosition()))
-                {
-                    // put back the content of the square the ghost was last at
-                    if (p_game->p_ghosts[g]->GetPreviousPosition() == Coord(r, c))
-                        p_map[r][c] = p_game->p_ghosts[g]->GetPreviousSqaureContent();
-                }
-            }
-
+            // ! - ordrer is important so player is on top always, followed by ghosts followed by fruit
+            
             // position player
             if (p_game->p_player->GetCurrentPosition() == Coord(r, c))
-                p_map[r][c] = Globals::player;
+            {
+                p_game->p_player->CoutPlayer();
+                continue;
+            }
+
+            // if ghosts in position, cout the ghost - R
+            if (p_game->p_ghosts[0]->GetCurrentPosition() == Coord(r, c))
+            {
+                p_game->p_ghosts[0]->CoutGhost();
+                continue;
+            }
+
+            // if ghosts in position, cout the ghost - Y
+            if (p_game->p_ghosts[1]->GetCurrentPosition() == Coord(r, c))
+            {
+                p_game->p_ghosts[1]->CoutGhost();
+                continue;
+            }
+
+            // if ghosts in position, cout the ghost - B
+            if (p_game->p_ghosts[2]->GetCurrentPosition() == Coord(r, c))
+            {
+                p_game->p_ghosts[2]->CoutGhost();
+                continue;
+            }
+
+            // if ghosts in position, cout the ghost - P
+            if (p_game->p_ghosts[3]->GetCurrentPosition() == Coord(r, c))
+            {
+                p_game->p_ghosts[3]->CoutGhost();
+                continue;
+            }
+
+            // if fruit in position, cout the fruit
+            if (p_game->p_fruit->FruitActive() && p_game->p_fruit->GetCurrentPosition() == Coord(r, c))
+            {
+                p_game->p_fruit->CoutFruit();
+                continue;
+            }
 
             // set color of map content at this position
             switch (p_map[r][c])
@@ -528,7 +438,6 @@ void Level::DrawLevel()
             //pellets             
             case '.':
             case (char)Globals::pellet:
-                current_pellets++;
                 Draw::SetColor(Globals::cPELLETS);
                 cout << (char)Globals::pellet;
                 break;
@@ -537,7 +446,6 @@ void Level::DrawLevel()
             case 'o':
             case (char)Globals::powerup:
                 Draw::SetColor(Globals::cPELLETS);
-                current_pellets++;
                 cout << (char)Globals::powerup;
                 break;
 
@@ -548,30 +456,6 @@ void Level::DrawLevel()
             case Globals::one_way: // $ = one way door for ghost spawn area
                 Draw::SetColor(Globals::cINVISIBLE); // black on black = not visible
                 cout << p_map[r][c];
-                break;
-
-            case Globals::player: // player
-                p_game->p_player->CoutPlayer();
-                break;
-
-            case Globals::pink_ghost: // blue ghost
-                p_game->p_ghosts[3]->CoutGhost();
-                break;
-
-            case Globals::yellow_ghost: // yellow ghost
-                p_game->p_ghosts[1]->CoutGhost();
-                break;
-
-            case Globals::blue_ghost: // green ghost
-                p_game->p_ghosts[2]->CoutGhost();
-                break;
-
-            case Globals::red_ghost: // red ghost
-                p_game->p_ghosts[0]->CoutGhost();
-                break;
-
-            case Globals::fruit: // fruit
-                p_game->p_fruit->CoutFruit();
                 break;
 
             default:
@@ -586,9 +470,6 @@ void Level::DrawLevel()
         // end of row ad line feed
         cout << endl;
     }
-
-    // BUG FIX - brute force - need to look at why we are dropping a few pellets
-    eaten_pellets = eaten_pellets + (total_pellets - eaten_pellets - current_pellets);
 
 }
 

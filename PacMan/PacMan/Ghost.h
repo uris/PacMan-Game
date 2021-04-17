@@ -41,11 +41,10 @@ public:
     // methods
     bool PlayerCollision();
     void DecreaseWait();
-    void MoveGhost(const Direction direction, const char map_content);
+    void MoveGhost(const Direction direction);
     int MakeGhostMove();
     int GetBestMove(Coord current_position, Direction current_direction, int depth);
     Direction RandomGhostMove();
-    char GhostContentNow(Direction best_move);
     void Teleport(Coord& ghost_position, Direction& ghost_direction);
     void CoutGhost();
 
@@ -53,8 +52,6 @@ public:
     Coord GetChaseModifier();
     Coord GetRoamTarget();
     Ghosts Name();
-    char GetPreviousSqaureContent();
-    char GetContentCurrent();
     Mode GetMode();
     bool IsEdible();
     bool FlashBlue();
@@ -67,9 +64,6 @@ public:
     bool GameRefIsSet();
 
     // Setters
-    void SetPreviousSqaureContent(char content);
-    void SetContentCurrent(char content);
-    void SetContentCurrent(bool same);
     void SetMode(Mode mode);
     void SetEdible(bool edible);
     void SetFlashBlue(bool flash);

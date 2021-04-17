@@ -21,6 +21,7 @@ class Game
 
     // Game level
     int current_scene = 1;
+    bool player_died = 0;
     Resolution res = Resolution::NORMAL;
 
     //SFX
@@ -56,14 +57,14 @@ class Game
         void RunGame();
         void SetupGame();
         void MovePlayer();
-        void MoveGhosts();
+        void MoveGhostsAndFruit();
         bool NextLevelRestartGame();
         void PrintStatusBar();
         void DrawLevel();
         bool IsGameOver();
         
         // game orchestration methods
-        void CheckCollisions();
+        bool CheckCollisions();
         void CheckLevelComplete();
         void NextScene();
         void GetUserInput();

@@ -50,6 +50,7 @@ public:
     bool NotWall(const Coord& move, const Direction& direction);
     void CheckLevelComplete();
     bool IsTeleport(const Coord& move);
+    Ghosts IsGhost(const char& map_char);
     Fruits GetFruitType(const string fruit);
 
     // getters

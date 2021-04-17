@@ -93,8 +93,7 @@ int Ghost::MakeGhostMove()
     if (mode == Mode::RUN) // make random moves truning opposite direction on first move
     {
         best_move = RandomGhostMove(); // get the random move
-        char map_content = GhostContentNow(best_move);
-        MoveGhost(best_move, map_content); // make the move
+        MoveGhost(best_move); // make the move
         return 0;
     }
 
@@ -111,7 +110,7 @@ int Ghost::MakeGhostMove()
         {
             
             new_direction = static_cast<Direction>(i); // set the direction we will get best move for
-            next_move.SetTo(current_position, new_direction);
+            next_move = current_position + new_direction;
 
             if (p_game->p_level->NotWall(next_move, new_direction) && !IsReverseDirection(new_direction)) // check for next available square
             {
@@ -134,8 +133,7 @@ int Ghost::MakeGhostMove()
             }
         }
 
-        char map_content = GhostContentNow(best_move); // if the content is a ghosts set the contnet value of the gohst to the other ghosts content
-        MoveGhost(best_move, map_content); // do the move
+        MoveGhost(best_move); // do the move
         return 0;
     }
     return 0; // clean exit
@@ -179,7 +177,7 @@ int Ghost::GetBestMove(Coord current_position, Direction current_direction, int 
     for (int i = 0; i <= 3; i++) // cycle through each next possible move up, down, left, right
     {
         new_direction = static_cast<Direction>(i); // cast index to direction up, down, left, right
-        next_move.SetTo(current_position, new_direction);
+        next_move = current_position + new_direction;
 
         if (p_game->p_level->NotWall(next_move, new_direction) && !IsReverseDirection(new_direction)) // check if the direction is valid i.e not wall or reverse
         {
@@ -217,6 +215,9 @@ void Ghost::Teleport(Coord& ghost_position, Direction& ghost_direction)
 
 Direction Ghost::RandomGhostMove()
 {
+    // Do teleport if on teleport
+    Teleport(current_position, current_direction);
+    
     Direction new_direction = Direction::NONE;
     Coord next_move;
 
@@ -244,52 +245,23 @@ Direction Ghost::RandomGhostMove()
     int unsigned seed = (int)(std::chrono::system_clock::now().time_since_epoch().count());
     srand(seed);
 
-    if (p_game->p_level->IsTeleport(current_position)) // if on teleportkeep the same direction
-        current_direction == Direction::LEFT ? new_direction = Direction::LEFT : new_direction = Direction::RIGHT;
-    else // else choose a valid random direction
-    {
+    //if (p_game->p_level->IsTeleport(current_position)) // if on teleportkeep the same direction
+    //    current_direction == Direction::LEFT ? new_direction = Direction::LEFT : new_direction = Direction::RIGHT;
+    //else // else choose a valid random direction
+    //{
         do
         {
             int random_number = rand() % 4; //generate random number to select from the 4 possible options
             new_direction = static_cast<Direction>(random_number);
             next_move.SetTo(current_position, new_direction);
         } while (!p_game->p_level->NotWall(next_move, new_direction) || IsReverseDirection(new_direction));
-    }
+    /*}*/
     return new_direction;
 }
 
-char Ghost::GhostContentNow(Direction best_move)
-{
-    Coord move_into(current_position, best_move);
-    char map_content = p_game->p_level->p_map[move_into.row][move_into.col];
-    switch (map_content)
-    {
-    case Globals::red_ghost:
-        return p_game->p_ghosts[0]->GetContentCurrent();
-        break;
-    case Globals::yellow_ghost:
-        return p_game->p_ghosts[1]->GetContentCurrent();
-        break;
-    case Globals::blue_ghost:
-        return p_game->p_ghosts[2]->GetContentCurrent();
-        break;
-    case Globals::pink_ghost:
-        return p_game->p_ghosts[3]->GetContentCurrent();
-        break;
-    case Globals::player:
-        return p_game->p_player->GetMovedIntoSquareContents();
-        break;
-    default:
-        return map_content;
-        break;
-    }
-}
-
-void Ghost::MoveGhost(const Direction direction, const char map_content)
+void Ghost::MoveGhost(const Direction direction)
 {
     previous_position = current_position;
-    square_content_prior = square_content_now;
-    square_content_now = map_content;
     
     switch (direction)
     {
@@ -312,12 +284,6 @@ void Ghost::MoveGhost(const Direction direction, const char map_content)
     default:
         break;
     }
-
-    // if the sqaure the ghost moved into is the player
-    square_content_prior == Globals::player ? square_content_prior = ' ' : square_content_prior;
-
-    // if the mosnter is over the player save a blank space to buffer
-    PlayerCollision() ? square_content_now = ' ' : square_content_now;
 
 }
 
@@ -348,32 +314,6 @@ void Ghost::SetGameRef(Game* p_game)
         roam_target = { p_game->p_level->rows + 3, p_game->p_level->cols - 2 };
         break;
     }
-}
-
-// encapsulation
-char Ghost::GetPreviousSqaureContent()
-{
-    return square_content_prior;
-}
-
-void Ghost::SetPreviousSqaureContent(char content)
-{
-    square_content_prior = content;
-}
-
-char Ghost::GetContentCurrent()
-{
-    return square_content_now;
-}
-
-void Ghost::SetContentCurrent(char content)
-{
-    square_content_now = content;
-}
-
-void Ghost::SetContentCurrent(bool same)
-{
-    square_content_now = square_content_now;
 }
 
 Mode Ghost::GetMode()
@@ -463,10 +403,8 @@ void Ghost::SpawnGhost(Ghosts name, bool player_died)
         break;
     }
     
-    previous_position = current_position;
+    previous_position = spawn_position;
     current_position = spawn_position;
-    square_content_now = ' ';
-    square_content_prior = ' ';
     current_direction = Direction::UP;
     previous_direction = Direction::UP;
     mode = Mode::SPAWN;

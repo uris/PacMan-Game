@@ -12,7 +12,6 @@ class Player : public Character
     class Game* p_game = nullptr; // fwd declare class
 
 private:
-    bool is_super = false;
     int lives = 3;
     int score = 0;
     bool ghosts_eaten[4] = { false, false, false, false };
@@ -47,11 +46,11 @@ public:
     void DeathAnimate(int g);
     void EatGhostAnimate(int g, bool life);
     void IncrementScore(const Object object_eaten);
+    void UpdateMapAfterMove();
 
     // getters
     char GetMovedIntoSquareContents();
     int Lives();
-    void PowerUp(bool powerup);
     int GetScore();
     Coord GetCurrentPosition();
     bool GameRefIsSet();
@@ -62,7 +61,6 @@ public:
     // setters
     void SetLives();
     void SetLives(int number);
-    void SetMovedIntoSquareContents(char ascii);
     void SetGameRef(Game* p_game);
     void SetDeathAnimation(const bool die_animation);
     void SetEatGhostAnimate(const bool eat_ghost_animation);

@@ -24,9 +24,8 @@ void Player::TakeLives(int number)
 
 void Player::ReSpawn()
 {
-	//previous_position = current_position;
+	previous_position = spawn_position;
 	current_position = spawn_position;
-	bool is_super = false;
 	current_direction = Direction::LEFT;
 	previous_direction = Direction::LEFT;
 }
@@ -81,43 +80,56 @@ bool Player::HasNoLives()
 
 void Player::MovePlayer()
 {
+	// if the players current position is a teleport, do the teleport before calcing move
+	if (current_position == p_game->p_level->tp_1) {
+		current_position = p_game->p_level->tp_2;
+	}
+	else if (current_position == p_game->p_level->tp_2) {
+		current_position = p_game->p_level->tp_1;
+	}
+		
+	// set the prvious potisiton to the current position as we will move out of the current position
 	previous_position = current_position;
-	Coord next_position(current_position, previous_direction);
 
+	// assume the new position will move in the same direction as what was the previous direction
+	Coord next_position = current_position + previous_direction;
+
+	// if the user pressed a new direction key, we now need to process this new direction (which is the current direction)
 	switch (current_direction)
 	{
-	case Direction::UP: //up
-		if (p_game->p_level->NotWall({ current_position.row - 1, current_position.col }, Direction::UP)) {
-			next_position.SetTo(current_position, Direction::UP);
-			previous_direction = Direction::UP;
+	case Direction::UP: // if up
+		if (p_game->p_level->NotWall(current_position + Direction::UP, Direction::UP)) { // and player can move into that position
+			next_position = current_position + Direction::UP; // set the new position to moveing in that direction
+			previous_direction = Direction::UP; // and now set the previous direction to the same as the current direction
 		}
 		break;
 	case Direction::RIGHT: // right
-		if (p_game->p_level->NotWall({ current_position.row, current_position.col + 1 }, Direction::RIGHT)) {
-			next_position.SetTo(current_position, Direction::RIGHT);
+		if (p_game->p_level->NotWall(current_position + Direction::RIGHT, Direction::RIGHT)) {
+			next_position = current_position + Direction::RIGHT;
 			previous_direction = Direction::RIGHT;
 		}
 		break;
 	case Direction::DOWN: // down
-		if (p_game->p_level->NotWall({ current_position.row + 1, current_position.col }, Direction::DOWN)) {
-			next_position.SetTo(current_position, Direction::DOWN);
+		if (p_game->p_level->NotWall(current_position + Direction::DOWN, Direction::DOWN)) {
+			next_position = current_position + Direction::DOWN;
 			previous_direction = Direction::DOWN;
 		}
 		break;
 	case Direction::LEFT: // left
-		if (p_game->p_level->NotWall({ current_position.row, current_position.col - 1}, Direction::LEFT)) {
-			next_position.SetTo(current_position, Direction::LEFT);
+		if (p_game->p_level->NotWall(current_position + Direction::LEFT, Direction::LEFT)) {
+			next_position = current_position + Direction::LEFT;
 			previous_direction = Direction::LEFT;
 		}
 		break;
 	}
 
-	// if the player was unable to do the move then keep going until it hits a wall
+	// since we have updated tje previous direciton to the user selcted new direction if possible
+	// if the player is unable to move in the previous direction (which is the new direction now)
 	switch (previous_direction)
 	{
-	case Direction::UP:
-		if (!p_game->p_level->NotWall({ current_position.row - 1, current_position.col }, Direction::UP))
-			next_position = current_position;
+	case Direction::UP: // previous/current direction is up
+		if (!p_game->p_level->NotWall({ current_position.row - 1, current_position.col }, Direction::UP)) // if player bumps into a wall
+			next_position = current_position; // the next position is the same as current position (ie the player does not move)
 		break;
 	case Direction::RIGHT:
 		if (!p_game->p_level->NotWall({ current_position.row, current_position.col + 1}, Direction::RIGHT))
@@ -133,8 +145,14 @@ void Player::MovePlayer()
 		break;
 	}
 
-	// move the player
+	// set the player curretn position to the next poition
 	current_position = next_position;
+
+}
+
+void Player::UpdateMapAfterMove()
+{
+	p_game->p_level->p_map[previous_position.row][previous_position.col] = char(Globals::space);
 }
 
 bool Player::PlayerGhostCollision(int ghost_index)
@@ -243,11 +261,6 @@ int Player::Lives()
 	return(lives);
 }
 
-void Player::PowerUp(bool powerup)
-{
-	is_super = powerup;
-}
-
 int Player::GetScore()
 {
 	return(score);
@@ -255,7 +268,7 @@ int Player::GetScore()
 
 char Player::GetMovedIntoSquareContents()
 {
-	return player_move_content;
+	return p_game->p_level->p_map[current_position.row][current_position.col];
 }
 
 Coord Player::GetCurrentPosition()
@@ -280,11 +293,6 @@ void Player::SetLives(int number)
 	lives = number;
 }
 
-void Player::SetMovedIntoSquareContents(char ascii)
-{
-	player_move_content = ascii;
-}
-
 void Player::SetGameRef(Game* p_game)
 {
 	this->p_game = p_game;
@@ -299,10 +307,6 @@ void Player::DeathAnimate(int g)
 	}
 	die_animation = false;
 	chomp = false;
-	previous_direction = Direction::LEFT;
-	current_direction = Direction::LEFT;
-	p_game->p_level->DrawLevel(); //draw level directly bypassing all movement, etc..
-	p_game->p_level->p_map[current_position.row][current_position.col] = p_game->p_ghosts[g]->GhostChar();
 }
 
 void Player::EatGhostAnimate(int g, bool xtra_life)
@@ -340,7 +344,6 @@ bool Player::GetDieAnimate()
 
 void Player::AddEatenFruit(const Fruits fruit)
 {
-	IncrementScore(Object::FRUIT);
 	switch (fruit)
 	{
 	case Fruits::CHERRY:
@@ -402,12 +405,15 @@ void Player::IncrementScore(const Object object_eaten)
 	{
 	case Object::FRUIT:
 		score += p_game->p_level->fruit_points;
+		AddEatenFruit(p_game->p_fruit->FruitType());
 		break;
 	case Object::PELLET:
 		score += p_game->p_level->points_pellet;
+		p_game->p_level->eaten_pellets++;
 		break;
 	case Object::POWERUP:
 		score += p_game->p_level->points_pellet;
+		p_game->p_level->eaten_pellets++;
 		break;
 	case Object::GHOST:
 		score += p_game->p_level->points_ghost;
