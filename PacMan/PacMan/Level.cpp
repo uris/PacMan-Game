@@ -26,6 +26,16 @@ Level::~Level()
         p_map = nullptr;
     }
 
+    // deallocate the dynamic teleport array
+    if (p_teleports)
+    {
+        for (int i = 0; i < number_teleports; i++) {
+            delete[] p_teleports[i];
+        }
+        delete[] p_teleports;
+        p_teleports = nullptr;
+    }
+
     if (p_game)
     {
         p_game = nullptr;
@@ -60,12 +70,8 @@ int Level::CreateLevelScene(int& current_scene)
 
     // if the string return "false" then you've reached the end of the game
     if (map == "false") {
-        // there is no more levels
+        // there is no more level and you have reachd the end of the game
         return -1;
-       /* system("cls");
-        cout << "You beat the PC! Good for you" << endl;
-        system("pause");
-        exit(0);*/
     }
 
     // parse through string to replace pellt and powerup markers to their ascii code
@@ -81,6 +87,20 @@ int Level::CreateLevelScene(int& current_scene)
     for (int i = 0; i < size.row; i++)
     {
         p_mapArray[i] = new char[size.col];
+    }
+
+    // create the dynamic array of teleports in the scene (will push tepeports into this)
+    Coord** p_level_tps = nullptr;
+    int teleports = NumberTeleports(map);
+    int tp_index = 0;
+    if (teleports > 0)
+    {
+        number_teleports = teleports;
+        p_level_tps = new Coord * [teleports];
+        for (int i = 0; i < teleports; i++)
+        {
+            p_level_tps[i] = new Coord[2];
+        }
     }
 
     string::size_type map_index = 0;
@@ -128,8 +148,24 @@ int Level::CreateLevelScene(int& current_scene)
             }
 
             // Set teleport if map char is T
-            if (map[map_index] == Globals::teleport) {
+            /*if (map[map_index] == Globals::teleport) {
                 col == 0 ? tp_1 = { row, col } : tp_2 = { row, col };
+            }*/
+            if (map[map_index] == Globals::teleport && p_level_tps) {
+
+                // check to make sure the tp index is in boundas of the tp array
+                if (tp_index >= 0 && tp_index < teleports)
+                {
+                    if (col == 0) // the first teleport pad
+                    {
+                        p_level_tps[tp_index][0] = { row, col };
+                    }
+                    else if (col = cols -1) // the corresponding second second
+                    {
+                        p_level_tps[tp_index][1] = { row, col };
+                        tp_index++;
+                    }
+                }
             }
 
             // increment the map index
@@ -143,8 +179,9 @@ int Level::CreateLevelScene(int& current_scene)
     p_game->p_ghosts[2]->SetRoamTarget({ -3, 3 });
     p_game->p_ghosts[3]->SetRoamTarget({ -3 , cols - 3 });
 
-    // push map array to pointer
+    // push map array and telerpot arrays to their level pointer
     p_map = p_mapArray;
+    p_teleports = p_level_tps;
 
     // clean
     return 1;
@@ -310,6 +347,25 @@ Coord Level::MapSize(const string& map)
         }
     }
     return { (int)rows, (int)cols };
+}
+
+int Level::NumberTeleports(const string& map)
+{
+    size_t teleports = 0;
+    size_t start_pos = 0;
+
+    while ((start_pos = map.find(Globals::teleport, start_pos)) != std::string::npos) {
+        teleports++;
+        start_pos += 1;
+    }
+
+    float tps = teleports / 2.0f;
+    if ((int)tps == tps)
+    {
+        return (int)tps;
+    }
+
+    return -1;
 }
 
 void Level::DrawLevel()

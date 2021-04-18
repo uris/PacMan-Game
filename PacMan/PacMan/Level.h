@@ -16,13 +16,14 @@ public:
 
     // level map and scene
     char** p_map = nullptr;
-    Coord** p_teleport = nullptr;
+    Coord** p_teleports = nullptr;
     bool level_paused = true;
 
     // level stats
     int eaten_pellets = 0; // pellets consumed
     int all_eaten_ghosts = 0; // pellets consumed
     bool is_complete = false;
+    int number_teleports = 0;
 
     // Manange modes
     // bool ghosts_in_a_row[4]{false,false,false,false};
@@ -53,6 +54,7 @@ public:
     Ghosts IsGhost(const char& map_char);
     Fruits GetFruitType(const string fruit);
     void ResetLevel();
+    int NumberTeleports(const string& map);
 
     // getters
     bool GameRefIsSet();

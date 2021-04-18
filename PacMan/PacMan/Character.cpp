@@ -120,29 +120,42 @@ void Character::SetPreviousPosition(int row, int col)
 
 void Character::Teleport()
 {
-	
-	if (current_position == p_game->p_level->tp_1)
+	for (int i = 0; i < p_game->p_level->number_teleports; i++)
 	{
-		current_position = p_game->p_level->tp_2;
-	}
-	else if (current_position == p_game->p_level->tp_2)
-	{
-		current_position = p_game->p_level->tp_1;
+		if (current_position == p_game->p_level->p_teleports[i][0])
+		{
+			current_position = p_game->p_level->p_teleports[i][1];
+		}
+		else if (current_position == p_game->p_level->p_teleports[i][1])
+		{
+			current_position = p_game->p_level->p_teleports[i][0];
+		}
 	}
 }
 
 // use this for AI teleport since we're not using simulated current position of the character
 void Character::Teleport(Coord& new_position)
 {
+	for (int i = 0; i < p_game->p_level->number_teleports; i++)
+	{
+		if (new_position == p_game->p_level->p_teleports[i][0])
+		{
+			new_position = p_game->p_level->p_teleports[i][1];
+		}
+		else if (new_position == p_game->p_level->p_teleports[i][1])
+		{
+			new_position = p_game->p_level->p_teleports[i][0];
+		}
+	}
 
-	if (new_position == p_game->p_level->tp_1)
-	{
-		new_position = p_game->p_level->tp_2;
-	}
-	else if (new_position == p_game->p_level->tp_2)
-	{
-		new_position = p_game->p_level->tp_1;
-	}
+	//if (new_position == p_game->p_level->tp_1)
+	//{
+	//	new_position = p_game->p_level->tp_2;
+	//}
+	//else if (new_position == p_game->p_level->tp_2)
+	//{
+	//	new_position = p_game->p_level->tp_1;
+	//}
 }
 
 Direction Character::RandomMove(const bool is_ghost)

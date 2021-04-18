@@ -862,7 +862,7 @@ bool Scene::PenIsValid(char pen)
     switch (pen)
     {
     case 'T':
-        max_count = 2;
+        max_count = rows - 2; // cannot use corners for teleport
         break;
     case 'S':
     case '^':
@@ -1065,7 +1065,7 @@ bool Scene::ValiditeScene()
 {
         
     int teleport = 0, player_start = 0, ghost_spawn_target = 0, scene_fruit = 0;
-    bool no_dead_ends = true, has_outer_walls = true, all_pellets_reacheable, is_valid_scene = true;
+    bool no_dead_ends = true, has_outer_walls = true, all_pellets_reacheable, is_valid_scene = true, teleports_ok = true;
     scene_errors = "";
 
     for (int row = 0; row < rows; row++)
@@ -1075,7 +1075,9 @@ bool Scene::ValiditeScene()
             // do counts
             switch (p_map[row][col])
             {
-            case char(Globals::teleport):
+                case char(Globals::teleport) :
+                if (col > 0  && col < cols - 1)
+                    teleports_ok = false;
                 teleport++;
                 break;
             case char(Globals::player_start):
@@ -1107,13 +1109,21 @@ bool Scene::ValiditeScene()
         }
     }
 
-     if (teleport > 2 || teleport < 2)
+     if (teleport % 2 != 0)
     {
-        scene_errors = "You need one pair of teleports\n";
+        scene_errors = "You need pairs of teleports\n";
         is_valid_scene = false;
         error_count++;
         return false;
     }
+
+     if (!teleports_ok)
+     {
+         scene_errors = "Place teleports on side walls\n";
+         is_valid_scene = false;
+         error_count++;
+         return false;
+     }
 
     if (player_start > 1 || player_start < 1)
     {
