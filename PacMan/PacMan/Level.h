@@ -41,8 +41,8 @@ public:
     ~Level();
 
 	// methods
-    void SetupLevel(int& current_scene);
-    void CreateLevelScene(int& current_scene);
+    int SetupLevel(int& current_scene);
+    int CreateLevelScene(int& current_scene);
     string LoadSceneFromFile(string filename, int scene_to_load);
     Coord MapSize(const string& map);
     void DrawLevel();

@@ -51,7 +51,6 @@ void Player::EatGhost(char character)
 	case 'P':
 		ghosts_eaten[3];
 		break;
-
 	}
 }
 

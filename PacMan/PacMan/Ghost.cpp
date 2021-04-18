@@ -78,6 +78,7 @@ bool Ghost::PlayerCollision()
 
 int Ghost::MakeGhostMove()
 {
+    
     Direction best_move = Direction::NONE; // will store the next move
     
     if (skip_turn || p_game->IsGameOver() || PlayerCollision())
@@ -93,6 +94,8 @@ int Ghost::MakeGhostMove()
 
     if (mode == Mode::RUN) // make random moves truning opposite direction on first move
     {
+        // Do teleport if on teleport position
+        Teleport();
         best_move = RandomMove(true); // get the random move
         MoveGhost(best_move); // make the move
         return 0;
@@ -100,12 +103,12 @@ int Ghost::MakeGhostMove()
 
     if (mode != Mode::RUN)  // run recursive AI for chase, roam and spawn modes 
     {
+        // Do teleport if on teleport position
+        Teleport();
+
         int score = 0, best_score = 1000;
         Coord next_move, prior_position;
         Direction new_direction = Direction::NONE;
-
-        // Do teleport if on teleport
-        Teleport();
 
         for (int i = 0; i <= 3; i++) // cycle through up,down,left,right to find the valid best next move
         {
@@ -236,24 +239,6 @@ bool Ghost::GameRefIsSet()
 void Ghost::SetGameRef(Game* p_game)
 {
     this->p_game = p_game;
-    switch (name)
-    {
-    case Ghosts::RED:
-        roam_target = { p_game->p_level->rows + 3, p_game->p_level->cols - 3 };
-        break;
-    case Ghosts::YELLOW:
-        roam_target = { p_game->p_level->rows + 3, 3 };
-        break;
-    case Ghosts::BLUE:
-        roam_target = { -3, 3 };
-        break;
-    case Ghosts::PINK:
-        roam_target = { -3 , p_game->p_level->cols - 3 };
-        break;
-    default:
-        roam_target = { p_game->p_level->rows + 3, p_game->p_level->cols - 2 };
-        break;
-    }
 }
 
 Mode Ghost::GetMode()
@@ -388,6 +373,11 @@ Coord Ghost::GetChaseModifier()
 Coord Ghost::GetRoamTarget()
 {
     return roam_target;
+}
+
+void Ghost::SetRoamTarget(Coord roam_target)
+{
+    this->roam_target = roam_target;
 }
 
 Ghosts Ghost::Name()

@@ -147,9 +147,7 @@ void Character::Teleport(Coord& new_position)
 
 Direction Character::RandomMove(const bool is_ghost)
 {
-	// Do teleport if on teleport position
-	Teleport();
-
+	
 	Direction new_direction = Direction::NONE;
 	Coord next_move;
 

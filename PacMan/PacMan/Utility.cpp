@@ -36,6 +36,15 @@ void Utility::ReplaceString(string& text, const string from, const char to)
     }
 }
 
+void Utility::ReplaceString(string& text, const string from, const string to)
+{
+    size_t start_pos = 0;
+    while ((start_pos = text.find(from, start_pos)) != std::string::npos) {
+        text.replace(start_pos, from.length(), to);
+        start_pos += to.length(); // ...
+    }
+}
+
 void Utility::ReplaceString(string& text, const char from, const char to)
 {
     size_t start_pos = 0;

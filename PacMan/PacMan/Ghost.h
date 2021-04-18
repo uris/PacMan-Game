@@ -59,6 +59,7 @@ public:
     void SetFlashBlue(bool flash);
     void SetColor(int color);
     void SetWait(int wait);
+    void SetRoamTarget(Coord roam_target);
     void SetSkipTurn(bool skip_turn);
     void SpawnGhost(Ghosts name, bool player_died);
     void SetSpawnTarget(Coord spawn_target);

@@ -142,9 +142,8 @@ int Fruit::MakeFruitMove()
     // if it's roaming randomly ie has not hit the max random moves
     if (move_count < max_moves) // make random moves for max moves number of times
     {
-        // Do teleport if on teleport
+        // Do teleport if on teleport position
         Teleport();
-        
         best_move = RandomMove(false); // get the random move
         MoveFruit(best_move); // make the move
         move_count++;
@@ -152,14 +151,14 @@ int Fruit::MakeFruitMove()
         return 0;
     }
 
-    if (!skip_turn)  // run recursive AI for getting to target exit area
+    if (!skip_turn)  // go towards exit position
     {
+        // Do teleport if on teleport position
+        Teleport();
+        
         int score = 0, best_score = 1000;
         Coord next_move, prior_position;
         Direction new_direction = Direction::NONE;
-
-        // Do teleport if on teleport
-        Teleport();
 
         for (int i = 0; i <= 3; i++) // cycle through up,down,left,right to find the valid best next move
         {

@@ -33,6 +33,9 @@ class Game
     // xbox controller -- will use this to get player direction
     CXBOXController* p_controller = nullptr;
 
+    // high scores
+    string high_scores[10][2]{};
+
     public:
         // level - public for class forwarding
         Level* p_level = nullptr;
@@ -78,5 +81,8 @@ class Game
         void SetRefreshDelay();
         Resolution GetResolution();
         void ResetGame();
+        void ReadHighScores();
+        void ShowHighScores();
+        bool PlayOrExit();
         
 };

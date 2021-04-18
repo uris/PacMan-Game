@@ -34,38 +34,38 @@ Level::~Level()
 
 // Public Methods
 
-void Level::SetupLevel(int& current_scene)
+int Level::SetupLevel(int& current_scene)
 {
-    // reset initial state of key level variables
-    level_paused = true;
-    level_mode = Mode::CHASE;
-    eaten_pellets = 0;
-    total_pellets = 0;
-    all_eaten_ghosts = 0;
-    roam_count = 0;
-    is_complete = false;
-
     // create the scene map and set up player + ghosts accordingly
-    CreateLevelScene(current_scene);
+    int check = CreateLevelScene(current_scene);
 
-    // set the fruit type
-    p_game->p_fruit->SetFruitType(fruit);
+    // if level is loaded get started
+    if (check == 1)
+    {
+        // set the fruit type
+        p_game->p_fruit->SetFruitType(fruit);
 
-    // start the chase timer
-    chase_time_start = chrono::high_resolution_clock::now();
+        // start the chase timer
+        chase_time_start = chrono::high_resolution_clock::now();
+    }
+    
+    // return the value of check
+    return check;
 }
 
-void Level::CreateLevelScene(int& current_scene)
+int Level::CreateLevelScene(int& current_scene)
 {
     // load level info and map from scenes file using games current level
     string map = LoadSceneFromFile("PacMan.scenes", current_scene);
 
     // if the string return "false" then you've reached the end of the game
     if (map == "false") {
-        system("cls");
+        // there is no more levels
+        return -1;
+       /* system("cls");
         cout << "You beat the PC! Good for you" << endl;
         system("pause");
-        exit(0);
+        exit(0);*/
     }
 
     // parse through string to replace pellt and powerup markers to their ascii code
@@ -137,8 +137,17 @@ void Level::CreateLevelScene(int& current_scene)
         }
     }
 
+    // set ghost roam targets to edges of the level map
+    p_game->p_ghosts[0]->SetRoamTarget({ rows + 3, cols - 3 });
+    p_game->p_ghosts[1]->SetRoamTarget({ rows + 3, 3 });
+    p_game->p_ghosts[2]->SetRoamTarget({ -3, 3 });
+    p_game->p_ghosts[3]->SetRoamTarget({ -3 , cols - 3 });
+
     // push map array to pointer
     p_map = p_mapArray;
+
+    // clean
+    return 1;
 }
 
 Ghosts Level::IsGhost(const char& map_char)
@@ -552,5 +561,6 @@ void Level::ResetLevel()
     all_eaten_ghosts = 0; // pellets consumed
     is_complete = false;
     level_paused = true;
+    total_pellets = 0;
     Fruits fruit = Fruits::NONE;
 }

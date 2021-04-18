@@ -1,6 +1,7 @@
 #include "Game.h"
 #include <conio.h>
 #include <iostream>
+#include <fstream> // file manipulation
 #include <Windows.h> // colors and play sounds
 #include <mmsystem.h> // play .wav
 #include <thread> // used to get input while running game
@@ -122,8 +123,10 @@ void Game::RunGame()
 
         do
         {
-            
-            // if the player is alive in an active level, move the player
+            // check for level complete before player move
+            level = CheckLevelComplete();
+
+            // do the player movement and checks (ignore if player dead or level complete)
             if (player && level)
             {
                 // move the player
@@ -132,12 +135,11 @@ void Game::RunGame()
                 // process any player / ghost / fruit collisions (player false if dies)
                 player = CheckCollisions();
 
-                // check end condition for the game or level (level false if complete)
+                // check if level was complete with the move
                 level = CheckLevelComplete();
             }
-           
 
-            // if the player is alive in an active level, set states and move the NPCs
+            // do the NPC movement and checks (ignore if player dead or level is complete)
             if (player && level)
             {
                 // if move into power up, pellet, set the necessary status and update scores
@@ -187,6 +189,9 @@ void Game::RunGame()
 
 void Game::SetupGame()
 {
+    
+    
+
     if (game_over) // if restarting the game then reset player
     {
         // 3 lives, score at 0, etc.
@@ -200,11 +205,29 @@ void Game::SetupGame()
     SpawnAllGhosts();
 
     // set up the level based on the current scene
-    p_level->SetupLevel(current_scene);
+    int check = p_level->SetupLevel(current_scene);
+
+    // if check os -1 then we reached the end of the game!
+    if (check != 1)
+    {
+        
+        // show the high scores and ask to play again
+        ShowHighScores();
+        bool keep_playing = PlayOrExit();
+
+        // if not keep playing then exit.
+        if (!keep_playing)
+            exit(0);
+
+        // otherwise reset the player to continue game
+        p_player->ResetPlayer();
+
+    }
 
     // set console font to pacman font
     Draw::SetConsoleFont(true, res);
-    Draw::SetConsoleSize(res, p_level->rows + 7, p_level->cols + 2);
+    Draw::SetConsoleSize(res, p_level->rows + 7, p_level->cols);
+
 }
 
 void Game::DrawLevel()
@@ -564,9 +587,6 @@ void Game::PrintStatusBar()
     cout << "    ";
     
     p_player->CoutEatenFruits();
-    //Draw::SetColor(14);
-    //cout << "  " << p_fruit->ticks << ":" << p_fruit->spawn_count;
-    //Draw::SetColor(7);
 
     cout << format;
     cout << "\r";
@@ -709,72 +729,8 @@ bool Game::NextLevelRestartGame()
     
     if (game_over)
     {
-        string format = Utility::Spacer("play again? (y)es (n)o", p_level->cols);
-        cout << "\r";
-        cout << format;
-        cout << "play again? (y)es (n)o";
-        cout << format;
-    }
-
-    CXBOXController* p_controller = new CXBOXController(1);
-
-    do
-    {
-        // if there's no controller connected try to reconnect...
-        if (!p_controller->IsConnected())
-        {
-            // try to connect again
-            delete p_controller;
-            p_controller = nullptr;
-            p_controller = new CXBOXController(1);
-        }
-
-        // if a controller is connected use that as input
-        if (p_controller->IsConnected())
-        {
-            // Pressing "X" exits the game
-            if (game_over && p_controller->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_X)
-            {
-                Draw::ShowConsoleCursor(false);
-                continue_play = false;
-                break;
-            }
-            
-            // Pressing "A" restars the game
-            if (p_controller->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_A)
-            {
-                system("cls");
-                current_scene = 1;
-                continue_play = true;
-                break;
-            }
-        }
-        else // if no controller, get the input from the keyboard
-        {
-            char input = _getch();
-            if (game_over && input == Globals::kNO)
-            {
-                // Pressing "n" exits the game                
-                Draw::ShowConsoleCursor(false);
-                continue_play = false;
-                break;
-            }
-            else
-            {
-                // Any key but "n" restarts the game
-                system("cls");
-                continue_play = true;
-                break;
-            }
-        }
-
-    } while (true);
-        
-    // delete controller if it exists
-    if (p_controller)
-    {
-        delete p_controller;
-        p_controller = nullptr;
+        ShowHighScores();
+        continue_play = PlayOrExit();
     }
     
     return continue_play;
@@ -936,3 +892,219 @@ Resolution Game::GetResolution()
 {
     return res;
 }
+
+void Game::ReadHighScores()
+{
+
+    ifstream score_board("PacManS.scores");
+    string file_line, marker;
+    int index = 0;
+
+    if (score_board) {
+
+        // file exists and is open 
+        while (getline(score_board, file_line))
+        {
+            // get the user
+            if (file_line.find(':', 0) != std::string::npos)
+            {
+                high_scores[index][0] = file_line.substr(0, file_line.find(':', 0));
+                high_scores[index][1] = file_line.substr(file_line.find(':', 0) + 1, file_line.length() - file_line.find(':', 0));
+                index++;
+            }
+        }
+        score_board.close();
+    }
+    else
+    {
+        //unable to read file - write sine error code. For now not polished.
+        system("cls");
+        cout << "Can't seem to load the PacMan scenes. Check your code man!" << endl;
+        system("pause");
+        exit(0);
+    }
+
+}
+
+void Game::ShowHighScores()
+{
+    // clear screen
+    system("cls");
+    
+    // Reac scores from file
+    ReadHighScores();
+    
+    // Draw Title
+    string format = "";
+    Draw::SetColor(Globals::cWHITE);
+    cout << endl;
+
+    Draw::SetColor(Globals::cPELLETS);
+    format = Utility::Spacer("[{}", 30);
+    cout << format;
+    cout << "[{} ";
+    cout << format;
+
+    cout << endl;
+
+    Draw::SetColor(7);
+    format = Utility::Spacer("high scores", 30);
+    cout << format;
+    cout << "High Scores";
+    cout << format;
+
+    cout << endl << endl;
+
+    // Draw the high scores
+    int count = 0, index = 0, score = 0, color = 7;
+    string name, spaces, str_high_scores = "";
+    bool new_high_score = false;
+    format = Utility::Spacer("000 AAAAAAAAA  #########", 30);
+    
+    while (count < 10)
+    {
+
+        spaces = "";
+        score = stoi(high_scores[index][0]);
+
+        //if (!new_high_score && 50023 > score)
+        if (!new_high_score && p_player->GetScore() > score)
+        {
+            name = " ";
+            score = 50023;
+            score = p_player->GetScore();
+            new_high_score = true;
+            color = 368; //(black on white bg);
+        }
+        else
+        {
+            name = high_scores[index][1];
+            index++;
+            color = Globals::cPELLETS; //yellow
+            
+        }
+
+        // create the name string up to 10 chars
+        size_t len = name.length();
+        for (int i = 0; i < 10 - len; i++)
+        {
+            spaces += " ";
+        }
+
+        // print out the score & create the high scores string
+        cout << format;
+        Draw::SetColor(color);
+        cout << setfill('0') << setw(2) << count + 1 << ". ";
+        cout << name << spaces << " ";
+        cout << setfill('0') << setw(9) << score;
+        Draw::SetColor(7);
+        cout << endl << endl;
+        str_high_scores += to_string(score) + ":" + (name == " " ? "#new#" : name) + "\n";
+
+        // increase the counter
+        count++;
+    }
+
+    // if there's a new high score get name and save to file
+    if (new_high_score)
+    {
+        // ask for and hget the user name
+        cout << endl << endl << " Nice! new high score." << endl << " Enter your name." << endl << endl << " ";
+        getline(cin, name);
+
+        // if blank set the name to player
+        if (name == "")
+            name = "Player";
+
+        // trim the name to 9 spaces only
+        if (name.length() > 9)
+            name = name.substr(0, 9);
+
+        // replace the new slot with trimmed user name
+        Utility::ReplaceString(str_high_scores, "#new#", name);
+        
+        // update the high scores file
+        ofstream scene_file("PacManS.scores");
+        scene_file << str_high_scores;
+        scene_file.close();
+
+        // earse name entry lines
+        Draw::CursorTopLeft(4);
+        Draw::WriteEmptyLine(4, 30);
+        Draw::CursorTopLeft(4);
+    }
+}
+
+bool Game::PlayOrExit()
+{
+    bool continue_play = true;
+
+    string format = Utility::Spacer("play again? (y)es (n)o", p_level->cols);
+    cout << endl;
+    cout << format;
+    cout << "play again? (y)es (n)o";
+    cout << format;
+
+    CXBOXController* p_controller = new CXBOXController(1);
+
+    do
+    {
+        // if there's no controller connected try to reconnect...
+        if (!p_controller->IsConnected())
+        {
+            // try to connect again
+            delete p_controller;
+            p_controller = nullptr;
+            p_controller = new CXBOXController(1);
+        }
+
+        // if a controller is connected use that as input
+        if (p_controller->IsConnected())
+        {
+            // Pressing "X" exits the game
+            if (p_controller->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_X)
+            {
+                Draw::ShowConsoleCursor(false);
+                continue_play = false;
+                break;
+            }
+
+            // Pressing "A" restars the game
+            if (p_controller->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_A)
+            {
+                system("cls");
+                continue_play = true;
+                break;
+            }
+        }
+        else // if no controller, get the input from the keyboard
+        {
+            char input = _getch();
+            if (input == Globals::kNO)
+            {
+                // Pressing "n" exits the game                
+                Draw::ShowConsoleCursor(false);
+                continue_play = false;
+                break;
+            }
+            else
+            {
+                // Any key but "n" restarts the game
+                system("cls");
+                continue_play = true;
+                break;
+            }
+        }
+
+    } while (true);
+
+    // delete controller if it exists
+    if (p_controller)
+    {
+        delete p_controller;
+        p_controller = nullptr;
+    }
+
+    return continue_play;
+}
+

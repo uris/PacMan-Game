@@ -171,6 +171,9 @@
     <None Include="PacMan Font Characters.ai">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="PacManS.scores">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Font Include="pacman_console.ttf">
