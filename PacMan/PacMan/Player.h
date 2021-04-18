@@ -15,7 +15,7 @@ private:
     int score = 0;
     bool ghosts_eaten[4] = { false, false, false, false };
     int fruits_eaten[4] = { 0, 0, 0, 0 };
-    char player_move_content = Globals::pellet;
+    char player_move_content = char(Globals::pellet);
     bool chomp = false;
     bool die_animation = false;
     bool eat_ghost_animation = false;
