@@ -1008,8 +1008,10 @@ void Game::ShowHighScores()
     // if there's a new high score get name and save to file
     if (new_high_score)
     {
+        
         // ask for and hget the user name
         cout << endl << endl << " Nice! new high score." << endl << " Enter your name." << endl << endl << " ";
+        Draw::ShowConsoleCursor(true);
         getline(cin, name);
 
         // if blank set the name to player
@@ -1029,9 +1031,10 @@ void Game::ShowHighScores()
         scene_file.close();
 
         // earse name entry lines
-        Draw::CursorTopLeft(4);
-        Draw::WriteEmptyLine(4, 30);
-        Draw::CursorTopLeft(4);
+        Draw::ShowConsoleCursor(false);
+        Draw::CursorTopLeft(6);
+        cout << Draw::WriteEmptyLine(6, 30);
+        Draw::CursorTopLeft(6);
     }
 }
 

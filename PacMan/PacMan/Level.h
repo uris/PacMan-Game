@@ -16,6 +16,7 @@ public:
 
     // level map and scene
     char** p_map = nullptr;
+    Coord** p_teleport = nullptr;
     bool level_paused = true;
 
     // level stats
