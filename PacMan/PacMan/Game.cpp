@@ -777,7 +777,6 @@ bool Game::NextLevelRestartGame()
         p_controller = nullptr;
     }
     
-    game_over ? current_scene = 1 : current_scene++;
     return continue_play;
 }
 

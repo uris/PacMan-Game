@@ -23,7 +23,7 @@ class Game
     bool player_beat_pause = false;
 
     // Game level
-    int current_scene = 1;
+    int current_scene = 0;
     Resolution res = Resolution::NORMAL;
 
     //SFX
