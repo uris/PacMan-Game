@@ -1,6 +1,5 @@
 #pragma once
 #include "Character.h"
-//#include "Ghost.h"
 
 //class IPlayerInterface : public Character
 //{
@@ -9,14 +8,14 @@
 
 class Player : public Character
 {
-    class Game* p_game = nullptr; // fwd declare class
+   // class Game* p_game = nullptr; // fwd declare class
 
 private:
     int lives = 3;
     int score = 0;
     bool ghosts_eaten[4] = { false, false, false, false };
     int fruits_eaten[4] = { 0, 0, 0, 0 };
-    char player_move_content = '.';
+    char player_move_content = Globals::pellet;
     bool chomp = false;
     bool die_animation = false;
     bool eat_ghost_animation = false;
@@ -46,7 +45,9 @@ public:
     void DeathAnimate(int g);
     void EatGhostAnimate(int g, bool life);
     void IncrementScore(const Object object_eaten);
+    void SetScore(const int score);
     void UpdateMapAfterMove();
+    void ResetPlayer();
 
     // getters
     char GetMovedIntoSquareContents();

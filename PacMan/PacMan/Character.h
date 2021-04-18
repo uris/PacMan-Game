@@ -13,14 +13,17 @@ protected:
 	Coord previous_position;
 	Direction current_direction = Direction::LEFT;
 	Direction previous_direction = Direction::LEFT;
+	bool run_first_move = true;
 
 public:
+	// forward class declared as pointer to game object
+	class Game* p_game = nullptr;
+
 	// constructors
 	Character();
 
 	// methods
 	bool IsReverseDirection(Direction new_direction);
-	void MoveTo(Coord coord, Direction direction);
 
 	// getters
 	int GetCurrentRow();
@@ -42,4 +45,7 @@ public:
 	void SetPositions(int row, int col);
 	void SetPreviousPosition(Coord coord);
 	void SetPreviousPosition(int row, int col);
+	void Teleport();
+	void Teleport(Coord& position);
+	Direction RandomMove(const bool is_ghost);
 };

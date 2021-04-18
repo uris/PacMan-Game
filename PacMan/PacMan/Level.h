@@ -20,7 +20,6 @@ public:
 
     // level stats
     int eaten_pellets = 0; // pellets consumed
-    int eaten_ghosts = 0; // pellets consumed
     int all_eaten_ghosts = 0; // pellets consumed
     bool is_complete = false;
 
@@ -48,10 +47,11 @@ public:
     Coord MapSize(const string& map);
     void DrawLevel();
     bool NotWall(const Coord& move, const Direction& direction);
-    void CheckLevelComplete();
-    bool IsTeleport(const Coord& move);
+    bool CheckLevelComplete();
+    bool IsTeleport(const Coord& coord);
     Ghosts IsGhost(const char& map_char);
     Fruits GetFruitType(const string fruit);
+    void ResetLevel();
 
     // getters
     bool GameRefIsSet();

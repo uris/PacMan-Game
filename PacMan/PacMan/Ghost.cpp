@@ -1,6 +1,7 @@
 #include "Game.h"
 #include <iomanip> // abs function
 #include <iostream>
+#include <chrono>
 
 using namespace std;
 using namespace std::chrono;
@@ -92,7 +93,7 @@ int Ghost::MakeGhostMove()
 
     if (mode == Mode::RUN) // make random moves truning opposite direction on first move
     {
-        best_move = RandomGhostMove(); // get the random move
+        best_move = RandomMove(true); // get the random move
         MoveGhost(best_move); // make the move
         return 0;
     }
@@ -104,7 +105,7 @@ int Ghost::MakeGhostMove()
         Direction new_direction = Direction::NONE;
 
         // Do teleport if on teleport
-        Teleport(current_position, current_direction);
+        Teleport();
 
         for (int i = 0; i <= 3; i++) // cycle through up,down,left,right to find the valid best next move
         {
@@ -144,7 +145,7 @@ int Ghost::GetBestMove(Coord current_position, Direction current_direction, int 
     Coord player_position = p_game->p_player->GetCurrentPosition();
     
     //if on teleport do the teleport
-    Teleport(current_position, current_direction);
+    Teleport(current_position);
     
     // and on the target the ghost chases: red chases player pos, yellow player pos + 2 cols (to the right of player)
     switch (mode)
@@ -196,67 +197,6 @@ int Ghost::GetBestMove(Coord current_position, Direction current_direction, int 
         }
     }
     return best_score;
-}
-
-void Ghost::Teleport(Coord& ghost_position, Direction& ghost_direction)
-{
-    if (p_game->p_level->IsTeleport(ghost_position))
-    {
-        if (ghost_position.col == 0 && ghost_direction == Direction::LEFT)
-        {
-            ghost_position.col = p_game->p_level->cols - 1;
-        }
-        if (ghost_position.col == p_game->p_level->cols - 1 && ghost_direction == Direction::RIGHT)
-        {
-            ghost_position.col = 0;
-        }
-    }
-}
-
-Direction Ghost::RandomGhostMove()
-{
-    // Do teleport if on teleport
-    Teleport(current_position, current_direction);
-    
-    Direction new_direction = Direction::NONE;
-    Coord next_move;
-
-    // first move when on the run is ALWAYS to reverse direction which is ALWAYS a valid move
-    if (run_first_move) {
-        switch (current_direction)
-        {
-        case Direction::UP:
-            new_direction = Direction::DOWN;
-            break;
-        case Direction::RIGHT:
-            new_direction = Direction::LEFT;
-            break;
-        case Direction::DOWN:
-            new_direction = Direction::UP;
-            break;
-        case Direction::LEFT:
-            new_direction = Direction::RIGHT;
-            break;
-        }
-        run_first_move = false;
-        return new_direction;
-    }
-
-    int unsigned seed = (int)(std::chrono::system_clock::now().time_since_epoch().count());
-    srand(seed);
-
-    //if (p_game->p_level->IsTeleport(current_position)) // if on teleportkeep the same direction
-    //    current_direction == Direction::LEFT ? new_direction = Direction::LEFT : new_direction = Direction::RIGHT;
-    //else // else choose a valid random direction
-    //{
-        do
-        {
-            int random_number = rand() % 4; //generate random number to select from the 4 possible options
-            new_direction = static_cast<Direction>(random_number);
-            next_move.SetTo(current_position, new_direction);
-        } while (!p_game->p_level->NotWall(next_move, new_direction) || IsReverseDirection(new_direction));
-    /*}*/
-    return new_direction;
 }
 
 void Ghost::MoveGhost(const Direction direction)
@@ -438,11 +378,6 @@ char Ghost::GhostChar()
 void Ghost::SetReverseMove(bool reverse)
 {
     run_first_move = reverse;
-}
-
-bool Ghost::ReverseMove()
-{
-    return run_first_move;
 }
 
 Coord Ghost::GetChaseModifier()

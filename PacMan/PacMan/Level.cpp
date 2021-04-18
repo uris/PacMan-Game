@@ -40,7 +40,7 @@ void Level::SetupLevel(int& current_scene)
     level_paused = true;
     level_mode = Mode::CHASE;
     eaten_pellets = 0;
-    eaten_ghosts = 0;
+    total_pellets = 0;
     all_eaten_ghosts = 0;
     roam_count = 0;
     is_complete = false;
@@ -496,17 +496,17 @@ bool Level::NotWall(const Coord& move, const Direction& direction)
     return false;
 }
 
-void Level::CheckLevelComplete()
+bool Level::CheckLevelComplete()
 {
     eaten_pellets >= total_pellets ? is_complete = true : is_complete = false; // if all pellets are eaten game ends - 339 in this map
+    return is_complete;
 }
 
-bool Level::IsTeleport(const Coord& move)
+bool Level::IsTeleport(const Coord& coord)
 {
-    if (tp_1.row == move.row && tp_1.col == move.col)
+    if (tp_1 == coord || tp_2 == coord)
         return true;
-    if (tp_2.row == move.row && tp_2.col == move.col)
-        return true;
+
     return false;
 }
 
@@ -537,4 +537,20 @@ Fruits Level::GetFruitType(const string fruit)
         return Fruits::PEAR;
 
     return Fruits::NONE;
+}
+
+void Level::ResetLevel()
+{
+    string title = "";
+    int rows = 0;
+    int cols = 0;
+    level_mode = Mode::CHASE;
+    roam_time_start = chrono::high_resolution_clock::now();
+    chase_time_start = chrono::high_resolution_clock::now();
+    run_time_start = chrono::high_resolution_clock::now();
+    eaten_pellets = 0; // pellets consumed
+    all_eaten_ghosts = 0; // pellets consumed
+    is_complete = false;
+    level_paused = true;
+    Fruits fruit = Fruits::NONE;
 }

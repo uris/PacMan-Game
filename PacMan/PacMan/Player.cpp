@@ -81,12 +81,7 @@ bool Player::HasNoLives()
 void Player::MovePlayer()
 {
 	// if the players current position is a teleport, do the teleport before calcing move
-	if (current_position == p_game->p_level->tp_1) {
-		current_position = p_game->p_level->tp_2;
-	}
-	else if (current_position == p_game->p_level->tp_2) {
-		current_position = p_game->p_level->tp_1;
-	}
+	Teleport();
 		
 	// set the prvious potisiton to the current position as we will move out of the current position
 	previous_position = current_position;
@@ -248,10 +243,15 @@ void Player::CoutPlayer()
 		}
 		if (!eat_ghost_animation && current_position != previous_position)
 		{
-			player_move_content == ' ' ? chomp = false : chomp = !chomp;
+			player_move_content == Globals::space ? chomp = false : chomp = !chomp;
 		}
 		
 	}
+}
+
+void Player::SetScore(const int score)
+{
+	this->score = score;
 }
 
 
@@ -425,4 +425,11 @@ void Player::IncrementScore(const Object object_eaten)
 		score = score;
 		break;
 	}
+}
+
+void Player::ResetPlayer()
+{
+	lives = 3;
+	score = 0;
+	ClearEatenGohsts();
 }

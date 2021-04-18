@@ -1,5 +1,6 @@
 #pragma once
 #include "EnumsAndStatics.h"
+#include "Character.h"
 #include "Player.h"
 #include "Ghost.h"
 #include "Level.h"
@@ -15,13 +16,14 @@ using namespace std::chrono;
 class Game
 {
     // Game States
+    bool player = true;
+    bool level = true;
     bool game_over = false;
     bool gobble_pause = false;
     bool player_beat_pause = false;
 
     // Game level
     int current_scene = 1;
-    bool player_died = 0;
     Resolution res = Resolution::NORMAL;
 
     //SFX
@@ -65,7 +67,7 @@ class Game
         
         // game orchestration methods
         bool CheckCollisions();
-        void CheckLevelComplete();
+        bool CheckLevelComplete();
         void NextScene();
         void GetUserInput();
         void SpawnAllGhosts();
@@ -75,5 +77,6 @@ class Game
         void SetCollisionDelay();
         void SetRefreshDelay();
         Resolution GetResolution();
+        void ResetGame();
         
 };

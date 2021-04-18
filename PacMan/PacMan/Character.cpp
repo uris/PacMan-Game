@@ -1,8 +1,13 @@
-#include "Character.h"
+#include "Game.h"
+#include <iomanip> // abs function
+#include <iostream>
+
+using namespace std;
+using namespace std::chrono;
+
 
 // constructors
 Character::Character() {};
-
 
 // methods
 bool Character::IsReverseDirection(Direction new_direction)
@@ -20,29 +25,6 @@ bool Character::IsReverseDirection(Direction new_direction)
 	}
 	return false;
 }
-
-void Character::MoveTo(Coord coord, Direction direction)
-{
-	current_position = coord;
-	switch (direction)
-	{
-	case Direction::UP:
-		current_position.row--;
-		break;
-	case Direction::RIGHT:
-		current_position.col++;
-		break;
-	case Direction::DOWN:
-		current_position.row++;
-		break;
-	case Direction::LEFT:
-		current_position.col--;
-		break;
-	case Direction::NONE:
-		break;
-	}
-}
-
 
 // getters
 Direction Character::GetDirection()
@@ -134,4 +116,76 @@ void Character::SetPreviousPosition(int row, int col)
 {
 	previous_position.row = row;
 	previous_position.col = col;
+}
+
+void Character::Teleport()
+{
+	
+	if (current_position == p_game->p_level->tp_1)
+	{
+		current_position = p_game->p_level->tp_2;
+	}
+	else if (current_position == p_game->p_level->tp_2)
+	{
+		current_position = p_game->p_level->tp_1;
+	}
+}
+
+// use this for AI teleport since we're not using simulated current position of the character
+void Character::Teleport(Coord& new_position)
+{
+
+	if (new_position == p_game->p_level->tp_1)
+	{
+		new_position = p_game->p_level->tp_2;
+	}
+	else if (new_position == p_game->p_level->tp_2)
+	{
+		new_position = p_game->p_level->tp_1;
+	}
+}
+
+Direction Character::RandomMove(const bool is_ghost)
+{
+	// Do teleport if on teleport position
+	Teleport();
+
+	Direction new_direction = Direction::NONE;
+	Coord next_move;
+
+	// first move when on the run is ALWAYS to reverse direction which is ALWAYS a valid move
+	if (is_ghost)
+	{
+		if (run_first_move) {
+			switch (current_direction)
+			{
+			case Direction::UP:
+				new_direction = Direction::DOWN;
+				break;
+			case Direction::RIGHT:
+				new_direction = Direction::LEFT;
+				break;
+			case Direction::DOWN:
+				new_direction = Direction::UP;
+				break;
+			case Direction::LEFT:
+				new_direction = Direction::RIGHT;
+				break;
+			}
+			run_first_move = false;
+			return new_direction;
+		}
+	}
+		
+
+	int unsigned seed = (int)(std::chrono::system_clock::now().time_since_epoch().count());
+	srand(seed);
+	do
+	{
+		int random_number = rand() % 4; //generate random number to select from the 4 possible options
+		new_direction = static_cast<Direction>(random_number);
+		next_move = current_position + new_direction;
+	} while (!p_game->p_level->NotWall(next_move, new_direction) || IsReverseDirection(new_direction));
+
+	return new_direction;
 }

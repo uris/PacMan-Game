@@ -10,9 +10,9 @@ class Stage
 
 public:
     // level map and scene
-    string title = "Scene 1";
-    int rows = 23;
-    int cols = 47;
+    string title = "";
+    int rows = 0;
+    int cols = 0;
     Coord ghost_spawn;
     Coord fruit_spawn;
     Fruits fruit = Fruits::NONE;

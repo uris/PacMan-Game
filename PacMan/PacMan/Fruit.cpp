@@ -36,8 +36,6 @@ void Fruit::SpawnFruit()
     spawn_count++;
     previous_position = current_position;
     current_position = spawn_position;
-    //square_content_now = ' ';
-    //square_content_prior = ' ';
     current_direction = Direction::LEFT;
     previous_direction = Direction::LEFT;
     spawn_position = spawn_position;
@@ -52,10 +50,6 @@ void Fruit::KillFruit(bool eaten)
 {
     if (is_in_level)
     {
-        if (!eaten) {
-            // set map sqaure back to what it was
-            p_game->p_level->p_map[current_position.row][current_position.col] = square_content_prior;
-        }
         is_in_level = false;
         move_count = 0;
         ticks = 0; // restart counter
@@ -71,14 +65,11 @@ void Fruit::ResetFruit()
     not_eaten = true;
     spawn_count = 0;
     move_count = 0;
-
 }
 
 void Fruit::MoveFruit(const Direction direction)
 {
     previous_position = current_position;
-    /*square_content_prior = square_content_now;
-    square_content_now = map_content;*/
 
     switch (direction)
     {
@@ -102,35 +93,6 @@ void Fruit::MoveFruit(const Direction direction)
         break;
     }
 
-    //// if the sqaure the fruit moved into is the player
-    //square_content_prior == Globals::player ? square_content_prior = ' ' : square_content_prior;
-
-    //// if the fruit is over the player save a blank space to buffer
-    //current_position == p_game->p_player->GetCurrentPosition() ? square_content_now = ' ' : square_content_now;
-
-}
-
-Direction Fruit::RandomFruitMove()
-{
-    Direction new_direction = Direction::NONE;
-
-    if (p_game->p_level->IsTeleport(current_position)) // if on teleportkeep the same direction
-    {
-        current_direction == Direction::LEFT ? new_direction = Direction::LEFT : new_direction = Direction::RIGHT;
-    }
-    else // else choose a valid random direction
-    {
-        Coord next_move;
-        int unsigned seed = (int)(std::chrono::system_clock::now().time_since_epoch().count());
-        srand(seed);
-        do
-        {
-            int random_number = rand() % 4; //generate random number to select from the 4 possible options
-            new_direction = static_cast<Direction>(random_number);
-            next_move.SetTo(current_position, new_direction);
-        } while (!p_game->p_level->NotWall(next_move, new_direction) || IsReverseDirection(new_direction));
-    }
-    return new_direction;
 }
 
 int Fruit::MakeFruitMove()
@@ -181,10 +143,9 @@ int Fruit::MakeFruitMove()
     if (move_count < max_moves) // make random moves for max moves number of times
     {
         // Do teleport if on teleport
-        Teleport(current_position, current_direction);
+        Teleport();
         
-        best_move = RandomFruitMove(); // get the random move
-        //char map_content = FruitContentNow(best_move);
+        best_move = RandomMove(false); // get the random move
         MoveFruit(best_move); // make the move
         move_count++;
         wait = Globals::fDelay; // reset the delay to slow down the fruit by three ticks
@@ -198,7 +159,7 @@ int Fruit::MakeFruitMove()
         Direction new_direction = Direction::NONE;
 
         // Do teleport if on teleport
-        Teleport(current_position, current_direction);
+        Teleport();
 
         for (int i = 0; i <= 3; i++) // cycle through up,down,left,right to find the valid best next move
         {
@@ -227,54 +188,11 @@ int Fruit::MakeFruitMove()
             }
         }
 
-        //char map_content = FruitContentNow(best_move); // if the content is a ghosts set the contnet value of the gohst to the other ghosts content
         MoveFruit(best_move); // do the move
         wait = Globals::fDelay; // reset the delay to slow down the fruit by three ticks
         return 0;
     }
     return 0; // clean exit
-}
-
-//char Fruit::FruitContentNow(Direction best_move)
-//{
-//    Coord move_into(current_position, best_move);
-//    char map_content = p_game->p_level->p_map[move_into.row][move_into.col];
-//    switch (map_content)
-//    {
-//    case Globals::red_ghost:
-//        return p_game->p_ghosts[0]->GetContentCurrent();
-//        break;
-//    case Globals::yellow_ghost:
-//        return p_game->p_ghosts[1]->GetContentCurrent();
-//        break;
-//    case Globals::blue_ghost:
-//        return p_game->p_ghosts[2]->GetContentCurrent();
-//        break;
-//    case Globals::pink_ghost:
-//        return p_game->p_ghosts[3]->GetContentCurrent();
-//        break;
-//    case Globals::player:
-//        return p_game->p_player->GetMovedIntoSquareContents();
-//        break;
-//    default:
-//        return map_content;
-//        break;
-//    }
-//}
-
-void Fruit::Teleport(Coord& fruit_position, Direction& fruit_direction)
-{
-    if (p_game->p_level->IsTeleport(fruit_position))
-    {
-        if (fruit_position.col == 0 && fruit_direction == Direction::LEFT)
-        {
-            fruit_position.col = p_game->p_level->cols - 1;
-        }
-        if (fruit_position.col == p_game->p_level->cols - 1 && fruit_direction == Direction::RIGHT)
-        {
-            fruit_position.col = 0;
-        }
-    }
 }
 
 void Fruit::CoutFruit()
@@ -301,32 +219,6 @@ void Fruit::CoutFruit()
         Draw::SetColor(Globals::cCHERRY);
         cout << char(Globals::fCherry);
     }
-}
-
-// encapsulation
-char Fruit::GetPreviousSqaureContent()
-{
-    return square_content_prior;
-}
-
-void Fruit::SetPreviousSqaureContent(char content)
-{
-    square_content_prior = content;
-}
-
-char Fruit::GetContentCurrent()
-{
-    return square_content_now;
-}
-
-void Fruit::SetContentCurrent(char content)
-{
-    square_content_now = content;
-}
-
-void Fruit::SetContentCurrent(bool same)
-{
-    square_content_now = square_content_now;
 }
 
 int Fruit::GetColor()

@@ -1,12 +1,9 @@
 #pragma once
 #include "Character.h"
-#include "Coord.h"
-#include "EnumsAndStatics.h"
 
 class Ghost: public Character
 {
-    // forward class declared as pointer to game object
-    class Game* p_game = nullptr;
+    //class Game* p_game = nullptr; // fwd declare class
 
 private:
     // gets set once based on ghost type
@@ -22,17 +19,13 @@ private:
     
     // changes as the game / level changes
     Mode mode = Mode::CHASE;
-    char square_content_now = ' ';
-    char square_content_prior = ' ';
-    bool run_first_move = true;
     bool is_edible = false;
     bool color_on = false;
     bool skip_turn = false; // use this to slow down moster if edible
     
 
 public:
-    bool exit_teleport = false;
-    
+   
     // constructors
     Ghost();
     Ghost(Ghosts ghost);
@@ -44,8 +37,6 @@ public:
     void MoveGhost(const Direction direction);
     int MakeGhostMove();
     int GetBestMove(Coord current_position, Direction current_direction, int depth);
-    Direction RandomGhostMove();
-    void Teleport(Coord& ghost_position, Direction& ghost_direction);
     void CoutGhost();
 
     // Getters
@@ -60,7 +51,6 @@ public:
     bool SkipTurn();
     Coord GetSpawnTarget();
     char GhostChar();
-    bool ReverseMove();
     bool GameRefIsSet();
 
     // Setters

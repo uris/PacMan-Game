@@ -122,25 +122,35 @@ void Game::RunGame()
 
         do
         {
-            // move the player
-            MovePlayer();
+            
+            // if the player is alive in an active level, move the player
+            if (player && level)
+            {
+                // move the player
+                MovePlayer();
 
-            // process any player / ghost collision
-            player_died = CheckCollisions();
+                // process any player / ghost / fruit collisions (player false if dies)
+                player = CheckCollisions();
 
-            if (!player_died)
+                // check end condition for the game or level (level false if complete)
+                level = CheckLevelComplete();
+            }
+           
+
+            // if the player is alive in an active level, set states and move the NPCs
+            if (player && level)
             {
                 // if move into power up, pellet, set the necessary status and update scores
                 SetPlayerState();
 
-                // set ghost chase modes as approprite
+                // set ghost chase modes (roam, chase, run) as approprite
                 SetGhostMode();
 
-                // move the ghost
+                // move the ghost and the fruit if it is active
                 MoveGhostsAndFruit();
 
                 // process any player / ghost collision again
-                player_died = CheckCollisions();
+                player = CheckCollisions();
             }
 
             // delay render if there's a collision
@@ -149,18 +159,15 @@ void Game::RunGame()
             // Draw the level current state
             DrawLevel();
 
-            // end condition for the game once user has eaten all pellets
-            CheckLevelComplete();
-
             // display stats and number lives
             PrintStatusBar();
 
             // introduce a wait for fast PC
             SetRefreshDelay();
 
-        } while (!p_level->is_complete && !game_over);
+        } while (level && !game_over);
 
-        // kill any sounds playing
+        // kill any sounds playing one level complet or game over
         SFX(Play::NONE);
 
         // when game ends, wait for the input thread rejoin the main thread
@@ -180,19 +187,20 @@ void Game::RunGame()
 
 void Game::SetupGame()
 {
-    // if restarting the game then reset player lives and game over state
-    game_over ? p_player->SetLives(3) : p_player->SetLives();
-    p_player->ClearEatenGohsts(); // clear the ghosts eaten in a row
-    game_over = false;
+    if (game_over) // if restarting the game then reset player
+    {
+        // 3 lives, score at 0, etc.
+        p_player->ResetPlayer();
+    }
 
-    // reset ghosts to spawn state
+    // reset all other object variables for both new game and new level
+    ResetGame();
+    p_fruit->ResetFruit();
+    p_level->ResetLevel();
     SpawnAllGhosts();
 
-    // reset level, create scene and update player / level as needed
+    // set up the level based on the current scene
     p_level->SetupLevel(current_scene);
-
-    // reset fruit
-    p_fruit->ResetFruit();
 
     // set console font to pacman font
     Draw::SetConsoleFont(true, res);
@@ -374,6 +382,11 @@ void Game::MovePlayer()
     }
 }
 
+bool Game::CheckLevelComplete()
+{
+    return !p_level->CheckLevelComplete();
+}
+
 bool Game::CheckCollisions()
 {
     bool player_died = false;
@@ -394,7 +407,6 @@ bool Game::CheckCollisions()
                 p_player->IncrementScore(Object::GHOST); // add the eaten ghost to the score
 
                 if (p_player->AllGhostsEaten()) { // if all ghosts eaten in one powerup
-                    
                     // add the bonus to the player score
                     p_player->IncrementScore(Object::ALL_GHOSTS);
                     
@@ -403,15 +415,16 @@ bool Game::CheckCollisions()
                     p_level->level_mode = Mode::CHASE;
                     p_level->chase_time_start = chrono::high_resolution_clock::now();
 
-                    // play the sound for bonus and animate eaten ghost
+                    // play the sound for bonus
                     SFX(Play::LIFE);
-                    p_player->EatGhostAnimate(g, true);
-
                 }
-                
-                // play ghost eaten animation and respawn the ghost
-                SFX(Play::EAT_GHOST);
-                p_player->EatGhostAnimate(g, false);
+                else
+                {
+                    // play ghost eaten animation
+                    SFX(Play::EAT_GHOST);
+                }
+                // animate player and respawn ghost
+                p_player->EatGhostAnimate(g, true);
                 p_ghosts[g]->SpawnGhost(p_ghosts[g]->Name(), false);
             }
 
@@ -463,7 +476,7 @@ bool Game::CheckCollisions()
             game_over = true;
         }
 
-        return true;
+        return false; // player no longer active in game cycle
 
     }
 
@@ -481,7 +494,7 @@ bool Game::CheckCollisions()
         SFX(Play::EAT_FRUIT); //play sfx
     }
 
-    return false;
+    return true; // player still active in game cycle
 
 }
 
@@ -527,12 +540,12 @@ void Game::PrintStatusBar()
     //Draw draw;
     //Utility utility;
     // get number of lives
-    string format = Utility::Spacer("CCC-----00000000----0000", p_level->cols);
+    string format = Utility::Spacer("CCC----00000000----0000", p_level->cols);
     string lives;
     
-    for (int i = 0; i < 3; i++)
+    for (int i = 1; i < 3; i++)
     {
-        i < p_player->Lives() ? lives = lives + char(Globals::pacman_left_open) : lives = lives +  "-";
+        i < p_player->Lives() ? lives = lives + char(Globals::pacman_left_open) : lives = lives +  " ";
     }
     
     cout << endl;
@@ -682,11 +695,6 @@ void Game::SetGhostMode()
 
 }
 
-void Game::CheckLevelComplete()
-{
-    p_level->CheckLevelComplete();
-}
-
 void Game::SetRefreshDelay()
 {
     if (!p_level->is_complete && !game_over)
@@ -712,6 +720,7 @@ bool Game::NextLevelRestartGame()
 
     do
     {
+        // if there's no controller connected try to reconnect...
         if (!p_controller->IsConnected())
         {
             // try to connect again
@@ -720,15 +729,18 @@ bool Game::NextLevelRestartGame()
             p_controller = new CXBOXController(1);
         }
 
+        // if a controller is connected use that as input
         if (p_controller->IsConnected())
         {
+            // Pressing "X" exits the game
             if (game_over && p_controller->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_X)
             {
                 Draw::ShowConsoleCursor(false);
                 continue_play = false;
                 break;
             }
-                    
+            
+            // Pressing "A" restars the game
             if (p_controller->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_A)
             {
                 system("cls");
@@ -736,19 +748,20 @@ bool Game::NextLevelRestartGame()
                 continue_play = true;
                 break;
             }
-
         }
-        else
+        else // if no controller, get the input from the keyboard
         {
             char input = _getch();
             if (game_over && input == Globals::kNO)
             {
+                // Pressing "n" exits the game                
                 Draw::ShowConsoleCursor(false);
                 continue_play = false;
                 break;
             }
             else
             {
+                // Any key but "n" restarts the game
                 system("cls");
                 continue_play = true;
                 break;
@@ -780,6 +793,9 @@ void Game::SetCollisionDelay()
         player_beat_pause = false;
         std::this_thread::sleep_for(std::chrono::milliseconds(Globals::player_beat_delay)); // pause for player gobble
     }
+
+    // reset player back to true
+    player = true;
 }
 
 
@@ -905,6 +921,16 @@ int Game::SFX(Play playSFX)
 bool Game::IsGameOver()
 {
     return game_over;
+}
+
+void Game::ResetGame()
+{
+    game_over ? current_scene = 1 : current_scene++;
+    player = true;
+    level = true;
+    game_over = false;
+    gobble_pause = false;
+    player_beat_pause = false;
 }
 
 Resolution Game::GetResolution()
