@@ -244,19 +244,14 @@ void Game::DrawLevel()
             cout << format;
             cout << "Press a key to start.";
             cout << format;
-            CXBOXController* p_controller = new CXBOXController(1);
+            
+            p_controller = new CXBOXController(1);
+            bool is_connected = p_controller->IsConnected();
+
             SFX(Play::INTERMISSION);
             do
             {
-                if (!p_controller->IsConnected())
-                {
-                    // try to connect again
-                    delete p_controller;
-                    p_controller = nullptr;
-                    p_controller = new CXBOXController(1);
-                }
-                
-                if (p_controller->IsConnected())
+                if (is_connected)
                 {
                     if (p_controller->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_A || abs(p_controller->GetState().Gamepad.sThumbLX) > 2500 || abs(p_controller->GetState().Gamepad.sThumbLY) > 2500)
                         break;
@@ -269,13 +264,6 @@ void Game::DrawLevel()
                 
 
             } while (true);
-            
-            // delete controller if it exists
-            if (p_controller)
-            {
-                delete p_controller;
-                p_controller = nullptr;
-            }
 
             p_level->level_paused = false;
         }
@@ -302,20 +290,17 @@ void Game::DrawLevel()
 
 void Game::GetUserInput()
 {
-    p_controller = new CXBOXController(1);
+    
     int input, magnitude = 32767; // magintude is the value each stick can move max by
     float controllerX, controllerY; // will hold how far the stick is pushed on x/y axis
 
+    p_controller = new CXBOXController(1);
+    bool is_connected = p_controller->IsConnected();
+
     do
     {
-        if (p_controller && !p_controller->IsConnected())
-        {
-            delete p_controller;
-            p_controller = nullptr;
-            p_controller = new CXBOXController(1);
-        }
 
-        if (p_controller->IsConnected())
+        if (is_connected)
         {
             
             // get the x / y of the left control stick
@@ -382,13 +367,6 @@ void Game::GetUserInput()
         }
         
     } while (!p_level->is_complete && !game_over);
-
-    // delete controller if it exists
-    if (p_controller)
-    {
-        delete p_controller;
-        p_controller = nullptr;
-    }
 
 }
 
@@ -1048,21 +1026,14 @@ bool Game::PlayOrExit()
     cout << "play again? (y)es (n)o";
     cout << format;
 
-    CXBOXController* p_controller = new CXBOXController(1);
+    p_controller = new CXBOXController(1);
+    bool is_connected = p_controller->IsConnected();
+
 
     do
     {
-        // if there's no controller connected try to reconnect...
-        if (!p_controller->IsConnected())
-        {
-            // try to connect again
-            delete p_controller;
-            p_controller = nullptr;
-            p_controller = new CXBOXController(1);
-        }
-
         // if a controller is connected use that as input
-        if (p_controller->IsConnected())
+        if (is_connected)
         {
             // Pressing "X" exits the game
             if (p_controller->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_X)
@@ -1100,13 +1071,6 @@ bool Game::PlayOrExit()
         }
 
     } while (true);
-
-    // delete controller if it exists
-    if (p_controller)
-    {
-        delete p_controller;
-        p_controller = nullptr;
-    }
 
     return continue_play;
 }

@@ -150,9 +150,9 @@ struct Globals
     static constexpr int total_ghosts = 4;
     static constexpr int ghost_run = 186;
     static constexpr int ghost_down = 206;
-    static constexpr int ghost_up = 185;
+    static constexpr int ghost_up = 202;
     static constexpr int ghost_left = 204;
-    static constexpr int ghost_right = 202;
+    static constexpr int ghost_right = 185;
     static constexpr int spawn_delay = 20;
     static constexpr int spawn_stagger = 20;
 
