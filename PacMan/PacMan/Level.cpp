@@ -183,6 +183,10 @@ int Level::CreateLevelScene(int& current_scene)
     p_map = p_mapArray;
     p_teleports = p_level_tps;
 
+    // set pointers to null (no delete!)
+    p_mapArray = nullptr;
+    p_level_tps = nullptr;
+
     // clean
     return 1;
 }
