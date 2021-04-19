@@ -697,7 +697,15 @@ void Game::SetRefreshDelay()
 {
     if (!p_level->is_complete && !game_over)
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(Globals::refresh_delay)); // pause to slow game
+        if (p_controller && p_controller->IsConnected())
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(Globals::refresh_delay_controller)); // pause to slow game
+        }
+        else
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(Globals::refresh_delay)); // pause to slow game
+        }
+        
     }
 }
 
