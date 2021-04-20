@@ -12,6 +12,7 @@ class Player : public Character
 
 private:
     int lives = 3;
+    int extra_lives = 0;
     int score = 0;
     bool ghosts_eaten[4] = { false, false, false, false };
     int fruits_eaten[4] = { 0, 0, 0, 0 };
@@ -37,17 +38,19 @@ public:
     void EatGhost(int ghost_index);
     void EatGhost(char character);
     void ClearEatenGohsts();
+    void ClearEatenFruits();
     bool HasNoLives();
     bool AllGhostsEaten();
     bool PlayerGhostCollision(int ghost_index);
     bool PlayerFruitCollision();
     void CoutPlayer();
     void DeathAnimate(int g);
-    void EatGhostAnimate(int g, bool life);
+    void EatGhostAnimate(bool life);
     void IncrementScore(const Object object_eaten);
     void SetScore(const int score);
     void UpdateMapAfterMove();
     void ResetPlayer();
+    bool CheckExtraLife();
 
     // getters
     char GetMovedIntoSquareContents();

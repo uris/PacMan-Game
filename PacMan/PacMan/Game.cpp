@@ -385,6 +385,12 @@ void Game::MovePlayer()
 
 bool Game::CheckLevelComplete()
 {
+    if (p_player->CheckExtraLife())
+    {
+        // play the sound for bonus
+        SFX(Play::LIFE);
+        p_player->EatGhostAnimate(true);
+    }
     return !p_level->CheckLevelComplete();
 }
 
@@ -425,7 +431,7 @@ bool Game::CheckCollisions()
                     SFX(Play::EAT_GHOST);
                 }
                 // animate player and respawn ghost
-                p_player->EatGhostAnimate(g, true);
+                p_player->EatGhostAnimate(true);
                 p_ghosts[g]->SpawnGhost(p_ghosts[g]->Name(), false);
             }
 
@@ -515,8 +521,7 @@ void Game::SetPlayerState()
             p_ghosts[g]->IsEdible() ? p_ghosts[g]->SetMode(Mode::RUN) : p_ghosts[g]->SetMode(p_ghosts[g]->GetMode());
             p_ghosts[g]->GetMode() == Mode::RUN ? p_ghosts[g]->SetReverseMove(true) : p_ghosts[g]->SetReverseMove(false);
         }
-        if (p_level->level_mode != Mode::RUN)
-            p_player->ClearEatenGohsts();
+        p_player->ClearEatenGohsts();
         p_level->level_mode = Mode::RUN;
         p_level->run_time_start = chrono::high_resolution_clock::now();
         break;
@@ -541,10 +546,10 @@ void Game::PrintStatusBar()
     //Draw draw;
     //Utility utility;
     // get number of lives
-    string format = Utility::Spacer("CCC----00000000----0000", p_level->cols);
+    string format = Utility::Spacer("CCCCC--00000000---0000", p_level->cols);
     string lives;
     
-    for (int i = 1; i < 3; i++)
+    for (int i = 1; i < 4; i++)
     {
         i < p_player->Lives() ? lives = lives + char(Globals::pacman_left_open) : lives = lives +  " ";
     }
@@ -556,13 +561,13 @@ void Game::PrintStatusBar()
     cout << (!p_player->HasNoLives() ? lives : "-");
     Draw::SetColor(7);
     
-    cout << "     ";
+    cout << "   ";
     
     Draw::SetColor(14);
     cout << setfill('0') << setw(8) << p_player->GetScore();
     Draw::SetColor(7);
 
-    cout << "    ";
+    cout << "   ";
     
     p_player->CoutEatenFruits();
 

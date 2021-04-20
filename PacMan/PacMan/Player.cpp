@@ -308,7 +308,7 @@ void Player::DeathAnimate(int g)
 	chomp = false;
 }
 
-void Player::EatGhostAnimate(int g, bool xtra_life)
+void Player::EatGhostAnimate(bool xtra_life)
 {
 	int iterations = xtra_life ? 10 : 5;
 	eat_ghost_animation = true;
@@ -398,6 +398,14 @@ void Player::CoutEatenFruits()
 	Draw::SetColor(7);
 }
 
+void Player::ClearEatenFruits()
+{
+	for (int i = 0; i < 4; i++)
+	{
+		fruits_eaten[i] = false;
+	}
+}
+
 void Player::IncrementScore(const Object object_eaten)
 {
 	switch (object_eaten)
@@ -426,9 +434,51 @@ void Player::IncrementScore(const Object object_eaten)
 	}
 }
 
+bool Player::CheckExtraLife()
+{
+	switch (extra_lives)
+	{
+	case 0:
+		if (score > Globals::base_extra_lives_points)
+		{
+			AddLives(1);
+			extra_lives++;
+			return true;
+		}
+		break;
+	case 1:
+		if (score > Globals::base_extra_lives_points * Globals::extra_life_multiplier)
+		{
+			AddLives(1);
+			extra_lives++;
+			return true;
+		}
+		break;
+	case 2:
+		if (score > Globals::base_extra_lives_points * Globals::extra_life_multiplier * Globals::extra_life_multiplier)
+		{
+			AddLives(1);
+			extra_lives++;
+			return true;
+		}
+		break;
+	case 3:
+		if (score > Globals::base_extra_lives_points * Globals::extra_life_multiplier * Globals::extra_life_multiplier * Globals::extra_life_multiplier)
+		{
+			AddLives(1);
+			extra_lives++;
+			return true;
+		}
+		break;
+	}
+	return false;
+}
+
 void Player::ResetPlayer()
 {
 	lives = 3;
+	extra_lives = 0;
 	score = 0;
 	ClearEatenGohsts();
+	ClearEatenFruits();
 }

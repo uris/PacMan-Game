@@ -234,9 +234,11 @@ struct Globals
     static constexpr char kHASH = 35; // @
     static constexpr char kN = 110; // 'n'
 
-    // Game delay / speed defaults
+    // Game defaults
     static constexpr int gobble_delay = 750; // wait in milliseconds
     static constexpr int player_beat_delay = 1000; // wait in milliseconds
     static constexpr int refresh_delay_controller = 65; //milliseconds
     static constexpr int refresh_delay = 20; //milliseconds
+    static constexpr int base_extra_lives_points = 10350; //10350 = all pellets + 1 fruit + 3*all ghosts
+    static constexpr float extra_life_multiplier = 1.5f;
 }; 
