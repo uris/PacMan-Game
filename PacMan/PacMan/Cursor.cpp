@@ -188,19 +188,17 @@ void Cursor::CycleLongWalls(bool increment)
 
 	if (increment)
 	{
-		if (index_wall_selected < 20)
+		if (index_wall_selected < 19)
 			index_wall_selected++;
-
-		if (index_wall_selected == 20)
+		else if (index_wall_selected == 19)
 			index_wall_selected = 0;
 	}
 	else
 	{
 		if (index_wall_selected > 0)
 			index_wall_selected--;
-
-		if (index_wall_selected == 0)
-			index_wall_selected = 20;
+		else if (index_wall_selected == 0)
+			index_wall_selected = 19;
 	}
 
 	char walls[20] = {
@@ -241,18 +239,16 @@ void Cursor::CycleShortWalls(bool increment)
 {
 	if (increment)
 	{
-		if (index_short_wall_selected < 20)
+		if (index_short_wall_selected < 19)
 			index_short_wall_selected++;
-
-		if (index_short_wall_selected == 20)
+		else if (index_short_wall_selected == 19)
 			index_short_wall_selected = 0;
 	}
 	else
 	{
 		if (index_short_wall_selected > 0)
 			index_short_wall_selected--;
-
-		if (index_short_wall_selected == 0)
+		else if (index_short_wall_selected == 0)
 			index_short_wall_selected = 20;
 	}
 
@@ -294,18 +290,16 @@ void Cursor::CycleFruits(bool increment)
 {
 	if (increment)
 	{
-		if (index_fruits < 4)
+		if (index_fruits < 3)
 			index_fruits++;
-
-		if (index_fruits == 4)
+		else if (index_fruits == 3)
 			index_fruits = 0;
 	}
 	else
 	{
 		if (index_fruits > 0)
 			index_fruits--;
-
-		if (index_fruits == 0)
+		else if (index_fruits == 0)
 			index_fruits = 4;
 	}
 

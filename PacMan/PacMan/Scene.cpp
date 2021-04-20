@@ -1277,6 +1277,10 @@ bool Scene::HasNoDeadEnd(int row, int col)
                 case char(Globals::player_start):
                 case char(Globals::ghost_spawn_target):
                 case char(Globals::fruit):
+                case char(Globals::fCherry) :
+                case char(Globals::fStrawberry) :
+                case char(Globals::fApple) :
+                case char(Globals::fPear) :
                     route_count++;
                     break;
                 default:
@@ -1465,6 +1469,10 @@ void Scene::SetPositionToAccessible(Coord new_position, char** temp)
             case char(Globals::ghost_spawn_target) :
             case char(Globals::space) :
             case char(Globals::fruit) :
+            case char(Globals::fCherry) :
+            case char(Globals::fStrawberry) :
+            case char(Globals::fApple) :
+            case char(Globals::fPear) :
                 is_match = true;
                 break;
             default:
