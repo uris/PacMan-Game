@@ -884,47 +884,92 @@ Resolution Game::GetResolution()
     return res;
 }
 
-void Game::ReadHighScores()
+void Game::ReadSaveHighScores(const string scores)
 {
 
-    ifstream score_board("PacManS.scores");
-    string file_line, marker;
-    int index = 0;
+    if (scores == "")
+    {
+        ifstream score_board("PacManS.scores");
+        string file_line, marker;
+        int index = 0;
 
-    if (score_board) {
+        if (score_board) {
 
-        // file exists and is open 
-        while (getline(score_board, file_line))
-        {
-            // get the user
-            if (file_line.find(':', 0) != std::string::npos)
+            // file exists and is open 
+            while (getline(score_board, file_line))
             {
-                high_scores[index][0] = file_line.substr(0, file_line.find(':', 0));
-                high_scores[index][1] = file_line.substr(file_line.find(':', 0) + 1, file_line.length() - file_line.find(':', 0));
-                index++;
+                // get the user
+                if (file_line.find(':', 0) != std::string::npos)
+                {
+                    high_scores[index][0] = file_line.substr(0, file_line.find(':', 0));
+                    high_scores[index][1] = file_line.substr(file_line.find(':', 0) + 1, file_line.length() - file_line.find(':', 0));
+                    index++;
+                }
             }
+            score_board.close();
         }
-        score_board.close();
+        else
+        {
+            //unable to read file - write sine error code. For now not polished.
+            system("cls");
+            cout << "Can't seem to load the PacMan scenes. Check your code man!" << endl;
+            system("pause");
+            exit(0);
+        }
     }
     else
     {
-        //unable to read file - write sine error code. For now not polished.
-        system("cls");
-        cout << "Can't seem to load the PacMan scenes. Check your code man!" << endl;
-        system("pause");
-        exit(0);
+        // update the high scores file
+        ofstream score_board("PacManS.scores");
+        score_board << scores;
+        score_board.close();
     }
+   
 
 }
 
 void Game::ShowHighScores()
 {
+    // Draw the high scores
+    string str_high_scores = PrintHighScores();
+
+    // if there's a new high score get name and save to file
+    if (str_high_scores.find("#new#", 0) != std::string::npos)
+    {
+        
+        // ask for and get the user name
+        string name = "";
+        cout << endl << endl << " Nice! new high score." << endl << " Enter your name." << endl << endl << " ";
+        Draw::ShowConsoleCursor(true);
+        getline(cin, name);
+
+        // if blank set the name to player
+        if (name == "")
+            name = "Player";
+
+        // trim the name to 9 spaces only
+        if (name.length() > 9)
+            name = name.substr(0, 9);
+
+        // replace the new slot with trimmed user name
+        Utility::ReplaceString(str_high_scores, "#new#", name);
+        
+        // update scores file
+        ReadSaveHighScores(str_high_scores);
+
+        // output the high scores without updates
+        PrintHighScores(true);
+    }
+}
+
+string Game::PrintHighScores(const bool no_update)
+{
     // clear screen
     system("cls");
-    
-    // Reac scores from file
-    ReadHighScores();
-    
+
+    // remove cursor
+    Draw::ShowConsoleCursor(false);
+
     // Draw Title
     string format = "";
     Draw::SetColor(Globals::cWHITE);
@@ -945,21 +990,22 @@ void Game::ShowHighScores()
     cout << format;
 
     cout << endl << endl;
+    
+    // Reac scores from file
+    ReadSaveHighScores();
 
-    // Draw the high scores
     int count = 0, index = 0, score = 0, color = 7;
     string name, spaces, str_high_scores = "";
     bool new_high_score = false;
     format = Utility::Spacer("000 AAAAAAAAA  #########", 30);
-    
+
     while (count < 10)
     {
 
         spaces = "";
         score = stoi(high_scores[index][0]);
 
-        //if (!new_high_score && 50023 > score)
-        if (!new_high_score && p_player->GetScore() > score)
+        if (!no_update && !new_high_score && p_player->GetScore() > score)
         {
             name = " ";
             score = 50023;
@@ -972,7 +1018,7 @@ void Game::ShowHighScores()
             name = high_scores[index][1];
             index++;
             color = Globals::cPELLETS; //yellow
-            
+
         }
 
         // create the name string up to 10 chars
@@ -996,37 +1042,7 @@ void Game::ShowHighScores()
         count++;
     }
 
-    // if there's a new high score get name and save to file
-    if (new_high_score)
-    {
-        
-        // ask for and hget the user name
-        cout << endl << endl << " Nice! new high score." << endl << " Enter your name." << endl << endl << " ";
-        Draw::ShowConsoleCursor(true);
-        getline(cin, name);
-
-        // if blank set the name to player
-        if (name == "")
-            name = "Player";
-
-        // trim the name to 9 spaces only
-        if (name.length() > 9)
-            name = name.substr(0, 9);
-
-        // replace the new slot with trimmed user name
-        Utility::ReplaceString(str_high_scores, "#new#", name);
-        
-        // update the high scores file
-        ofstream scene_file("PacManS.scores");
-        scene_file << str_high_scores;
-        scene_file.close();
-
-        // earse name entry lines
-        Draw::ShowConsoleCursor(false);
-        Draw::CursorTopLeft(6);
-        cout << Draw::WriteEmptyLine(6, 30);
-        Draw::CursorTopLeft(6);
-    }
+    return str_high_scores;
 }
 
 bool Game::PlayOrExit()

@@ -81,8 +81,9 @@ class Game
         void SetRefreshDelay();
         Resolution GetResolution();
         void ResetGame();
-        void ReadHighScores();
+        void ReadSaveHighScores(const string scores = "");
         void ShowHighScores();
+        string PrintHighScores(const bool no_update = false);
         bool PlayOrExit();
         
 };
