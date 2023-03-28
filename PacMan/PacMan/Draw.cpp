@@ -50,7 +50,7 @@ string Draw::WriteEmptyLine(const int length)
     {
         empty_line += " ";
     }
-    return (empty_line);
+    return (empty_line); 
 }
 string Draw::WriteEmptyLine(int height, int length)
 {
@@ -76,6 +76,7 @@ void Draw::SetConsoleSize(const Resolution resolution, const int rows, const int
 
     const float col = 47.0f;
     const float row = 29.0f;
+
 
     switch (resolution)
     {
@@ -105,7 +106,7 @@ void Draw::SetConsoleSize(const Resolution resolution, const int rows, const int
     if (console_size != console_resize)
     {
         MoveWindow(console, ConsoleRect.left, ConsoleRect.top, console_resize.row, console_resize.col, TRUE);
-        SetWindowLong(console, GWL_STYLE, GetWindowLong(console, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX);
+        //SetWindowLong(console, GWL_STYLE, GetWindowLong(console, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX);
         system("cls");
     }
 }
@@ -116,9 +117,83 @@ Coord Draw::GetConsoleSize()
     GetWindowRect(console, &ConsoleRect);
     return { (int)(ConsoleRect.right - ConsoleRect.left), (int)(ConsoleRect.bottom - ConsoleRect.top) };
 }
-string Draw::Credits()
+
+Resolution Draw::GetResolution(const int rows, const int cols)
 {
     
+    Coord console_size = GetConsoleSize();
+
+    if (rows == 24)
+    {
+        switch (console_size.row)
+        {
+        case 305:
+            return Resolution::TINY;
+        case 401:
+            return Resolution::SMALL;
+        case 497:
+            return Resolution::NORMAL;
+        case 617:
+            return Resolution::LARGE;
+        case 689:
+            return Resolution::EXTRA_LARGE;
+        case 881:
+            return Resolution::HUGE;
+        default:
+            return Resolution::NORMAL;
+        }
+    }
+
+    if (rows == 29)
+    {
+        switch (console_size.row)
+        {
+        case 598:
+            return Resolution::TINY;
+        case 786:
+            return Resolution::SMALL;
+        case 974:
+            return Resolution::NORMAL;
+        case 1209:
+            return Resolution::LARGE;
+        case 1350:
+            return Resolution::EXTRA_LARGE;
+        case 1726:
+            return Resolution::HUGE;
+        default:
+            return Resolution::NORMAL;
+        }
+    }
+
+    return Resolution::NORMAL;
+}
+
+bool Draw::SetConsoleFont(const bool pacman_font, const Resolution resolution)
+{
+    int result;
+
+    CONSOLE_FONT_INFOEX info = { 0 };
+    info.cbSize = sizeof(info);
+    info.dwFontSize.Y = (int)resolution; // leave X as zero
+    info.FontWeight = FW_NORMAL;
+    info.FontFamily = FF_DONTCARE;
+    if (!pacman_font)
+        wcscpy_s(info.FaceName, L"Consolas");
+    else
+        wcscpy_s(info.FaceName, L"PacMan Console");
+
+    result = SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), NULL, &info);
+
+    if (result) {
+        Draw::SetConsoleSize(resolution);
+        return true;
+    }
+
+    return false;
+}
+
+string Draw::Credits()
+{
     
     SetConsoleFont(false, GetResolution());
     SetConsoleSize(GetResolution(), 24, 24);
@@ -241,77 +316,10 @@ Resolution Draw::SetResolution()
     return Resolution::NORMAL;
 
 }
-bool Draw::SetConsoleFont(const bool pacman_font, const Resolution resolution)
-{
-    int result;
 
-    CONSOLE_FONT_INFOEX info = { 0 };
-    info.cbSize = sizeof(info);
-    info.dwFontSize.Y = (int)resolution; // leave X as zero
-    info.FontWeight = FW_NORMAL;
-    if (!pacman_font)
-        wcscpy_s(info.FaceName, L"Consolas");
-    else
-        wcscpy_s(info.FaceName, L"PacMan Console");
-
-    result = SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), NULL, &info);
-    
-    if (result)
-        Draw::SetConsoleSize(resolution);
-
-    return true;
-}
 bool Draw::SetPacManFont(const bool pacman_font)
 {
     Resolution resolution = GetResolution();
     SetConsoleFont(pacman_font, resolution);
     return true;
-}
-Resolution Draw::GetResolution(const int rows, const int cols)
-{
-    Coord console_size = GetConsoleSize();
-
-    if (rows == 24)
-    {
-        switch (console_size.row)
-        {
-        case 305:
-            return Resolution::TINY;
-        case 401:
-            return Resolution::SMALL;
-        case 497:
-            return Resolution::NORMAL;
-        case 617:
-            return Resolution::LARGE;
-        case 689:
-            return Resolution::EXTRA_LARGE;
-        case 881:
-            return Resolution::HUGE;
-        default:
-            return Resolution::NORMAL;
-        }
-    }
-
-    if (rows == 29)
-    {
-        switch (console_size.row)
-        {
-        case 598:
-            return Resolution::TINY;
-        case 786:
-            return Resolution::SMALL;
-        case 974:
-            return Resolution::NORMAL;
-        case 1209:
-            return Resolution::LARGE;
-        case 1350:
-            return Resolution::EXTRA_LARGE;
-        case 1726:
-            return Resolution::HUGE;
-        default:
-            return Resolution::NORMAL;
-        }
-    }
-    
-    return Resolution::NORMAL;
 }

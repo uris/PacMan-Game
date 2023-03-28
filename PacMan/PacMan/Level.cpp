@@ -3,6 +3,7 @@
 #include <stdlib.h> // exit
 #include <conio.h> // used to get input without requiring return
 #include "Game.h"
+#include "Draw.h"
 
 using namespace std;
 using namespace std::chrono;
@@ -381,7 +382,7 @@ void Level::DrawLevel()
     Draw::ShowConsoleCursor(false);
 
     // place cursor on top left of console
-    Draw::CursorTopLeft(rows + 5); // + 5 for title and status
+    Draw::CursorTopLeft(rows + 20); // + 5 for title and status
 
     // Level Title
     string format = "";

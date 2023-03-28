@@ -157,6 +157,9 @@
     <ClInclude Include="SoundFX.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="PacMan.scenes">
@@ -165,20 +168,15 @@
     <None Include="PacMan - Copy.scenes">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="pacman_console.vfc">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="PacMan Font Characters.ai">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="PacManS.scores">
       <Filter>Resource Files</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Font Include="pacman_console.ttf">
+    <None Include="pacman_console.vfc">
       <Filter>Resource Files</Filter>
-    </Font>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="pacman_chars.txt">

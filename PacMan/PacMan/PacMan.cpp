@@ -1,4 +1,5 @@
-﻿#include "Game.h"
+﻿#pragma comment(lib, "winmm.lib")
+#include "Game.h"
 #include "Editor.h"
 
 int main()

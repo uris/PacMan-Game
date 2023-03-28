@@ -199,13 +199,13 @@ void Player::CoutPlayer()
 		switch (previous_direction)
 		{
 		case Direction::UP:
-			cout << char(Globals::pacman_up_closed);
+			cout << char(Globals::pacman_up_open);
 			break;
 		case Direction::RIGHT:
 			cout << char(Globals::pacman_right_closed);
 			break;
 		case Direction::DOWN:
-			cout << char(Globals::pacman_down_closed);
+			cout << char(Globals::pacman_down_open);
 			break;
 		case Direction::LEFT:
 			cout << char(Globals::pacman_left_closed);
@@ -225,13 +225,13 @@ void Player::CoutPlayer()
 		switch (previous_direction)
 		{
 		case Direction::UP:
-			cout << char(Globals::pacman_up_open);
+			cout << char(Globals::pacman_up_closed);
 			break;
 		case Direction::RIGHT:
 			cout << char(Globals::pacman_right_open);
 			break;
 		case Direction::DOWN:
-			cout << char(Globals::pacman_down_open);
+			cout << char(Globals::pacman_down_closed);
 			break;
 		case Direction::LEFT:
 			cout << char(Globals::pacman_left_open);

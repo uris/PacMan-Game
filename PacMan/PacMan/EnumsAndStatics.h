@@ -134,8 +134,8 @@ struct Globals
     //pacman
     static constexpr int pacman_left_open = 1;
     static constexpr int pacman_right_open = 2;
-    static constexpr int pacman_up_open = 11;
-    static constexpr int pacman_down_open = 12;
+    static constexpr int pacman_up_open = 128;
+    static constexpr int pacman_down_open = 135;
     static constexpr int pacman_left_closed = 3;
     static constexpr int pacman_right_closed = 4;
     static constexpr int pacman_up_closed = 5;
@@ -238,7 +238,7 @@ struct Globals
     static constexpr int gobble_delay = 750; // wait in milliseconds
     static constexpr int player_beat_delay = 1000; // wait in milliseconds
     static constexpr int refresh_delay_controller = 65; //milliseconds
-    static constexpr int refresh_delay = 65; //milliseconds
+    static constexpr int refresh_delay = 100; //milliseconds
     static constexpr int base_extra_lives_points = 10350; //10350 = all pellets + 1 fruit + 3*all ghosts
     static constexpr float extra_life_multiplier = 1.5f;
 }; 
